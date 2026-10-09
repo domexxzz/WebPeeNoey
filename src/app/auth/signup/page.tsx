@@ -1,0 +1,191 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { signIn } from "next-auth/react";
+import { User, Mail, Lock, LineChart, AlertCircle, ArrowRight, CheckCircle2 } from "lucide-react";
+
+export default function SignUpPage() {
+  const router = useRouter();
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [tradingViewUsername, setTradingViewUsername] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          tradingViewUsername,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "เกิดข้อผิดพลาดในการสมัครสมาชิก");
+        setLoading(false);
+        return;
+      }
+
+      // สมัครสำเร็จ ให้เข้าสู่ระบบอัตโนมัติ
+      const loginRes = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      });
+
+      if (loginRes?.ok) {
+        router.push("/account");
+        router.refresh();
+      } else {
+        router.push("/auth/signin?registered=true");
+      }
+    } catch {
+      setError("ไม่สามารถติดต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง");
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#0B0F17] flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute top-1/3 -left-32 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/3 -right-32 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="max-w-md w-full glass-panel rounded-2xl p-8 border border-white/10 relative z-10 shadow-2xl">
+        <div className="text-center mb-6">
+          <Link href="/" className="inline-flex items-center gap-2 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center font-bold text-black text-xl shadow-glow">
+              P
+            </div>
+            <span className="font-bold text-2xl text-white">Peenoey</span>
+          </Link>
+          <h1 className="text-xl font-semibold text-gray-100">สมัครสมาชิกใหม่</h1>
+          <p className="text-sm text-gray-400 mt-1">
+            เริ่มต้นใช้งานระบบเทรดและเครื่องมือวิเคราะห์ระดับโปร
+          </p>
+        </div>
+
+        {error && (
+          <div className="mb-6 p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-start gap-2.5">
+            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-300 mb-1.5">
+              ชื่อ-นามสกุล หรือชื่อเล่น
+            </label>
+            <div className="relative">
+              <User className="w-5 h-5 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="สมชาย ใจดี"
+                className="w-full bg-[#161F30] border border-white/10 rounded-xl py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500 transition-colors"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-300 mb-1.5">
+              อีเมล
+            </label>
+            <div className="relative">
+              <Mail className="w-5 h-5 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@example.com"
+                className="w-full bg-[#161F30] border border-white/10 rounded-xl py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500 transition-colors"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-300 mb-1.5">
+              รหัสผ่าน (อย่างน้อย 8 ตัวอักษร)
+            </label>
+            <div className="relative">
+              <Lock className="w-5 h-5 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="password"
+                required
+                minLength={8}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full bg-[#161F30] border border-white/10 rounded-xl py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500 transition-colors"
+              />
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-medium text-gray-300">
+                TradingView Username
+              </label>
+              <span className="text-[11px] text-gray-400">สำหรับรับสิทธิ์อินดิเคเตอร์</span>
+            </div>
+            <div className="relative">
+              <LineChart className="w-5 h-5 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={tradingViewUsername}
+                onChange={(e) => setTradingViewUsername(e.target.value)}
+                placeholder="ชื่อบัญชีใน TradingView (ไม่ใส่ก็ได้)"
+                className="w-full bg-[#161F30] border border-white/10 rounded-xl py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500 transition-colors"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full mt-3 py-3 px-4 rounded-xl font-medium text-black bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 transition-all shadow-glow flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {loading ? (
+              <span className="inline-block animate-pulse">กำลังสร้างบัญชี...</span>
+            ) : (
+              <>
+                <span>สร้างบัญชีสมาชิก</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
+          </button>
+        </form>
+
+        <div className="mt-6 pt-6 border-t border-white/10 text-center">
+          <p className="text-sm text-gray-400">
+            มีบัญชีสมาชิกอยู่แล้ว?{" "}
+            <Link
+              href="/auth/signin"
+              className="text-amber-400 hover:text-amber-300 font-medium transition-colors"
+            >
+              เข้าสู่ระบบ
+            </Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

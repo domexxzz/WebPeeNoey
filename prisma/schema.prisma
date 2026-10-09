@@ -1,0 +1,268 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT    // สร้างออเดอร์ รอชำระเงิน
+  SLIP_SUBMITTED     // แนบสลิปแล้ว กำลังรอแอดมินตรวจสอบ
+  APPROVED           // อนุมัติสำเร็จ ได้รับสิทธิ์เรียบร้อย
+  REJECTED           // ปฏิเสธ (เช่น สลิปไม่ตรง / สลิปปลอม)
+  EXPIRED            // ออเดอร์หมดเวลา (ไม่ได้โอนภายในเวลา)
+  REFUNDED           // มีการคืนเงิน
+}
+
+enum SubscriptionStatus {
+  ACTIVE             // กำลังใช้งานปกติ
+  EXPIRING_SOON      // แจ้งเตือนแล้ว (เหลือ <= 3 วัน)
+  EXPIRED            // สิทธิ์หมดอายุแล้ว
+  REVOKED            // ถูกปิดสิทธิ์ก่อนกำหนดโดยแอดมิน
+}
+
+enum PaymentMethod {
+  PROMPTPAY_QR
+  BANK_TRANSFER
+  MANUAL_ADMIN
+}
+
+model User {
+  id                    String         @id @default(cuid())
+  email                 String         @unique
+  name                  String?
+  passwordHash          String?
+  role                  Role           @default(USER)
+  emailVerified         DateTime?
+  image                 String?
+  
+  // Platform identifiers สำหรับการให้สิทธิ์
+  tradingViewUsername   String?
+  discordUserId         String?
+  telegramChatId        String?
+  
+  // ความสัมพันธ์
+  accounts              Account[]
+  sessions              Session[]
+  orders                Order[]
+  subscriptions         Subscription[]
+  auditLogs             AuditLog[]     @relation("AdminAuditLogs")
+  
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  @@index([email])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email, token])
+}
+
+model Plan {
+  id                  String         @id @default(cuid())
+  slug                String         @unique // เช่น 'monthly', 'quarterly', 'biannual', 'annual'
+  name                String         // เช่น 'แพ็กเกจ 1 เดือน'
+  durationDays        Int            // เช่น 30, 90, 180, 365
+  price               Decimal        @db.Decimal(10, 2)
+  originalPrice       Decimal?       @db.Decimal(10, 2)
+  isPromo             Boolean        @default(false)
+  promoLimit          Int?           // โควต้าโปรโมชัน เช่น 300 คนแรก
+  promoEnrolledCount  Int            @default(0)
+  lockPriceForLife    Boolean        @default(false)
+  features            String[]       // ลิสต์รายการฟีเจอร์ในแพ็กเกจ
+  isActive            Boolean        @default(true)
+  sortOrder           Int            @default(0)
+  
+  orders              Order[]
+  subscriptions       Subscription[]
+  
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+}
+
+model Order {
+  id                  String         @id @default(cuid())
+  orderNumber         String         @unique // เช่น ORD-20261010-XXXX
+  userId              String
+  planId              String
+  
+  amount              Decimal        @db.Decimal(10, 2) // ยอดเงินสุทธิ
+  status              OrderStatus    @default(PENDING_PAYMENT)
+  
+  // ข้อมูลสลิป
+  slipUrl             String?
+  slipHash            String?        @unique // SHA-256 ป้องกันสลิปซ้ำเด็ดขาด
+  slipUploadedAt      DateTime?
+  
+  // กระบวนการตรวจสอบ
+  approvedAt          DateTime?
+  approvedByUserId    String?
+  rejectedAt          DateTime?
+  rejectionReason     String?
+  
+  expiresAt           DateTime       // กำหนดเวลาชำระเงิน (ปกติ 30 นาที)
+  
+  user                User           @relation(fields: [userId], references: [id], onDelete: Restrict)
+  plan                Plan           @relation(fields: [planId], references: [id], onDelete: Restrict)
+  payment             Payment?
+  subscription        Subscription?
+  refund              Refund?
+
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  @@index([userId, status])
+  @@index([slipHash])
+  @@index([orderNumber])
+}
+
+model Payment {
+  id                  String         @id @default(cuid())
+  orderId             String         @unique
+  method              PaymentMethod  @default(PROMPTPAY_QR)
+  
+  promptpayTarget     String         // เบอร์โทร/เลขบัตรที่สร้าง QR
+  promptpayPayload    String         @db.Text // Payload มาตรฐาน EMVCo
+  amount              Decimal        @db.Decimal(10, 2)
+  
+  referenceNo         String?        // เลขอ้างอิงธุรกรรมธนาคาร
+  verifiedAt          DateTime?
+  
+  order               Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  createdAt           DateTime       @default(now())
+}
+
+model Subscription {
+  id                  String             @id @default(cuid())
+  userId              String
+  planId              String
+  orderId             String             @unique
+  status              SubscriptionStatus @default(ACTIVE)
+  
+  currentPeriodStart  DateTime
+  currentPeriodEnd    DateTime
+  
+  // ล็อกสิทธิ์ราคาโปรโมชันตลอดชีพ
+  isPriceLocked       Boolean            @default(false)
+  lockedPrice         Decimal?           @db.Decimal(10, 2)
+  
+  // ข้อมูลสิทธิ์การเชื่อมต่อ
+  tradingViewGranted  Boolean            @default(false)
+  discordRoleGranted  Boolean            @default(false)
+  telegramGranted     Boolean            @default(false)
+  
+  // การเพิกถอนสิทธิ์
+  revokedAt           DateTime?
+  revocationReason    String?
+  
+  user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                Plan               @relation(fields: [planId], references: [id], onDelete: Restrict)
+  order               Order              @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  @@index([userId, status])
+  @@index([currentPeriodEnd])
+}
+
+model Refund {
+  id                  String         @id @default(cuid())
+  orderId             String         @unique
+  amount              Decimal        @db.Decimal(10, 2)
+  reason              String
+  processedByUserId   String
+  evidenceUrl         String?        // หลักฐานการโอนเงินคืน
+  
+  order               Order          @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  
+  createdAt           DateTime       @default(now())
+
+  @@index([orderId])
+}
+
+model AuditLog {
+  id                  String         @id @default(cuid())
+  actorId             String         // ID แอดมินผู้กระทำ
+  action              String         // เช่น 'ORDER_APPROVE', 'ORDER_REJECT', 'SUBSCRIPTION_REVOKE', 'REFUND_ISSUE'
+  targetType          String         // 'Order', 'Subscription', 'User', 'System'
+  targetId            String
+  details             Json?          // ข้อมูลการเปลี่ยนแปลงก่อน-หลัง
+  ipAddress           String?
+  
+  actor               User           @relation("AdminAuditLogs", fields: [actorId], references: [id], onDelete: Restrict)
+  
+  createdAt           DateTime       @default(now())
+
+  @@index([actorId])
+  @@index([targetType, targetId])
+  @@index([createdAt])
+}
+
+model RateLimit {
+  id                  String         @id @default(cuid())
+  key                 String         @unique // เช่น 'ip:1.2.3.4:login' หรือ 'user:123:slip'
+  count               Int            @default(1)
+  expiresAt           DateTime
+
+  @@index([key, expiresAt])
+}
+
+model SystemSetting {
+  id                  String         @id @default("default")
+  paymentsEnabled     Boolean        @default(false) // ค่าเริ่มต้น = ปิดรับเงิน ตามกติกา
+  promptpayAccountName String        @default("บริษัท พีน้อย เทรดดิ้ง จำกัด")
+  promptpayNumber     String         @default("0812345678")
+  supportTelegramUrl  String?
+  maintenanceMode     Boolean        @default(false)
+  updatedAt           DateTime       @updatedAt
+}
