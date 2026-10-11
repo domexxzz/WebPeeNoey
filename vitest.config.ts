@@ -9,6 +9,10 @@ export default defineConfig({
   test: {
     environment: "node",
     globals: true,
+    // Integration Test ต้องใช้ PostgreSQL จริง แยกไปรันด้วย npm run test:integration
+    exclude: ["tests/integration/**", "node_modules/**"],
+    // Unit test ห้ามแตะฐานข้อมูล: ตั้งค่าว่างไว้ก่อน (Prisma จะไม่โหลดทับจาก .env) เพื่อให้ rate limiter ใช้ memory store
+    env: { DATABASE_URL: "" },
   },
   resolve: {
     alias: {

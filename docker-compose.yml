@@ -1,0 +1,26 @@
+# PostgreSQL สำหรับพัฒนาบนเครื่อง (ไม่ใช้กับ Production — Production ใช้ Neon ตาม docs/PLAN.md)
+# ค่า POSTGRES_* อ่านจาก .env (สร้างอัตโนมัติด้วย `npm run db:env`)
+services:
+  postgres:
+    image: postgres:16.6-alpine
+    container_name: webpeenoey-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?ตั้งค่า POSTGRES_USER ใน .env (รัน npm run db:env)}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?ตั้งค่า POSTGRES_PASSWORD ใน .env (รัน npm run db:env)}
+      POSTGRES_DB: ${POSTGRES_DB:?ตั้งค่า POSTGRES_DB ใน .env (รัน npm run db:env)}
+    ports:
+      # เปิดเฉพาะบนเครื่องตัวเอง ไม่ให้เครื่องอื่นในวง LAN เข้าถึง
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - webpeenoey-pgdata:/var/lib/postgresql/data
+      # สร้างฐานข้อมูล <POSTGRES_DB>_test สำหรับ Integration Test (รันครั้งแรกที่สร้าง volume เท่านั้น)
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  webpeenoey-pgdata:

@@ -1,5 +1,36 @@
 # เอกสารส่งต่องาน (Project Handoff & Session Log)
 
+## เซสชัน: ตั้งค่าฐานข้อมูลบนเครื่อง (Local PostgreSQL + Seed + Integration Test)
+**วันที่:** 11 ตุลาคม 2026  
+**สถานะปัจจุบัน:** ฐานข้อมูลใช้งานได้จริงแล้ว — migration แรก `20261011161740_init` apply แล้ว, seed แล้ว, Integration Test กับ PostgreSQL จริงผ่าน 7/7, unit test ผ่าน 58/58, `tsc --noEmit` ผ่าน, ล็อกอินแอดมินและเปิด `/admin` ได้ (ตรวจด้วยสคริปต์บน dev server) — **ยังไม่ commit** (รวมกับงาน Phase 2)
+
+### 1. สิ่งที่ทำเสร็จแล้ว
+1. **PostgreSQL 16.15 ติดตั้งตรงบน Windows** (service พอร์ต 5432) ผ่าน `npm run db:install` (`scripts/setup-local-postgres.mjs`) — ใช้แทน Docker เพราะ Docker Desktop เปิด VM ไม่ขึ้น (commit memory เครื่องเต็ม ~37–38/38.9 GB)
+   - ฐานข้อมูล `webpeenoey` (พัฒนา) และ `webpeenoey_test` (Integration Test)
+   - ติดตั้งด้วยรหัส superuser ชั่วคราว แล้วเปลี่ยนเป็นรหัสจริงผ่าน stdin (กันรหัสหลุดใน log ของ winget)
+2. **ไฟล์ Docker สำรองไว้:** `docker-compose.yml` (postgres:16.6-alpine, bind 127.0.0.1 เท่านั้น) + `docker/postgres/init/01-create-test-db.sh` — ใช้ได้เมื่อเครื่องมีหน่วยความจำพอ (ถ้าใช้ ต้องหยุด service PostgreSQL ของ Windows ก่อนเพราะพอร์ตชน)
+3. **`npm run db:env`** (`scripts/setup-local-db-env.mjs`) เติม `POSTGRES_*`, `DATABASE_URL_TEST`, `SEED_ADMIN_PASSWORD` (สุ่ม) ลง `.env` จาก `DATABASE_URL` โดยไม่พิมพ์ค่าออกหน้าจอ
+4. **Migration แรก** `prisma/migrations/20261011161740_init` — ก่อนสร้าง แก้ค่าเริ่มต้น `SystemSetting.promptpayNumber/promptpayAccountName` จากเบอร์/ชื่อบริษัทสมมติ (`0812345678`) เป็นค่าว่าง กันเงินลูกค้าโอนเข้าบัญชีคนอื่นถ้าเปิดรับเงินโดยลืมตั้งค่า
+5. **Seed** (`src/lib/db/seed.ts` + `prisma/seed.ts`, รันด้วย `npm run db:seed` ผ่าน `tsx@4.19.2`): แพ็กเกจ 4 รายการจาก `src/config/plans.ts`, `SystemSetting` (ปิดรับชำระเงิน), บัญชีแอดมินจาก `ADMIN_EMAIL` + `SEED_ADMIN_PASSWORD` — รันซ้ำได้ ไม่ทับรหัสผ่านแอดมิน/ค่าที่แอดมินตั้ง/ตัวนับโปรโมชัน
+6. **Integration Test กับ PostgreSQL จริง** (`npm run test:integration`, `vitest.integration.config.ts`): ใช้ `DATABASE_URL_TEST` เท่านั้น, `global-setup` รัน `prisma migrate deploy` และปฏิเสธฐานข้อมูลที่ไม่ใช่ localhost หรือไม่ลงท้าย `_test`, `resetDatabase()` ล้างทุกตารางก่อนแต่ละเทสต์ — โครงนี้พร้อมใช้กับเทสต์เรื่องเงินใน Phase 3
+7. **Unit test แยกจากฐานข้อมูล:** `vitest.config.ts` ตั้ง `DATABASE_URL=""` (Prisma โหลด `.env` เองอัตโนมัติ ทำให้ rate limiter ใน unit test เคยพยายามต่อฐานข้อมูลจริง)
+
+### 2. วิธีเริ่มบนเครื่องใหม่
+`.env` ตั้ง `DATABASE_URL` → `npm run db:env` → `npm run db:install` (หรือ `npm run db:up` ถ้าใช้ Docker) → `npm run db:migrate` → `npm run db:seed` → `npm run test:integration`  
+บัญชีแอดมินทดสอบ: อีเมล = `ADMIN_EMAIL`, รหัสผ่าน = `SEED_ADMIN_PASSWORD` (ดูใน `.env`)
+
+### 3. กับดักทางเทคนิคที่พบ
+1. **winget/UAC จาก process เบื้องหลังของ agent ถูกยกเลิก** (`0x800704C7`) — ต้องรัน `npm run db:install` ใน terminal ที่ผู้ใช้เห็น เพื่อให้หน้าต่าง UAC ขึ้นได้
+2. **การเชื่อมต่อ PostgreSQL ที่ปิดอยู่บน Windows ใช้เวลา ~4 วินาทีก่อนล้ม** (ลอง ::1 แล้ว 127.0.0.1) — เทสต์ที่พึ่งการ fallback จะ timeout
+3. **`npm run x | grep` ซ่อน exit code** — ดูข้อความผลลัพธ์ อย่าเชื่อ exit 0 ของ pipeline
+
+### 4. ขั้นตอนถัดไป
+1. เจ้าของอนุมัติ commit (Phase 2 + ฐานข้อมูล) และตัดสินใจเรื่องข้อความราคาใน `src/config/plans.ts`
+2. Phase 3: Checkout + PromptPay QR + แนบสลิป (ต้องไม่ยอมเปิด `paymentsEnabled` ถ้ายังไม่กรอกเลข PromptPay จริง) พร้อม Integration Test
+3. หลังบ้าน: `/admin/orders` (อนุมัติ/ปฏิเสธพร้อม idempotency + AuditLog) — ตอนนี้เมนูแอดมิน 5 หน้ายังเป็น 404
+
+---
+
 ## เซสชัน: Phase 2 — หน้าบ้าน, SEO และนโยบาย (Public Site & SEO)
 **วันที่:** 11 ตุลาคม 2026  
 **สถานะปัจจุบัน:** โค้ด Phase 2 ครบ — เทสต์ผ่าน 58/58, `tsc --noEmit` ผ่าน, `npm run build` ผ่าน, ตรวจบน production server แล้ว, ผ่าน code review (แก้ HIGH ข้อ H2 และ MEDIUM/LOW ส่วนใหญ่แล้ว) — **ยังไม่ commit** และรอเจ้าของตรวจภาพหน้าจอ + ตัดสินใจข้อ 2 ก่อนเริ่ม Phase 3

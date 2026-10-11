@@ -1,0 +1,2 @@
+# สคริปต์ที่รันใน Linux container ต้องเป็น LF เสมอ (CRLF ทำให้ /bin/sh รันไม่ได้)
+*.sh text eol=lf

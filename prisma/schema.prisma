@@ -260,8 +260,10 @@ model RateLimit {
 model SystemSetting {
   id                  String         @id @default("default")
   paymentsEnabled     Boolean        @default(false) // ค่าเริ่มต้น = ปิดรับเงิน ตามกติกา
-  promptpayAccountName String        @default("บริษัท พีน้อย เทรดดิ้ง จำกัด")
-  promptpayNumber     String         @default("0812345678")
+  // ค่าเริ่มต้นต้องว่าง: ห้ามมีเลข PromptPay สมมติ เพราะถ้าเปิดรับเงินโดยลืมตั้งค่า เงินลูกค้าจะเข้าบัญชีคนอื่น
+  // ระบบ Checkout (Phase 3) ต้องไม่ยอมเปิด paymentsEnabled จนกว่าจะกรอกเลขบัญชีจริง
+  promptpayAccountName String        @default("")
+  promptpayNumber     String         @default("")
   supportTelegramUrl  String?
   maintenanceMode     Boolean        @default(false)
   updatedAt           DateTime       @updatedAt
