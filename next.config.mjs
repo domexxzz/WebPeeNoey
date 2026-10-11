@@ -18,6 +18,10 @@ export const SECURITY_HEADERS = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
+  experimental: {
+    // สลิปสูงสุด 4MB (src/config/payment.ts) + ข้อมูลฟอร์ม — ค่าเริ่มต้นของ Server Actions คือ 1MB
+    serverActions: { bodySizeLimit: "5mb" },
+  },
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },

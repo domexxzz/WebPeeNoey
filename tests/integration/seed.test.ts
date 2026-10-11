@@ -68,16 +68,19 @@ describe("Integration: database seed (real PostgreSQL)", () => {
     expect(plan.promoEnrolledCount).toBe(7);
   });
 
-  it("promotes an existing member to admin without touching their password", async () => {
+  it("promotes an existing member to admin and replaces their password with the seed password", async () => {
+    // กันกรณีคนนอกสมัครด้วย ADMIN_EMAIL ดักไว้ก่อน (ยังไม่มีการยืนยันอีเมล) แล้วได้สิทธิ์แอดมินพร้อมรหัสผ่านของตัวเอง
     const member = await prisma.user.create({
-      data: { email: "admin.test@example.com", role: "USER", passwordHash: "existing-hash" },
+      data: { email: "admin.test@example.com", role: "USER", passwordHash: "attacker-chosen-hash" },
     });
 
-    await seedDatabase(prisma, OPTIONS);
+    const result = await seedDatabase(prisma, OPTIONS);
 
     const updated = await prisma.user.findUniqueOrThrow({ where: { id: member.id } });
+    expect(result.adminCreated).toBe(false);
     expect(updated.role).toBe("ADMIN");
-    expect(updated.passwordHash).toBe("existing-hash");
+    expect(updated.passwordHash).not.toBe("attacker-chosen-hash");
+    expect(await verifyPassword(OPTIONS.adminPassword, updated.passwordHash!)).toBe(true);
   });
 
   it("rejects weak seed passwords and invalid emails before touching the database", async () => {

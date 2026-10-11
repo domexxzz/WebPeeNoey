@@ -5,7 +5,8 @@ import { HOME_SECTION_IDS, RISK_DISCLAIMER } from "@/config/marketing";
 import { SectionHeading } from "./section-heading";
 
 export function getPlanCtaHref(plan: PlanConfig): string {
-  return `/auth/signup?plan=${encodeURIComponent(plan.slug)}`;
+  // ผู้ที่ยังไม่ล็อกอินจะถูก middleware พาไปเข้าสู่ระบบ/สมัคร แล้วกลับมาหน้านี้อัตโนมัติ
+  return `/checkout/${encodeURIComponent(plan.slug)}`;
 }
 
 function PlanCard({ plan }: { plan: PlanConfig }) {

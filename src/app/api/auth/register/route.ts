@@ -48,8 +48,9 @@ export async function POST(req: NextRequest) {
     }
 
     const passwordHash = await hashPassword(password);
-    const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
-    const role = adminEmail && email === adminEmail ? "ADMIN" : "USER";
+    // การสมัครผ่านหน้าเว็บได้สิทธิ์ USER เสมอ — บัญชีแอดมินสร้าง/เลื่อนขั้นผ่าน `npm run db:seed` เท่านั้น
+    // (เดิมให้ ADMIN ตาม ADMIN_EMAIL โดยไม่ยืนยันอีเมล ทำให้ใครสมัครอีเมลนั้นก่อนได้สิทธิ์แอดมิน)
+    const role = "USER";
 
     const user = await prisma.user.create({
       data: {

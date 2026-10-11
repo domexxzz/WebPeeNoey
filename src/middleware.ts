@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { buildAdminCsp, generateNonce } from "@/lib/csp";
+import { getAuthSecret } from "@/lib/auth-secret";
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const secret = process.env.NEXTAUTH_SECRET || "development-secret-for-jwt-signing-minimum-32chars";
+  const secret = getAuthSecret();
 
   // 1. ดึง Token ความปลอดภัย
   const token = await getToken({ req, secret });
@@ -45,11 +47,22 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  // 5.1 หลังบ้าน: CSP แบบ nonce (สุ่มใหม่ทุกคำขอ) — ส่งใน request header ด้วยเพื่อให้ Next.js ใส่ nonce ให้ script
+  if (pathname.startsWith("/admin")) {
+    const nonce = generateNonce();
+    const csp = buildAdminCsp(nonce, process.env.NODE_ENV === "development");
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set("x-nonce", nonce);
+    requestHeaders.set("Content-Security-Policy", csp);
+    response = NextResponse.next({ request: { headers: requestHeaders } });
+    response.headers.set("Content-Security-Policy", csp);
+  }
+
   // 6. Security Headers ตามกฎความปลอดภัย (กัน Clickjacking และโจมตีอื่นๆ)
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  response.headers.set("X-XSS-Protection", "1; mode=block");
+  response.headers.set("X-XSS-Protection", "0");
   response.headers.set(
     "Permissions-Policy",
     "camera=(), microphone=(), geolocation=()"

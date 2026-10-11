@@ -44,7 +44,7 @@ describe("Phase 1: Password & Cryptographic Security", () => {
   it("should format order numbers with date prefix and unique uppercase suffix", () => {
     const orderNo = generateOrderNumber();
     expect(orderNo.startsWith("ORD-")).toBe(true);
-    expect(orderNo).toMatch(/^ORD-\d{8}-[A-F0-9]{4}$/);
+    expect(orderNo).toMatch(/^ORD-\d{8}-[A-F0-9]{6}$/);
   });
 });
 

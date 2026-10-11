@@ -32,10 +32,13 @@ export function generateSecureToken(): string {
 }
 
 /**
- * สุ่มรหัส Order Number เช่น ORD-20261010-A89F
+ * สุ่มรหัส Order Number เช่น ORD-20261010-A89F3C (วันที่ตามเวลาไทย + สุ่ม 6 หลัก)
+ * ผู้เรียกต้องลองใหม่เมื่อชน unique constraint (โอกาสต่ำมาก)
  */
-export function generateOrderNumber(): string {
-  const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-  const randomSuffix = crypto.randomBytes(2).toString("hex").toUpperCase();
+export function generateOrderNumber(now: Date = new Date()): string {
+  const dateStr = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok", year: "numeric", month: "2-digit", day: "2-digit" })
+    .format(now)
+    .replace(/-/g, "");
+  const randomSuffix = crypto.randomBytes(3).toString("hex").toUpperCase();
   return `ORD-${dateStr}-${randomSuffix}`;
 }

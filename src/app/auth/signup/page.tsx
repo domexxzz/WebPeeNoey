@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
+import { safeCallbackUrl } from "@/lib/safe-redirect";
 import { User, Mail, Lock, LineChart, AlertCircle, ArrowRight, CheckCircle2 } from "lucide-react";
 
 export default function SignUpPage() {
@@ -49,8 +50,9 @@ export default function SignUpPage() {
       });
 
       if (loginRes?.ok) {
-        router.push("/account");
-        router.refresh();
+        // กลับไปหน้าที่ผู้ใช้ตั้งใจไป (เช่น หน้าชำระเงิน) — อ่านจาก URL ตอนกดส่ง จึงไม่ต้องใช้ useSearchParams/Suspense
+        // โหลดหน้าใหม่ทั้งหน้า (ไม่ใช้ router.push + refresh ที่แข่งกันจน middleware เด้งไป /account)
+        window.location.assign(safeCallbackUrl(new URLSearchParams(window.location.search).get("callbackUrl")));
       } else {
         router.push("/auth/signin?registered=true");
       }

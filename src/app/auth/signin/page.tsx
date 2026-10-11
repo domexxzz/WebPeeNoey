@@ -2,14 +2,15 @@
 
 import { Suspense, useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { safeCallbackUrl } from "@/lib/safe-redirect";
 import Link from "next/link";
 import { Lock, Mail, AlertCircle, ArrowRight, ShieldCheck } from "lucide-react";
 
 function SignInContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/account";
+  // กัน Open Redirect: ยอมรับเฉพาะ path ภายในเว็บ
+  const callbackUrl = safeCallbackUrl(searchParams.get("callbackUrl"));
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,8 +34,9 @@ function SignInContent() {
         setError(res.error);
         setLoading(false);
       } else {
-        router.push(callbackUrl);
-        router.refresh();
+        // โหลดหน้าใหม่ทั้งหน้า: router.push + router.refresh แข่งกัน และ refresh หน้า signin ขณะล็อกอินแล้ว
+        // ทำให้ middleware เด้งไป /account ทับปลายทางที่ผู้ใช้ตั้งใจไป (เช่น หน้าชำระเงิน)
+        window.location.assign(callbackUrl);
       }
     } catch {
       setError("เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง");
@@ -128,7 +130,7 @@ function SignInContent() {
         <p className="text-sm text-gray-400">
           ยังไม่มีบัญชีสมาชิก?{" "}
           <Link
-            href="/auth/signup"
+            href={callbackUrl === "/account" ? "/auth/signup" : `/auth/signup?callbackUrl=${encodeURIComponent(callbackUrl)}`}
             className="text-amber-400 hover:text-amber-300 font-medium transition-colors"
           >
             สมัครสมาชิกใหม่

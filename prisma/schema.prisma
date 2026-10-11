@@ -135,6 +135,8 @@ model Order {
   planId              String
   
   amount              Decimal        @db.Decimal(10, 2) // ยอดเงินสุทธิ
+  basePrice           Decimal?       @db.Decimal(10, 2) // ราคาก่อนหักเศษสตางค์
+  priceReason         String?        // LOCKED | PROMO | REGULAR — ใช้ตัดสินโควตาโปรโมชันและการล็อกราคาตอนอนุมัติ
   status              OrderStatus    @default(PENDING_PAYMENT)
   
   // ข้อมูลสลิป
@@ -149,12 +151,21 @@ model Order {
   rejectionReason     String?
   
   expiresAt           DateTime       // กำหนดเวลาชำระเงิน (ปกติ 30 นาที)
+
+  // หลักฐานการยอมรับข้อกำหนด (ใช้เมื่อมีข้อพิพาท)
+  termsAcceptedAt     DateTime?
+  termsVersion        String?        // วันที่มีผลของข้อกำหนดที่ลูกค้ายอมรับ
+  createdIp           String?
+
+  // เวลาที่แจ้งแอดมินเรื่องสลิปสำเร็จ — null = ยังไม่ได้แจ้ง (Cron ส่งซ้ำได้)
+  adminNotifiedAt     DateTime?
   
   user                User           @relation(fields: [userId], references: [id], onDelete: Restrict)
   plan                Plan           @relation(fields: [planId], references: [id], onDelete: Restrict)
   payment             Payment?
   subscription        Subscription?
   refund              Refund?
+  slipUploads         SlipUpload[]
 
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
@@ -164,16 +175,35 @@ model Order {
   @@index([orderNumber])
 }
 
+/// สลิปทุกใบที่เคยอัปโหลด (รวมใบที่ถูกปฏิเสธ) — hash unique ทำให้สลิปเดิมใช้ซ้ำกับออเดอร์ไหนไม่ได้อีก
+/// เก็บไฟล์ในฐานข้อมูลเพื่อให้ใช้ได้ทันทีบน Vercel + Neon; ถ้าปริมาณโตค่อยย้ายไป object storage
+model SlipUpload {
+  id                  String         @id @default(cuid())
+  orderId             String
+  userId              String
+  hash                String         @unique // SHA-256 ของไฟล์
+  mimeType            String
+  sizeBytes           Int
+  data                Bytes
+
+  order               Order          @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  createdAt           DateTime       @default(now())
+
+  @@index([orderId])
+}
+
 model Payment {
   id                  String         @id @default(cuid())
   orderId             String         @unique
   method              PaymentMethod  @default(PROMPTPAY_QR)
   
   promptpayTarget     String         // เบอร์โทร/เลขบัตรที่สร้าง QR
+  promptpayAccountName String        @default("") // ชื่อบัญชีผู้รับ ณ เวลาสร้าง QR (แสดงคู่กับ QR เสมอ)
   promptpayPayload    String         @db.Text // Payload มาตรฐาน EMVCo
   amount              Decimal        @db.Decimal(10, 2)
   
-  referenceNo         String?        // เลขอ้างอิงธุรกรรมธนาคาร
+  referenceNo         String?        @unique // เลขอ้างอิงธุรกรรมธนาคาร — unique กันสลิปที่ถูกแก้ไฟล์แล้วนำมาใช้ซ้ำ (แอดมินกรอกตอนอนุมัติ)
   verifiedAt          DateTime?
   
   order               Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -222,6 +252,7 @@ model Refund {
   reason              String
   processedByUserId   String
   evidenceUrl         String?        // หลักฐานการโอนเงินคืน
+  transferReference   String?        // เลขอ้างอิงการโอนเงินคืน
   
   order               Order          @relation(fields: [orderId], references: [id], onDelete: Restrict)
   

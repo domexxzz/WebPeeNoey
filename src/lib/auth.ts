@@ -5,6 +5,7 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "./prisma";
 import { verifyPassword } from "./security";
 import { checkRateLimit, resetRateLimit } from "./rate-limit";
+import { getAuthSecret } from "./auth-secret";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -109,5 +110,5 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET || "development-secret-for-jwt-signing-minimum-32chars",
+  secret: getAuthSecret(),
 };

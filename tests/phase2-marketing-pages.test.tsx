@@ -61,7 +61,7 @@ describe("Phase 2: Home page", () => {
       expect(html).toContain(formatTHB(plan.price));
       expect(html).toContain(`href="${getPlanCtaHref(plan)}"`);
     });
-    expect(getPlanCtaHref(SITE_PLANS[0])).toBe(`/auth/signup?plan=${SITE_PLANS[0].slug}`);
+    expect(getPlanCtaHref(SITE_PLANS[0])).toBe(`/checkout/${SITE_PLANS[0].slug}`);
   });
 
   it("renders every FAQ question and embeds Product + FAQPage structured data", () => {

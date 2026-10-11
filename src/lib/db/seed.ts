@@ -1,13 +1,14 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
 import { SITE_PLANS } from "@/config/plans";
 import { hashPassword } from "@/lib/security";
+import { SYSTEM_SETTING_ID } from "./constants";
 
 /**
  * ข้อมูลตั้งต้นของระบบ (ใช้ทั้ง `npm run db:seed` และ Integration Test)
  * ทุกขั้นตอนเป็น upsert — รันซ้ำกี่ครั้งก็ได้ผลเหมือนเดิม
  */
 
-export const SYSTEM_SETTING_ID = "default";
+export { SYSTEM_SETTING_ID };
 const MIN_ADMIN_PASSWORD_LENGTH = 12;
 
 export interface SeedOptions {
@@ -66,11 +67,19 @@ async function seedSystemSetting(prisma: PrismaClient): Promise<void> {
 
 async function seedAdmin(prisma: PrismaClient, { adminEmail, adminPassword }: SeedOptions): Promise<boolean> {
   const email = adminEmail.trim().toLowerCase();
-  const existing = await prisma.user.findUnique({ where: { email }, select: { id: true } });
+  const existing = await prisma.user.findUnique({ where: { email }, select: { id: true, role: true } });
+
+  // เป็นแอดมินอยู่แล้ว: ไม่แตะอะไร (ไม่ทับรหัสผ่านที่แอดมินเปลี่ยนเอง)
+  if (existing?.role === "ADMIN") return false;
 
   if (existing) {
-    // มีบัญชีอยู่แล้ว: ยืนยันสิทธิ์ ADMIN แต่ไม่เปลี่ยนรหัสผ่านที่ผู้ใช้อาจตั้งใหม่ไปแล้ว
-    await prisma.user.update({ where: { email }, data: { role: "ADMIN" } });
+    // บัญชีสมาชิกทั่วไปที่ใช้ ADMIN_EMAIL: เลื่อนเป็นแอดมินพร้อมตั้งรหัสผ่านเป็น SEED_ADMIN_PASSWORD
+    // เพราะยังไม่มีการยืนยันอีเมล — บัญชีนี้อาจถูกคนอื่นสมัครดักไว้ก่อน รหัสผ่านเดิมจึงเชื่อไม่ได้
+    await prisma.user.update({
+      where: { email },
+      data: { role: "ADMIN", passwordHash: await hashPassword(adminPassword) },
+    });
+    console.warn("[seed] บัญชี ADMIN_EMAIL มีอยู่แล้วในฐานะสมาชิก — เลื่อนเป็นแอดมินและเปลี่ยนรหัสผ่านเป็น SEED_ADMIN_PASSWORD");
     return false;
   }
 
