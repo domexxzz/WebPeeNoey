@@ -2,6 +2,8 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { getAdminActor } from "@/lib/admin/guard";
 import {
   ShieldAlert,
   LayoutDashboard,
@@ -27,7 +29,8 @@ export default async function AdminLayout({
     redirect("/auth/signin?callbackUrl=/admin");
   }
 
-  if (session.user.role !== "ADMIN") {
+  // ตรวจ role จากฐานข้อมูลด้วย (JWT อาจเก่า เช่น แอดมินถูกลดสิทธิ์แล้วแต่ token ยังไม่หมดอายุ)
+  if (session.user.role !== "ADMIN" || !(await getAdminActor(prisma, session.user.id))) {
     redirect("/account?error=unauthorized_admin");
   }
 

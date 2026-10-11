@@ -1,0 +1,108 @@
+import type { Metadata } from "next";
+import { requireAdminPage } from "@/lib/admin/page-guard";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
+import { prisma } from "@/lib/prisma";
+import { daysUntil, formatBaht, formatDate, formatDateTime } from "@/lib/format";
+import { getMemberDetail } from "@/lib/admin/members";
+import { ActionForm } from "@/components/admin/action-form";
+import { AdminCard, AdminOrderBadge, DefinitionList, inputClass, labelClass, SubscriptionBadge } from "@/components/admin/admin-ui";
+import { ProvisioningPanel } from "@/components/admin/provisioning-panel";
+import { revokeMemberAction } from "../../actions";
+
+export const metadata: Metadata = { title: "รายละเอียดสมาชิก", robots: { index: false, follow: false } };
+export const dynamic = "force-dynamic";
+
+export default async function AdminMemberDetailPage({ params }: { params: { id: string } }) {
+  await requireAdminPage();
+  const now = new Date();
+  const member = await getMemberDetail(prisma, { userId: params.id, now });
+  if (!member) notFound();
+  const { membership } = member;
+
+  return (
+    <div className="space-y-6">
+      <Link href="/admin/members" className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-white">
+        <ArrowLeft className="w-4 h-4" aria-hidden="true" /> กลับไปรายชื่อสมาชิก
+      </Link>
+      <h1 className="font-heading text-2xl font-bold text-white break-all">{member.email}</h1>
+
+      <AdminCard title="ข้อมูลสมาชิก">
+        <DefinitionList
+          items={[
+            { label: "ชื่อ", value: member.name ?? "—" },
+            { label: "บทบาท", value: member.role === "ADMIN" ? "แอดมิน" : "สมาชิก" },
+            { label: "TradingView Username", value: member.tradingViewUsername ?? "—" },
+            { label: "Discord User ID", value: member.discordUserId ?? "—" },
+            { label: "สมัครเมื่อ", value: formatDateTime(member.createdAt) },
+            {
+              label: "สถานะสิทธิ์",
+              value: membership.active && membership.endsAt ? `ใช้งานได้ถึง ${formatDate(membership.endsAt)} (อีก ${daysUntil(membership.endsAt, now)} วัน)` : "ไม่มีสิทธิ์ที่ใช้งานอยู่",
+            },
+          ]}
+        />
+      </AdminCard>
+
+      <AdminCard title="ช่วงสิทธิ์ทั้งหมด">
+        {member.subscriptions.length === 0 ? (
+          <p className="text-sm text-gray-400">ยังไม่มี</p>
+        ) : (
+          <ul className="space-y-4">
+            {member.subscriptions.map((subscription) => (
+              <li key={subscription.id} className="rounded-lg border border-white/10 p-4 space-y-3">
+                <div className="flex flex-wrap items-center gap-3 text-sm text-gray-300">
+                  <SubscriptionBadge status={subscription.status} />
+                  <span>{subscription.plan.name}</span>
+                  <span>{formatDate(subscription.currentPeriodStart)} → {formatDate(subscription.currentPeriodEnd)}</span>
+                  <span className="font-mono text-xs text-gray-400">{subscription.order.orderNumber}</span>
+                  {subscription.isPriceLocked && subscription.lockedPrice !== null && (
+                    <span className="text-xs text-amber-300">ล็อกราคา {formatBaht(subscription.lockedPrice)}</span>
+                  )}
+                </div>
+                {subscription.revocationReason && <p className="text-xs text-red-300">ปิดสิทธิ์: {subscription.revocationReason}</p>}
+                {(subscription.status === "ACTIVE" || subscription.status === "EXPIRING_SOON" || subscription.tradingViewGranted || subscription.discordRoleGranted || subscription.telegramGranted) && (
+                  <ProvisioningPanel subscription={subscription} />
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </AdminCard>
+
+      <AdminCard title="คำสั่งซื้อ">
+        {member.orders.length === 0 ? (
+          <p className="text-sm text-gray-400">ยังไม่มี</p>
+        ) : (
+          <ul className="divide-y divide-white/5 text-sm">
+            {member.orders.map((order) => (
+              <li key={order.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                <Link href={`/admin/orders/${order.id}`} className="font-mono text-amber-300 hover:underline">{order.orderNumber}</Link>
+                <span className="text-gray-400">{order.plan.name} · {formatDate(order.createdAt)}</span>
+                <span className="font-mono text-white">{formatBaht(order.amount)}</span>
+                <AdminOrderBadge status={order.status} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </AdminCard>
+
+      {membership.active && (
+        <AdminCard title="ปิดสิทธิ์ฉุกเฉิน" className="border-red-500/40">
+          <p className="text-xs text-red-200">ปิดทุกช่วงสิทธิ์ที่ใช้งานอยู่และที่รอเริ่มทันที ใช้เมื่อพบการละเมิดข้อกำหนด (เช่น แชร์บัญชี) — ไม่ใช่การคืนเงิน</p>
+          <ActionForm action={revokeMemberAction} submitLabel="ปิดสิทธิ์ทันที" pendingLabel="กำลังปิดสิทธิ์..." tone="danger">
+            <input type="hidden" name="userId" value={member.id} />
+            <div>
+              <label className={labelClass} htmlFor="revokeReason">เหตุผล (บันทึกใน Audit Log)</label>
+              <input id="revokeReason" name="reason" required minLength={2} maxLength={300} className={inputClass} />
+            </div>
+            <label className="flex items-start gap-2 text-sm text-gray-300">
+              <input type="checkbox" name="confirmRevoke" required className="mt-1 accent-red-500" />
+              ยืนยันการปิดสิทธิ์ของ {member.email}
+            </label>
+          </ActionForm>
+        </AdminCard>
+      )}
+    </div>
+  );
+}

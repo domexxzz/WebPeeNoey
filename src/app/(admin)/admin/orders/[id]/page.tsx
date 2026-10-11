@@ -1,0 +1,210 @@
+import type { Metadata } from "next";
+import { requireAdminPage } from "@/lib/admin/page-guard";
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { ArrowLeft, ExternalLink, ShieldAlert } from "lucide-react";
+import { prisma } from "@/lib/prisma";
+import { formatBaht, formatDateTime, formatFileSize } from "@/lib/format";
+import { getAdminOrderDetail, type AdminOrderDetail } from "@/lib/admin/orders-query";
+import { REJECTION_PRESETS } from "@/lib/admin/messages";
+import { AUDIT_ACTIONS, type AuditAction } from "@/lib/admin/audit";
+import { ActionForm } from "@/components/admin/action-form";
+import { AdminCard, AdminOrderBadge, DefinitionList, inputClass, labelClass, SubscriptionBadge } from "@/components/admin/admin-ui";
+import { ProvisioningPanel } from "@/components/admin/provisioning-panel";
+import { approveOrderAction, refundOrderAction, rejectOrderAction } from "../../actions";
+
+export const metadata: Metadata = { title: "ตรวจสอบคำสั่งซื้อ", robots: { index: false, follow: false } };
+export const dynamic = "force-dynamic";
+
+function SlipViewer({ order }: { order: AdminOrderDetail }) {
+  const [latest, ...older] = order.slips;
+  if (!latest) return <p className="text-sm text-gray-400">ยังไม่มีสลิป</p>;
+  return (
+    <div className="space-y-3">
+      <a href={`/api/slips/${latest.id}`} target="_blank" rel="noopener noreferrer" className="group block">
+        {/* สลิปเป็นไฟล์ที่ต้องตรวจสิทธิ์ทุกครั้ง จึงไม่ผ่าน image optimizer (unoptimized) */}
+        <div className="relative mx-auto aspect-[9/16] max-h-[640px] w-full overflow-hidden rounded-lg bg-black/40">
+          <Image src={`/api/slips/${latest.id}`} alt={`สลิปของคำสั่งซื้อ ${order.orderNumber}`} fill unoptimized sizes="(min-width: 1024px) 420px, 100vw" className="object-contain" />
+        </div>
+        <span className="mt-2 inline-flex items-center gap-1 text-xs text-amber-300 group-hover:underline">
+          เปิดภาพเต็ม <ExternalLink className="w-3 h-3" aria-hidden="true" />
+        </span>
+      </a>
+      <p className="text-xs text-gray-400">
+        อัปโหลด {formatDateTime(latest.createdAt)} · {formatFileSize(latest.sizeBytes)} · SHA-256 {latest.hash.slice(0, 12)}…
+      </p>
+      {older.length > 0 && (
+        <details className="text-xs text-gray-400">
+          <summary className="cursor-pointer">สลิปก่อนหน้า ({older.length})</summary>
+          <ul className="mt-2 space-y-1">
+            {older.map((slip) => (
+              <li key={slip.id}>
+                <a href={`/api/slips/${slip.id}`} target="_blank" rel="noopener noreferrer" className="text-amber-300 hover:underline">
+                  {formatDateTime(slip.createdAt)}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+    </div>
+  );
+}
+
+function ReviewForms({ order }: { order: AdminOrderDetail }) {
+  return (
+    <div className="grid gap-4">
+      <AdminCard title="อนุมัติ">
+        <ActionForm action={approveOrderAction} submitLabel="อนุมัติและเปิดสิทธิ์" pendingLabel="กำลังอนุมัติ...">
+          <input type="hidden" name="orderId" value={order.id} />
+          <div>
+            <label className={labelClass} htmlFor="referenceNo">เลขอ้างอิงธุรกรรม (จากสลิป/แอปธนาคาร)</label>
+            <input id="referenceNo" name="referenceNo" required autoComplete="off" className={inputClass} placeholder="เช่น 2026101112345678" />
+          </div>
+          <label className="flex items-start gap-2 text-sm text-gray-300">
+            <input type="checkbox" name="confirmReceived" required className="mt-1 accent-emerald-500" />
+            ตรวจแล้วว่ามีเงิน {formatBaht(order.amount)} บาท เข้าบัญชี {order.payment?.promptpayAccountName || "ผู้รับ"} จริง
+          </label>
+        </ActionForm>
+      </AdminCard>
+      <AdminCard title="ปฏิเสธสลิป">
+        <ActionForm action={rejectOrderAction} submitLabel="ปฏิเสธสลิป" pendingLabel="กำลังบันทึก..." tone="danger">
+          <input type="hidden" name="orderId" value={order.id} />
+          <div>
+            <label className={labelClass} htmlFor="reasonPreset">เหตุผล</label>
+            <select id="reasonPreset" name="reasonPreset" className={inputClass} defaultValue="">
+              <option value="">— เลือกเหตุผล —</option>
+              {REJECTION_PRESETS.map((reason) => (
+                <option key={reason} value={reason}>
+                  {reason}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="reasonDetail">รายละเอียดเพิ่มเติม (ลูกค้าจะเห็นข้อความนี้)</label>
+            <textarea id="reasonDetail" name="reasonDetail" rows={2} maxLength={200} className={inputClass} />
+          </div>
+        </ActionForm>
+      </AdminCard>
+    </div>
+  );
+}
+
+function RefundForm({ order }: { order: AdminOrderDetail }) {
+  return (
+    <AdminCard title="คืนเงิน">
+      <p className="flex items-start gap-2 text-xs text-amber-200">
+        <ShieldAlert className="w-4 h-4 shrink-0" aria-hidden="true" />
+        โอนเงินคืนให้ลูกค้าก่อน แล้วจึงบันทึกที่นี่ — ระบบจะปิดสิทธิ์ของคำสั่งซื้อนี้ทันที และคืนเงินซ้ำไม่ได้
+      </p>
+      <ActionForm action={refundOrderAction} submitLabel="บันทึกการคืนเงิน" pendingLabel="กำลังบันทึก..." tone="danger">
+        <input type="hidden" name="orderId" value={order.id} />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label className={labelClass} htmlFor="amount">ยอดคืน (สูงสุด {formatBaht(order.amount)})</label>
+            <input id="amount" name="amount" type="number" step="0.01" min="0.01" max={order.amount} defaultValue={order.amount} required className={inputClass} />
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="transferReference">เลขอ้างอิงการโอนคืน</label>
+            <input id="transferReference" name="transferReference" autoComplete="off" className={inputClass} />
+          </div>
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="refundReason">เหตุผล</label>
+          <input id="refundReason" name="reason" required minLength={2} maxLength={300} className={inputClass} />
+        </div>
+        <label className="flex items-start gap-2 text-sm text-gray-300">
+          <input type="checkbox" name="confirmRefund" required className="mt-1 accent-red-500" />
+          ยืนยันว่าโอนเงินคืนให้ลูกค้าแล้ว
+        </label>
+      </ActionForm>
+    </AdminCard>
+  );
+}
+
+export default async function AdminOrderDetailPage({ params }: { params: { id: string } }) {
+  await requireAdminPage();
+  const order = await getAdminOrderDetail(prisma, params.id);
+  if (!order) notFound();
+
+  return (
+    <div className="space-y-6">
+      <Link href="/admin/orders" className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-white">
+        <ArrowLeft className="w-4 h-4" aria-hidden="true" /> กลับไปรายการคำสั่งซื้อ
+      </Link>
+
+      <header className="flex flex-wrap items-center gap-3">
+        <h1 className="font-mono text-2xl font-bold text-white">{order.orderNumber}</h1>
+        <AdminOrderBadge status={order.status} />
+        {order.priceReason && <span className="text-xs text-gray-400">ราคา: {order.priceReason}</span>}
+      </header>
+
+      <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
+        <AdminCard title="สลิปการโอน">
+          <SlipViewer order={order} />
+        </AdminCard>
+
+        <div className="space-y-6">
+          <AdminCard title="ข้อมูลคำสั่งซื้อ">
+            <p className="font-heading text-3xl font-bold text-emerald-300">
+              {formatBaht(order.amount)} <span className="text-base text-gray-400">บาท</span>
+            </p>
+            <DefinitionList
+              items={[
+                { label: "ลูกค้า", value: <Link href={`/admin/members/${order.user.id}`} className="text-amber-300 hover:underline">{order.user.email}</Link> },
+                { label: "TradingView Username", value: order.user.tradingViewUsername ?? "—" },
+                { label: "Discord User ID", value: order.user.discordUserId ?? "—" },
+                { label: "แพ็กเกจ", value: `${order.plan.name} (${order.plan.durationDays} วัน)` },
+                { label: "บัญชีผู้รับใน QR", value: `${order.payment?.promptpayAccountName || "—"} · ${order.payment?.promptpayTarget ?? "—"}` },
+                { label: "เลขอ้างอิงธนาคาร", value: order.payment?.referenceNo ?? "—" },
+                { label: "สร้างเมื่อ", value: formatDateTime(order.createdAt) },
+                { label: "ยอมรับข้อกำหนด", value: order.termsAcceptedAt ? `${formatDateTime(order.termsAcceptedAt)} (v${order.termsVersion}) · IP ${order.createdIp ?? "—"}` : "—" },
+              ]}
+            />
+            {order.rejectionReason && <p className="text-sm text-red-300">เหตุผลที่ปฏิเสธล่าสุด: {order.rejectionReason}</p>}
+          </AdminCard>
+
+          {order.status === "SLIP_SUBMITTED" && <ReviewForms order={order} />}
+          {order.status === "APPROVED" && <RefundForm order={order} />}
+
+          {order.subscription && (
+            <AdminCard title="สิทธิ์จากคำสั่งซื้อนี้">
+              <div className="flex flex-wrap items-center gap-3 text-sm text-gray-300">
+                <SubscriptionBadge status={order.subscription.status} />
+                {formatDateTime(order.subscription.currentPeriodStart)} → {formatDateTime(order.subscription.currentPeriodEnd)}
+                {order.subscription.isPriceLocked && <span className="text-xs text-amber-300">ล็อกราคา</span>}
+              </div>
+              <ProvisioningPanel subscription={order.subscription} />
+            </AdminCard>
+          )}
+
+          {order.refund && (
+            <AdminCard title="การคืนเงิน">
+              <p className="text-sm text-gray-300">
+                คืน {formatBaht(order.refund.amount)} บาท เมื่อ {formatDateTime(order.refund.createdAt)} — {order.refund.reason}
+                {order.refund.transferReference && ` (อ้างอิง ${order.refund.transferReference})`}
+              </p>
+            </AdminCard>
+          )}
+
+          <AdminCard title="ประวัติการดำเนินการ">
+            {order.auditLogs.length === 0 ? (
+              <p className="text-sm text-gray-400">ยังไม่มี</p>
+            ) : (
+              <ol className="space-y-2 text-sm">
+                {order.auditLogs.map((log) => (
+                  <li key={log.id} className="text-gray-300">
+                    <span className="text-white">{AUDIT_ACTIONS[log.action as AuditAction] ?? log.action}</span> โดย {log.actorEmail} ·{" "}
+                    <span className="text-gray-400">{formatDateTime(log.createdAt)}</span>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </AdminCard>
+        </div>
+      </div>
+    </div>
+  );
+}

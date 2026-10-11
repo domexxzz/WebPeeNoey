@@ -1,5 +1,101 @@
 # เอกสารส่งต่องาน (Project Handoff & Session Log)
 
+## เซสชัน: Phase 4 — ระบบหลังบ้านแอดมิน
+**วันที่:** 12 ตุลาคม 2026  
+**สถานะ:** Phase 4 เสร็จ + แก้ตามผล security review แล้ว — unit 138/138, Integration กับ PostgreSQL จริง 76/76, `tsc` ผ่าน, `next build` ผ่าน, smoke test บน production build ผ่าน (ไม่ล็อกอิน → 307 ไปหน้า signin; แอดมินเปิดได้ทั้ง 7 หน้า + หน้าสมาชิก, CSP มี nonce และไม่มี `unsafe-inline` ใน script-src, `X-Frame-Options: DENY`, script ทุกตัวมี nonce ตรงกับ header) — **ยังไม่ commit** (Phase 3 ก็ยังไม่ commit — รอเจ้าของอนุมัติ แยก commit ตามเฟส)
+
+### หน้าเว็บหลังบ้าน
+- `/admin` แดชบอร์ด (`src/lib/admin/dashboard.ts`): ยอดขายสุทธิ = รับเข้า (APPROVED + REFUNDED) − คืนเงิน คำนวณด้วย aggregate ใน DB, สมาชิกนับ "รายคน" (ไม่ใช่รายช่วงสิทธิ์), ใกล้หมดอายุนับจากวันสิ้นสุดของช่วงที่ต่อทบกันทั้งหมด (คนที่ต่ออายุไว้แล้วไม่นับ), แถบเตือนเมื่อมีสิทธิ์ที่ต้องถอดด้วยมือ
+- `/admin/orders`: แท็บ + จำนวน + ค้นหาเลขออเดอร์/อีเมล/เลขอ้างอิง (คิวรอตรวจเรียงเก่าสุดก่อน), แสดง "ยังไม่ได้แจ้งเตือน" เมื่อ Telegram ส่งไม่สำเร็จ, ทำออเดอร์ค้างที่หมดเวลาให้เป็น EXPIRED ก่อนนับ
+- `/admin/orders/[id]`: ดูสลิป (next/image `unoptimized` ผ่าน `/api/slips/[id]`), อนุมัติ (ต้องกรอกเลขอ้างอิง + ติ๊กยืนยันว่าเงินเข้า), ปฏิเสธ (เหตุผลสำเร็จรูป + รายละเอียด), คืนเงิน (ติ๊กยืนยันว่าโอนคืนแล้ว), เช็กลิสต์เปิดสิทธิ์, ประวัติ
+- `/admin/members` + `/admin/members/[id]`: สถานะสมาชิก/วันหมดอายุ, ช่วงสิทธิ์ทั้งหมด, ปิดสิทธิ์ฉุกเฉิน, เช็กลิสต์ถอดสิทธิ์ของช่วงที่ปิดแล้ว
+- `/admin/audit-logs` (กรองตาม action), `/admin/settings` (Kill-switch + PromptPay), `/admin/status` (ไม่แสดงค่า env, มีคิว "สิทธิ์ที่ปิดแล้วแต่ยังต้องถอด")
+
+### Service layer (`src/lib/admin/`)
+- `guard.ts` (`getAdminActor` ตรวจ role จาก DB), `page-guard.ts` (`requireAdminPage` — ทุกหน้า /admin เรียกบรรทัดแรก, มีเทสต์บังคับครบทุกหน้า)
+- `audit.ts`: `writeAudit` ใน transaction เดียวกัน + `listAuditLogs`; ตาราง AuditLog เป็น append-only ด้วย DB trigger (`audit_log_no_update_delete`)
+- `membership.ts`: ต่อทบวัน `nextPeriodFor`, `repackFutureSegments` (เลื่อนช่วงที่ยังไม่เริ่มมาต่อกันหลังคืนเงิน/ปิดสิทธิ์), สรุปสถานะสมาชิก
+- `order-review.ts`: approve/reject/refund ใช้ `SELECT … FOR UPDATE` + advisory lock `membership:<userId>`, เลขอ้างอิงธนาคาร unique, ห้ามอนุมัติออเดอร์ตัวเอง (`SELF_APPROVAL`), นับที่นั่งโปรครั้งเดียวต่อคน, oversell แจ้งแอดมินทั้งบนจอ + Telegram + audit
+- `members.ts`, `settings.ts` (ล็อกแถวตั้งค่าก่อนอ่านค่า "ก่อน"), `orders-query.ts`, `health.ts`, `dashboard.ts`, `messages.ts`
+- `src/app/(admin)/admin/actions.ts`: ทุก action ตรวจแอดมินจาก DB; error ไม่คาดคิด → log + Telegram; เปลี่ยนการตั้งค่ารับเงิน → Telegram ทุกครั้ง; path ที่ revalidate คำนวณฝั่ง server (ไม่รับจากฟอร์ม); บอกแอดมินเมื่อส่งอีเมลลูกค้าไม่สำเร็จ
+
+### แก้ตามผล Security Review (Phase 4)
+- HIGH: หน้า /admin ทุกหน้าตรวจสิทธิ์เอง (layout ถูกข้ามได้ตอน soft navigation) → `requireAdminPage` + เทสต์ครอบคลุมทุกไฟล์ `page.tsx`
+- HIGH: `NEXTAUTH_SECRET` ห้ามว่าง/สั้นกว่า 32 ตัวใน production (`src/lib/auth-secret.ts`) ใช้ทั้ง auth และ middleware
+- ตรวจรูปแบบ IP ก่อนบันทึก (`isValidIp`), จำกัดเลขหน้า (`parsePage`), `X-XSS-Protection: 0`
+- คืนเงินกลางช่วงที่ต่อทบ → ช่วงถัดไปเลื่อนเข้ามาต่อทันที (ไม่มีช่องว่าง) + audit บอกจำนวนช่วงที่เลื่อน
+- AuditLog แก้/ลบไม่ได้ในระดับ DB, audit การปิดสิทธิ์เก็บสถานะช่องทางของทุกช่วงที่ถูกปิด
+- อีเมลทุกฉบับ escape HTML (รวมอีเมลรีเซ็ตรหัสผ่าน), production ที่ไม่มี `RESEND_API_KEY` คืน false + log error (ไม่แกล้งว่าส่งสำเร็จ)
+- แดชบอร์ดไม่โหลดทุกออเดอร์มาบวกเงินอีกต่อไป (aggregate)
+
+### ข้อควรรู้ / ยังไม่ได้ทำ (ตั้งใจเลื่อนไว้)
+- เปิด/ถอดสิทธิ์ TradingView/Discord/Telegram ยังเป็นงานมือ — ระบบช่วยแค่เช็กลิสต์ + คิวเตือน + Audit Log
+- คืนเงินไม่คืนที่นั่งโปรโมชัน (`promoEnrolledCount` ไม่ลด)
+- ยังไม่มี: ยืนยันรหัสผ่านซ้ำก่อนทำ action เสี่ยง (step-up re-auth), ปุ่มย้อนกลับ (undo) ของปฏิเสธ/ปิดสิทธิ์, rate limit สำหรับ admin actions, การบันทึกความพยายามเข้าหลังบ้านที่ถูกปฏิเสธลง DB (ตอนนี้แค่ redirect), ตัวบอกว่ารายการถูกตัด (รายละเอียดสมาชิกแสดงล่าสุด 50 รายการ)
+- Next.js 14 หมดอายุซัพพอร์ต มี advisory ที่ต้องอัปเกรดเป็น 15.5.x — แยกเป็นงาน "Upgrade Next.js 14.2 to 15.5"
+- ฐานข้อมูล dev: ปิดรับเงินอยู่, มีออเดอร์ทดสอบที่อนุมัติแล้ว 1 รายการ และผู้ใช้ทดสอบ E2E 2 บัญชี
+
+### ขั้นตอนถัดไป
+1. เจ้าของอนุมัติ → commit Phase 3 และ Phase 4 แยกกัน (เฉพาะไฟล์ที่เกี่ยวข้อง)
+2. Phase 5: Cron (หมดอายุ/แจ้งเตือนก่อนหมด 3 วัน — ใช้ `getMemberCounts`/ตรรกะรายคนเดียวกัน), Telegram bot + watchdog ตาม CLAUDE.md ข้อ 5
+3. อัปเกรด Next.js 15.5
+
+---
+
+## เซสชัน: Phase 3 — สั่งซื้อ, PromptPay QR และแนบสลิป (Checkout)
+**วันที่:** 11 ตุลาคม 2026  
+**สถานะปัจจุบัน:** โค้ด Phase 3 ครบ + แก้ตามผล security review แล้ว — unit test 104/104, Integration Test กับ PostgreSQL จริง 43/43, `tsc` ผ่าน, `next build` ผ่าน (Next 14.2.35), ทดสอบ E2E ในเบราว์เซอร์จริงผ่าน — **ยังไม่ commit** (รออนุมัติจากเจ้าของ)
+
+### แก้ตามผล Security Review (ไม่มี CRITICAL)
+- **[HIGH] Open redirect bypass** `/.//evil.com` → `safeCallbackUrl` ตรวจซ้ำหลัง normalize (+เทสต์ 6 รูปแบบ)
+- **[HIGH] สลิปที่แก้ไฟล์ 1 byte ได้ hash ใหม่** → `Payment.referenceNo` เป็น unique แล้ว; **Phase 4 ต้องบังคับให้แอดมินกรอกเลขอ้างอิงธนาคารตอนอนุมัติ** (hash ไฟล์กันได้เฉพาะไฟล์เดียวกันทุก byte)
+- **[HIGH] เศษสตางค์ชนกันข้ามผู้ใช้** → advisory lock ต่อราคา (ลำดับ: ผู้ใช้ → ราคา) + ใช้ครบ 99 ค่าแล้วตอบ `CHECKOUT_BUSY` แทนการใช้ยอดซ้ำ (+เทสต์ 10 คนพร้อมกัน)
+- **[MEDIUM] Rate limiter ไม่ atomic / fail-open** → `INSERT ... ON CONFLICT ... RETURNING` + `failClosed` สำหรับ endpoint เงิน + นับก่อนตรวจไฟล์ (+เทสต์ 20 คำขอพร้อมกัน)
+- **[MEDIUM] QR กับชื่อบัญชีไม่ตรงกัน / ปิดรับเงินแล้ว QR ยังแสดง** → เก็บ `Payment.promptpayAccountName` ตอนสร้าง QR และซ่อน QR (`paymentSuspended`) เมื่อปิดรับเงินหรือเปลี่ยนเลข PromptPay
+- **[MEDIUM] ห้ามล้มเงียบ** → error ไม่คาดคิดแจ้ง Telegram แอดมิน, `Order.adminNotifiedAt` (null = ยังไม่ได้แจ้ง ให้ Cron ส่งซ้ำ — Cron ยังไม่ได้ทำ), revalidate ล้มเหลวไม่ทำให้ผู้ใช้เห็นว่าสลิปส่งไม่สำเร็จ
+- **[MEDIUM] ราคาเปลี่ยนระหว่างหน้ายืนยันกับตอนกดซื้อ** → ส่ง `expectedBasePrice` ตอบ `PRICE_CHANGED`; **โควตาโปรโมชันต้องตรวจซ้ำตอนอนุมัติใน Phase 4**
+- **[MEDIUM] Next.js 14.2.24 มี CVE-2025-29927 (ข้าม middleware)** → อัปเป็น 14.2.35; **ยังเหลือ critical 2 ตัวที่แก้ได้เฉพาะ Next 15.5.24+** (RCE บน Windows host — ไม่กระทบ Vercel, RCE ผ่าน Image Optimization + AVIF — ไม่มี remotePatterns) → แยกเป็นงาน "Upgrade Next.js 14.2 to 15.5"
+- **[MEDIUM] สมัครด้วย ADMIN_EMAIL ได้สิทธิ์แอดมินทันที (ไม่ยืนยันอีเมล)** → สมัครผ่านเว็บได้ USER เสมอ; seed เลื่อนบัญชีเดิมเป็นแอดมินพร้อมตั้งรหัสผ่านเป็น `SEED_ADMIN_PASSWORD` (กันคนสมัครดักไว้ก่อน)
+- **[LOW]** `?error=__proto__` ทำหน้าล่ม → ใช้ `hasOwnProperty`; บันทึก `termsAcceptedAt`/`termsVersion`/`createdIp`; นับถอยหลังชดเชยนาฬิกาเครื่องผู้ใช้ + ลองรีเฟรชซ้ำ; หน้า `/account/orders` อัปเดตออเดอร์หมดอายุครั้งเดียว; แก้ line ending ปนกันใน `signin/page.tsx`
+- **เพิ่มเทสต์ที่ขาด:** server actions (13), components (QR, ฟอร์มสลิป, countdown, badge), สิทธิ์ดูสลิป, rate limiter, registration
+- **ยังไม่ได้ทำ (บันทึกไว้):** แยกไฟล์สลิปไป object storage + นโยบายระยะเวลาเก็บสลิป (มีข้อมูลบัญชีธนาคาร), `bodySizeLimit: 5mb` มีผลกับทุก server action
+
+### 1. สิ่งที่ทำเสร็จแล้ว
+1. **ตาราง `SlipUpload`** (migration `phase3_slip_uploads`): เก็บไฟล์สลิปทุกใบในฐานข้อมูล (bytea) พร้อม `hash` unique — สลิปที่เคยถูกปฏิเสธก็นำกลับมาใช้ซ้ำไม่ได้
+2. **Service ระบบเงิน** `src/lib/orders/*` (รับ PrismaClient เป็นพารามิเตอร์ ทดสอบกับ DB จริงได้):
+   - `getPaymentAvailability` — Kill-switch: ต้องเปิด `paymentsEnabled` + ไม่ใช่ `maintenanceMode` + มีเลข PromptPay ถูกรูปแบบ + ชื่อบัญชี
+   - `createOrder` — `pg_advisory_xact_lock` ต่อผู้ใช้กันกดซ้ำ (ออเดอร์แพ็กเกจเดิมที่ยังไม่หมดเวลาถูกนำกลับมาใช้), จำกัดออเดอร์ค้าง 3 รายการ, ราคา LOCKED → PROMO (ยังมีโควตา) → REGULAR, หักเศษสตางค์ 1–99 ที่ยังไม่ชนกับออเดอร์ค้างอื่น, สร้าง Payment + EMVCo payload
+   - `submitSlip` — ตรวจขนาด/Magic Bytes ก่อนแตะ DB, `SELECT ... FOR UPDATE` ล็อกแถวออเดอร์, กันสลิปซ้ำด้วย unique hash (จับ P2002 กรณีส่งพร้อมกัน), รับสลิปได้ช่วงชำระเงิน + ช่วงผ่อนผัน 30 นาที + ออเดอร์ REJECTED
+   - `getOrderForUser` / `listOrdersForUser` — เฉพาะเจ้าของ, หมดอายุแบบ lazy (บันทึก EXPIRED ตอนมีคนเปิดดู)
+3. **หน้าเว็บ:** `/checkout/[plan]` (สรุปราคา + ยอมรับข้อกำหนด), `/checkout/order/[orderId]` (QR SVG + นับถอยหลัง + แนบสลิป + สถานะทุกแบบ), `/account/orders`
+4. **Server Actions** (`src/app/(account)/checkout/actions.ts`): rate limit ต่อผู้ใช้, log ข้อผิดพลาดทุกครั้ง, แจ้ง Telegram แอดมินเมื่อมีสลิปใหม่ (ถ้าไม่ได้ตั้ง token จะ log `[notify:telegram]` — ไม่ล้มเงียบ)
+5. **ปุ่มเลือกแพ็กเกจ** ไป `/checkout/<slug>` — ผู้ที่ยังไม่ล็อกอินถูกพาไปเข้าสู่ระบบ/สมัคร แล้วกลับมาหน้าชำระเงินอัตโนมัติ
+6. **แก้ช่องโหว่ Open Redirect** ใน `/auth/signin` (`callbackUrl` ผ่าน `safeCallbackUrl()`), และแก้บั๊ก `router.push` + `router.refresh` แข่งกันจนหลังล็อกอิน/สมัครเด้งไป `/account` แทนปลายทาง (ใช้ `window.location.assign`)
+7. **เลขออเดอร์** ใช้วันที่ตามเวลาไทย + สุ่ม 6 หลัก (เดิม 4 หลัก ชนกันง่ายที่ ~300 ออเดอร์/วัน) และลองใหม่ถ้าชน
+8. **ดูสลิป `/api/slips/[id]`:** เฉพาะเจ้าของออเดอร์หรือแอดมิน (ตรวจ role แอดมินจาก DB ซ้ำ ไม่เชื่อ session อย่างเดียว), ตอบ 404 เหมือนกันทั้งไม่มีสิทธิ์/ไม่พบ, header `inline` + `nosniff` + `CSP: default-src 'none'; sandbox` + `no-store`
+9. **บั๊กที่ integration test จับได้:** ตรวจทศนิยมยอดเงินด้วย `amount * 100` ผิดเพราะ floating point (เช่น 2489.99) — แก้ด้วยค่าเผื่อ + เทสต์ไล่ทุกราคา × ทุกเศษสตางค์
+
+### 2. การตัดสินใจที่ควรรู้
+- **หักเศษสตางค์ (ไม่บวกเพิ่ม)** ลูกค้าไม่ต้องจ่ายเกินราคาที่ประกาศ
+- **ขนาดสลิปสูงสุด 4MB** (เดิมแผน 5MB) เพราะ Vercel รับ request body ไม่เกิน 4.5MB; ตั้ง `serverActions.bodySizeLimit: "5mb"`
+- **โควตาโปรโมชันนับตอนอนุมัติ (Phase 4)** ออเดอร์ที่รอชำระไม่จองที่นั่ง
+- **ราคาล็อก** ใช้ Subscription ล่าสุดของแพ็กเกจเดียวกันที่ `isPriceLocked` และไม่ถูก REVOKE
+
+### 3. สิ่งที่ค้างอยู่
+- **Phase 4 (หลังบ้าน):** `/admin/orders` (แสดงสลิปจาก `Order.slipUrl` → `/api/slips/<id>` ซึ่งมีแล้ว), อนุมัติ/ปฏิเสธพร้อม idempotency + AuditLog + เพิ่ม `promoEnrolledCount`, หน้า `/admin/settings` สำหรับกรอก PromptPay และเปิด/ปิดรับเงิน (ตอนนี้ต้องแก้ใน DB เอง)
+- **ตั้งค่า Telegram** (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_ADMIN_CHAT_ID`) และอีเมลแจ้งผล (Resend)
+- **ESLint ยังไม่ได้ตั้งค่า** (`next lint` ถามให้เลือก config) — ควรตั้งแบบ Strict
+- ข้อมูลทดสอบใน DB พัฒนา: สมาชิก `e2e-*@example.com` 2 บัญชี + ออเดอร์ทดสอบ 3 รายการ (1 รายการมีสลิปรอตรวจ — ใช้ทดสอบ Phase 4 ได้); ค่า E2E อยู่ใน `.env` (`E2E_MEMBER_*`)
+
+### 4. กับดักทางเทคนิคที่พบ
+1. **ยอดเงินทศนิยม:** อย่าเทียบ `x * 100` ตรง ๆ — ใช้ค่าเผื่อ หรือคำนวณเป็นสตางค์ (integer)
+2. **Prisma `$queryRaw` กับฟังก์ชันที่คืน `void`** (เช่น `pg_advisory_xact_lock`) deserialize ไม่ได้ — ใช้ `$executeRaw`
+3. **Error ใน interactive transaction ทำให้ทั้ง transaction ใช้ต่อไม่ได้** — เช็กเลขออเดอร์ซ้ำก่อน insert แทนการจับ P2002 แล้วลองใหม่ใน transaction เดิม
+4. **tsconfig target ES5** — ห้ามวนลูป `for...of` / spread บน `Set`/`Buffer` ในโค้ดที่ tsc ตรวจ (รวมไฟล์เทสต์) ใช้ `Array.from`
+5. **E2E ด้วย chrome-devtools ในโหมดจำลองมือถือ (touch)** คลิกปุ่ม submit อาจไม่ติด — ใช้ `form.requestSubmit()` แทน
+
+---
+
 ## เซสชัน: ตั้งค่าฐานข้อมูลบนเครื่อง (Local PostgreSQL + Seed + Integration Test)
 **วันที่:** 11 ตุลาคม 2026  
 **สถานะปัจจุบัน:** ฐานข้อมูลใช้งานได้จริงแล้ว — migration แรก `20261011161740_init` apply แล้ว, seed แล้ว, Integration Test กับ PostgreSQL จริงผ่าน 7/7, unit test ผ่าน 58/58, `tsc --noEmit` ผ่าน, ล็อกอินแอดมินและเปิด `/admin` ได้ (ตรวจด้วยสคริปต์บน dev server) — **ยังไม่ commit** (รวมกับงาน Phase 2)
