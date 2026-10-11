@@ -41,8 +41,8 @@ const config: Config = {
         }
       },
       fontFamily: {
-        sans: ["var(--font-prompt)", "var(--font-inter)", "sans-serif"],
-        heading: ["var(--font-prompt)", "sans-serif"],
+        sans: ["var(--font-body)", "system-ui", "sans-serif"],
+        heading: ["var(--font-prompt)", "var(--font-body)", "sans-serif"],
       },
       boxShadow: {
         glow: "0 0 25px -5px rgba(245, 158, 11, 0.25)",

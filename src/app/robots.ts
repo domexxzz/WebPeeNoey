@@ -1,0 +1,13 @@
+import type { MetadataRoute } from "next";
+import { PRIVATE_PATH_PREFIXES, absoluteUrl } from "@/lib/seo";
+
+export default function robots(): MetadataRoute.Robots {
+  return {
+    rules: {
+      userAgent: "*",
+      allow: "/",
+      disallow: PRIVATE_PATH_PREFIXES,
+    },
+    sitemap: absoluteUrl("/sitemap.xml"),
+  };
+}
