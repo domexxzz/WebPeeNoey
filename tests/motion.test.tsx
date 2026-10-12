@@ -19,6 +19,7 @@ import { HeroSection } from "@/components/marketing/hero-section";
 import { Phrases } from "@/components/marketing/phrases";
 import { PricingSection } from "@/components/marketing/pricing-section";
 import { FeaturesSection } from "@/components/marketing/features-section";
+import { HowItWorksSection } from "@/components/marketing/how-it-works-section";
 import { MotionRuntime } from "@/components/motion/motion-runtime";
 import { MotionToggle } from "@/components/motion/motion-toggle";
 import { PromptPayQr } from "@/components/checkout/promptpay-qr";
@@ -136,6 +137,12 @@ describe("animated markup", () => {
     expect(html.match(/data-reveal="up"/g)?.length).toBeGreaterThanOrEqual(SITE_PLANS.length);
     expect(html.match(/mx-beam-frame/g)?.length ?? 0).toBe(SITE_PLANS.filter((plan) => plan.popular).length);
     expect(html).toContain("data-loop");
+  });
+
+  it("clips the how-it-works section horizontally so cards sliding in from the right never widen the page", () => {
+    const html = renderToStaticMarkup(<HowItWorksSection />);
+    expect(html).toMatch(/<section[^>]*class="[^"]*overflow-x-clip/);
+    expect(html.match(/data-reveal="right"/g)?.length).toBeGreaterThan(0);
   });
 
   it("reveals feature rows and keeps the feature art decorative", () => {

@@ -5,6 +5,7 @@ import { SectionHeading } from "./section-heading";
 /**
  * การ์ดซ้อนกันบนพื้นเขียว — ใบสุดท้ายตัดเฉียงให้ดูมีจังหวะ (เฉพาะจอ md ขึ้นไป)
  * เลื่อนมาถึง: การ์ดสไลด์เข้าทีละใบ ตัวเลขเลื่อนขึ้นจากใต้เส้น และเส้นด้านซ้ายเติมตามการเลื่อนหน้า
+ * overflow-x-clip: การ์ดที่ยังไม่เผยเลื่อนมาจากขวาจะไม่ล้นจอจนเลื่อนแนวนอนได้ (clip ไม่ทำให้หัวข้อ sticky เสีย ต่างจาก hidden)
  */
 const CARD_OFFSETS = ["md:ml-0", "md:ml-10", "md:ml-20", "md:ml-6"];
 
@@ -14,7 +15,7 @@ export function HowItWorksSection() {
     <section
       aria-labelledby={`${HOME_SECTION_IDS.howItWorks}-heading`}
       id={HOME_SECTION_IDS.howItWorks}
-      className="scroll-mt-20 bg-signal text-ink"
+      className="scroll-mt-20 overflow-x-clip bg-signal text-ink"
     >
       <div className="grid gap-12 px-4 sm:px-6 lg:px-10 py-20 sm:py-28 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.4fr)]">
         <div className="lg:sticky lg:top-28 lg:self-start">
