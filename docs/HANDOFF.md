@@ -1,5 +1,37 @@
 # เอกสารส่งต่องาน (Project Handoff & Session Log)
 
+## เซสชัน: Deploy ขึ้น Vercel (production)
+**วันที่:** 12 ตุลาคม 2026  
+**สถานะ:** ออนไลน์แล้วที่ **https://webpeenoey.vercel.app** (commit `14d5929`) — build บน Vercel ผ่าน (19/19 หน้า), smoke test บน production ผ่าน: หน้า public + auth ได้ 200, หน้าที่ต้องล็อกอินเด้งไป signin (307), `X-Frame-Options: DENY` / nosniff / HSTS ครบ, canonical เป็น URL จริง, cron / watchdog / webhook ไม่มี secret ได้ 401, console เบราว์เซอร์ไม่มี error — **ยังไม่ได้ทดสอบหลังล็อกอินบน production** (ให้เจ้าของล็อกอินแอดมินเอง)
+
+### 1. ที่ตั้งค่าแล้ว
+- Vercel project `webpeenoey` (ทีม `domezzxxs-projects`, Hobby) — ฟังก์ชันรันที่ `sin1` (สิงคโปร์), `vercel.json` มี `framework: nextjs` (โปรเจกต์สร้างจาก CLI จึงไม่ได้ตรวจเฟรมเวิร์กให้), `vercel-build` = `prisma generate && next build`
+- ฐานข้อมูล: Neon (Vercel Marketplace, แพ็กเกจฟรี) ชื่อ `webpeenoey-db` ภูมิภาค `ap-southeast-1` — env `DATABASE_URL` (pooled) / `DATABASE_URL_UNPOOLED` (direct, ใช้ตอน migrate) ถูกเพิ่มให้อัตโนมัติ
+- migrate ครบ 7 รายการ + seed แล้ว: แพ็กเกจ 4 รายการ, ระบบรับชำระเงิน**ปิดไว้** (ยังไม่ได้ตั้ง PromptPay), บัญชีแอดมิน = `ADMIN_EMAIL`
+- env production: `NEXT_PUBLIC_APP_URL` / `NEXTAUTH_URL` = https://webpeenoey.vercel.app, `NEXT_PUBLIC_SITE_*`, `NEXT_PUBLIC_SUPPORT_TELEGRAM`, `ADMIN_EMAIL`, `NEXTAUTH_SECRET` + `CRON_SECRET` (สร้างใหม่, Sensitive — อ่านกลับจาก Vercel ไม่ได้)
+- ค่าความลับของ production (รหัสผ่านแอดมินครั้งแรก, `CRON_SECRET`) อยู่ในไฟล์ `.env.vercel-secrets.local` บนเครื่อง dev (gitignored) — **ย้ายเข้า password manager แล้วลบไฟล์**
+
+### 2. วิธี deploy รอบถัดไป (จนกว่าจะแก้ข้อ 3)
+- Deploy จากสำเนาโค้ดที่ commit แล้ว (ไม่มี `.git`): `git archive HEAD` → แตกไฟล์ในโฟลเดอร์ชั่วคราว → คัดลอก `.vercel/project.json` → `vercel deploy --prod --cwd <โฟลเดอร์นั้น>`
+- ถ้า deploy จากโฟลเดอร์โปรเจกต์ตรง ๆ Vercel จะ **BLOCKED**: "commit author doesn't have permission" — อีเมลผู้ commit ใน git ผูกกับบัญชี Vercel อีกบัญชี ไม่ใช่ `domezzxx` (Hobby ไม่รองรับหลายคน)
+- migration ใหม่: `vercel env pull <ไฟล์นอกโปรเจกต์> --environment production` แล้วรัน `prisma migrate deploy` ด้วย `DATABASE_URL_UNPOOLED` — ห้ามดึง env ไว้เป็น `.env.production.local` ในโปรเจกต์ (จะทับค่าตอน build/start บนเครื่อง)
+
+### 3. กับดักที่เจอ
+- `vercel link` เพิ่ม `.env*` ใน `.gitignore` (จะ ignore `.env.example` ด้วย) และสร้าง `.env.local` — คืนค่าแล้ว
+- `vercel integration add neon` ดาวน์โหลด `.agents/` + `skills-lock.json` เข้าโปรเจกต์ — ลบแล้ว
+- `vercel git connect` ล้มเหลว (Vercel ยังเข้าถึง repo `domexxzz/WebPeeNoey` ไม่ได้) จึงยังไม่มี auto-deploy ตอน push
+- เครื่อง dev หน่วยความจำไม่พอ → Vercel CLI ล้มด้วย `Fatal process out of memory` ต้องปิดโปรแกรมอื่นก่อน
+
+### 4. ขั้นตอนถัดไป
+1. เจ้าของล็อกอินแอดมินบน production → ตั้งบัญชี PromptPay ที่ `/admin/settings` แล้วเปิดรับชำระเงิน → ตรวจ `/admin/status`
+2. ตั้ง `RESEND_API_KEY` + `EMAIL_FROM` (ถ้าไม่มี ส่งอีเมลใบเสร็จ / ลืมรหัสผ่าน / เตือนหมดอายุไม่ได้)
+3. บอท Telegram: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ADMIN_CHAT_ID`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET` แล้วรัน `npm run telegram:webhook`
+4. GitHub Actions secrets (watchdog / backup) ตามหัวข้อ Phase 5 — `CRON_SECRET` ใช้ค่าเดียวกับ Vercel, `vars.APP_URL` = https://webpeenoey.vercel.app
+5. แก้ให้ deploy อัตโนมัติจาก GitHub: เพิ่มอีเมลที่ใช้ commit เข้าบัญชี Vercel `domezzxx` (Account Settings → Emails) หรือเชื่อม GitHub `domexxzz` กับบัญชีนี้ แล้วรัน `vercel git connect` ใหม่
+6. ผูกโดเมน `peenoey.com` เมื่อพร้อม → เปลี่ยน `NEXT_PUBLIC_APP_URL` / `NEXTAUTH_URL` แล้ว deploy ใหม่
+
+---
+
 ## เซสชัน: รีดีไซน์หน้าบ้านตามสไตล์ "Finance App Landing Page (Bold)"
 **วันที่:** 12 ตุลาคม 2026  
 **สถานะ:** ทั้งเว็บใช้ธีมเดียวกันแล้ว (หน้าบ้าน, สมาชิก/ชำระเงิน, auth, หลังบ้าน) — unit 173/173, Integration กับ PostgreSQL จริง 113/113, `tsc` ผ่าน, `next build` ผ่าน (19/19 หน้า), smoke test บน production build ผ่าน: หน้าสาธารณะ + auth 10 หน้าได้ 200, สมาชิกเปิด /account /account/orders /checkout/monthly ได้ (500 ที่เคยเจอบน dev server เกิดจากหน่วยความจำหมด ไม่ใช่บั๊ก — บน production ได้ 200), แอดมินเปิดได้ทั้ง 6 หน้า + CSP nonce/`X-Frame-Options: DENY` ครบ, cron/watchdog/webhook Telegram ผ่าน, ไม่มี error ใน log เซิร์ฟเวอร์และ console เบราว์เซอร์ — ตรวจหน้าตาจาก HTML ที่ render จริง (มือถือ 375px / จอ 1280px ไม่มีเนื้อหาล้นจอ) และบน production server — ยังไม่ commit
