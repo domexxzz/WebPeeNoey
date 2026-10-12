@@ -1,0 +1,12 @@
+# ไฟล์ที่ห้ามอัปโหลดขึ้น Vercel ตอน deploy ด้วย CLI (vercel deploy) — CLI ไม่อ่าน .gitignore
+# ค่าความลับต้องตั้งใน Vercel → Settings → Environment Variables เท่านั้น
+.env
+.env.*
+!.env.example
+.claude
+.vercel
+.next
+node_modules
+coverage
+backups
+*.log
