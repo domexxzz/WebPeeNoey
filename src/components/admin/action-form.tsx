@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 import type { AdminActionState } from "@/app/(admin)/admin/actions";
 
@@ -43,7 +44,7 @@ interface ActionFormProps {
  * ส่วนการกันซ้ำจริงอยู่ที่ service (row lock + ตรวจสถานะ)
  */
 export function ActionForm({ action, submitLabel, pendingLabel = "กำลังดำเนินการ...", tone = "primary", children, className = "" }: ActionFormProps) {
-  const [state, formAction] = useFormState(action, INITIAL_STATE);
+  const [state, formAction] = useActionState(action, INITIAL_STATE);
   return (
     <form action={formAction} className={`space-y-3 ${className}`}>
       {children}

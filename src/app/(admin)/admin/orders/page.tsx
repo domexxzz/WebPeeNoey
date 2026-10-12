@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "จัดการคำสั่ง
 export const dynamic = "force-dynamic";
 
 interface PageProps {
-  searchParams: { tab?: string; q?: string; page?: string };
+  searchParams: Promise<{ tab?: string; q?: string; page?: string }>;
 }
 
 function tabHref(tab: AdminOrderTab, q?: string, page?: number) {
@@ -22,10 +22,11 @@ function tabHref(tab: AdminOrderTab, q?: string, page?: number) {
 }
 
 export default async function AdminOrdersPage({ searchParams }: PageProps) {
+  const query = await searchParams;
   await requireAdminPage();
-  const tab = parseAdminOrderTab(searchParams.tab);
-  const q = searchParams.q?.trim().slice(0, 100) || undefined;
-  const page = parsePage(searchParams.page);
+  const tab = parseAdminOrderTab(query.tab);
+  const q = query.q?.trim().slice(0, 100) || undefined;
+  const page = parsePage(query.page);
   const { items, total, counts, pageSize } = await listAdminOrders(prisma, { tab, q, page });
 
   return (

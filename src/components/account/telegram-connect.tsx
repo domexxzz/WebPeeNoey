@@ -1,6 +1,6 @@
 "use client";
 
-import { useFormState } from "react-dom";
+import { useActionState } from "react";
 import { BellRing, CheckCircle2, ExternalLink } from "lucide-react";
 import { createTelegramLinkAction, unlinkTelegramAction, type TelegramLinkState } from "@/app/(account)/account/telegram-actions";
 import { SubmitButton } from "@/components/checkout/submit-button";
@@ -15,7 +15,7 @@ const initialState: TelegramLinkState = { status: "idle" };
 
 /** เชื่อมบัญชีกับบอท Telegram เพื่อรับแจ้งเตือนก่อนสิทธิ์หมดอายุ */
 export function TelegramConnect({ enabled, linked, linkedAtLabel }: TelegramConnectProps) {
-  const [state, formAction] = useFormState(createTelegramLinkAction, initialState);
+  const [state, formAction] = useActionState(createTelegramLinkAction, initialState);
 
   return (
     <div className="glass-panel rounded-2xl p-6 border border-white/10 space-y-3">

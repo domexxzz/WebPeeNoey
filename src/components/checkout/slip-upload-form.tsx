@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useFormState } from "react-dom";
+import { useActionState, useState } from "react";
 import { CheckCircle2, ImageUp, XCircle } from "lucide-react";
 import { PAYMENT_RULES } from "@/config/payment";
 import { submitSlipAction, type SlipFormState } from "@/app/(account)/checkout/actions";
@@ -11,7 +10,7 @@ const INITIAL_STATE: SlipFormState = { status: "idle" };
 const MAX_BYTES = PAYMENT_RULES.slipMaxSizeMb * 1024 * 1024;
 
 export function SlipUploadForm({ orderId }: { orderId: string }) {
-  const [state, formAction] = useFormState(submitSlipAction, INITIAL_STATE);
+  const [state, formAction] = useActionState(submitSlipAction, INITIAL_STATE);
   const [clientError, setClientError] = useState<string | null>(null);
 
   // ตรวจขนาดก่อนส่ง เพื่อไม่ต้องอัปโหลดไฟล์ใหญ่ทิ้ง (server ตรวจซ้ำอีกครั้งเสมอ)

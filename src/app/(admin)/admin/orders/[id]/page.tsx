@@ -124,9 +124,10 @@ function RefundForm({ order }: { order: AdminOrderDetail }) {
   );
 }
 
-export default async function AdminOrderDetailPage({ params }: { params: { id: string } }) {
+export default async function AdminOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   await requireAdminPage();
-  const order = await getAdminOrderDetail(prisma, params.id);
+  const order = await getAdminOrderDetail(prisma, id);
   if (!order) notFound();
 
   return (

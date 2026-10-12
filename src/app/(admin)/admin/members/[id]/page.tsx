@@ -14,10 +14,11 @@ import { revokeMemberAction } from "../../actions";
 export const metadata: Metadata = { title: "รายละเอียดสมาชิก", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
-export default async function AdminMemberDetailPage({ params }: { params: { id: string } }) {
+export default async function AdminMemberDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   await requireAdminPage();
   const now = new Date();
-  const member = await getMemberDetail(prisma, { userId: params.id, now });
+  const member = await getMemberDetail(prisma, { userId: id, now });
   if (!member) notFound();
   const { membership } = member;
 

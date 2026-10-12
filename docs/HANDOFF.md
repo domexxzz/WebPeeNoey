@@ -1,5 +1,32 @@
 # เอกสารส่งต่องาน (Project Handoff & Session Log)
 
+## เซสชัน: อัปเกรด Next.js 15.5 + ปิดช่องเลี่ยง rate limit (สมัคร / ล็อกอิน / ลืมรหัสผ่าน)
+**วันที่:** 12 ตุลาคม 2026  
+**สถานะ:** เสร็จ + แก้ตามผล security review แล้ว — unit 173/173, Integration กับ PostgreSQL จริง 113/113, `tsc` ผ่าน, `next build` ผ่าน (Next 15.5.27), smoke test บน production build ผ่านทุกหน้า (แอดมิน/สมาชิก/checkout/cron/webhook), ทดสอบฟอร์มล็อกอินในเบราว์เซอร์จริงผ่าน, dev server ไม่มีคำเตือน sync dynamic API — `npm audit --omit=dev` = 0 ช่องโหว่ — ยังไม่ commit (รอเจ้าของอนุมัติ แยก 2 commit)
+
+### 1. ปิดช่องเลี่ยง rate limit ด้วย header ปลอม
+- เดิม: สมัคร/ลืมรหัสผ่าน/ล็อกอิน ใช้ `x-forwarded-for` ดิบเป็น key → ส่งค่าใหม่ทุกครั้งก็ไม่โดนจำกัด (ล็อกอินเดารหัสผ่านได้ไม่จำกัด, ยิงอีเมลรีเซ็ตใส่เหยื่อได้)
+- `src/lib/request.ts`: `clientIpFromHeaders` / `rateLimitIp` — ใช้ `x-real-ip` (Vercel ตั้งเอง) ก่อน แล้วค่อย `x-forwarded-for` ตัวแรก; ตรวจด้วย `net.isIP` (ไม่รับ `a:1`, `01.2.3.4`, zone id); ค่าปลอมทั้งหมดใช้ถัง `unknown-ip` เดียวกัน; **IPv6 นับรวมทั้ง /64** และ IPv4-mapped นับเป็น IPv4 (สลับที่อยู่ในบล็อกเดียวกันเลี่ยงไม่ได้)
+- ล็อกอิน (`src/lib/login.ts`): จำกัด 2 ชั้น — ต่อ IP+อีเมล 5 ครั้ง และ **ต่ออีเมล 10 ครั้ง** ใน 15 นาที (สลับ IP ก็เดารหัสต่อไม่ได้); สำเร็จแล้วล้างทั้งสองชั้น; อีเมลที่ไม่มีบัญชีก็ตรวจกับ hash หลอก (เวลาตอบเท่ากัน เดาอีเมลจากเวลาไม่ได้); อีเมลยาวเกิน 254 ตัวปฏิเสธทันที; **บัญชีแอดมินถูกล็อกจากรหัสผิด → แจ้งกลุ่มแอดมินทาง Telegram**
+- ลืมรหัสผ่าน: **ต่ออีเมล 3 ครั้ง** + ต่อ IP 10 ครั้ง ใน 15 นาที; **ไม่ลบลิงก์เดิมที่ยังไม่หมดอายุ** (คนอื่นกดขอแทนเพื่อทำลายลิงก์ของเราไม่ได้); **เก็บเฉพาะ SHA-256 ของโทเคน** (ข้อมูลหลุดก็ใช้รีเซ็ตไม่ได้); ใช้ลิงก์แล้วลบทุกลิงก์ของอีเมลนั้นใน transaction เดียวกับการตั้งรหัส; สมัคร: ต่อ IP 5 ครั้ง/10 นาที
+- เทสต์: `tests/auth-rate-limit.test.ts`, `tests/integration/auth-rate-limit.test.ts` (ยิงจริงกับ PostgreSQL ด้วย header ปลอม)
+- ข้อจำกัดที่ยอมรับ: (1) ต้องรันหลัง proxy ที่เชื่อถือได้ (Vercel) — ย้ายโฮสต์ต้องให้ proxy เขียนทับ `x-real-ip`; (2) คนที่รู้อีเมลทำให้บัญชีนั้นล็อกอินไม่ได้ชั่วคราว 15 นาทีได้ (ราคาของการกันเดารหัส) — แอดมินได้รับแจ้งเตือน; ทางเลือกในอนาคต: CAPTCHA หลังผิดหลายครั้ง หรือคุกกี้อุปกรณ์ที่เคยล็อกอินสำเร็จ; (3) ลิงก์รีเซ็ตที่ออกไปก่อนอัปเกรดนี้ใช้ไม่ได้แล้ว (เปลี่ยนเป็นเก็บ hash) — ขอลิงก์ใหม่ได้ทันที
+
+### 2. อัปเกรด Next.js 14.2.35 → 15.5.27 (+ React 19.3, next-auth 4.24.15)
+- ปิด advisory ระดับ critical ของ Next 14 (EOL) — `npm audit --omit=dev` เหลือ 0
+- `params` / `searchParams` เป็น Promise (7 หน้า + `/api/slips/[id]`), `headers()` เป็น async → `getClientIp()` เป็น async
+- `useFormState` (react-dom) → `useActionState` (react); เทสต์ไม่ต้องจำลอง react-dom แล้ว
+- `package.json` overrides: บังคับ postcss ภายใน Next เป็น 8.5.29 (ตัวที่ Next ตรึงไว้ 8.4.31 มีช่องโหว่อ่านไฟล์ผ่าน sourceMappingURL)
+- Next ปรับ `tsconfig.json` เอง (`target: ES2017` + จัดรูปแบบ)
+
+### 3. ข้อควรรู้
+- บนเครื่องนี้ Windows Application Control บล็อก `@next/swc-win32-x64-msvc` ของ Next 15 → Next ใช้ SWC แบบ WASM แทนอัตโนมัติ (build ช้ากว่าเล็กน้อย, บน Vercel ใช้ตัว native ปกติ)
+- `npm audit` (รวม dev) ยังมี 16 รายการในเครื่องมือพัฒนา (vitest 2, tailwind 3, tsx, eslint-config-next) — ไม่ได้ส่งขึ้น production; แยกเป็นงาน "Upgrade vulnerable dev tooling"
+- `next lint` ถูก deprecate ใน 15.5 และโปรเจกต์ยังไม่มี ESLint config
+- npm รุ่นนี้ถาม `approve-scripts` สำหรับ install script (esbuild/prisma) — หลัง `npm install` ให้รัน `npx prisma generate` เอง
+
+---
+
 ## เซสชัน: Phase 5 — งานอัตโนมัติ, Watchdog, บอท Telegram และการสำรองข้อมูล
 **วันที่:** 12 ตุลาคม 2026  
 **สถานะ:** Phase 5 เสร็จ + แก้ตามผล security review แล้ว — unit 166/166, Integration กับ PostgreSQL จริง 104/104, `tsc` ผ่าน, `next build` ผ่าน, smoke test บน production build ผ่าน, ซ้อมกู้คืนฐานข้อมูลจริงผ่าน — **ยังไม่ commit** (รอเจ้าของอนุมัติ)
@@ -48,7 +75,7 @@
 - Vercel Hobby รัน Cron ได้วันละครั้ง จึงให้ Watchdog รายชั่วโมงอยู่บน GitHub Actions (ตารางของ GitHub อาจช้าได้หลายนาทีในช่วงคิวแน่น)
 - โปรเจกต์ยังไม่มีการตั้งค่า ESLint (`next lint` ถามให้สร้าง config) — ยังไม่ได้เพิ่มในเฟสนี้
 - บนเครื่อง dev: role ของแอปเป็น superuser (ติดตั้งเอง) — production บน Neon ต้องใช้ role ปกติ
-- `src/app/api/auth/register/route.ts` ยังใช้ `x-forwarded-for` ดิบเป็น key ของ rate limit (ปลอม header เพื่อเลี่ยงได้) — ควรเปลี่ยนเป็น `getClientIp()` (นอกขอบเขตเฟสนี้)
+- ~~rate limit ของการสมัครใช้ `x-forwarded-for` ดิบ~~ — แก้แล้ว (ดูเซสชันอัปเกรด Next.js 15.5 ด้านบน)
 
 ---
 

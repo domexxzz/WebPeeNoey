@@ -8,10 +8,11 @@ import { AdminPageHeader, inputClass, Pagination } from "@/components/admin/admi
 export const metadata: Metadata = { title: "Audit Log", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
-export default async function AdminAuditLogsPage({ searchParams }: { searchParams: { action?: string; page?: string } }) {
+export default async function AdminAuditLogsPage({ searchParams }: { searchParams: Promise<{ action?: string; page?: string }> }) {
+  const query = await searchParams;
   await requireAdminPage();
-  const action = searchParams.action && Object.prototype.hasOwnProperty.call(AUDIT_ACTIONS, searchParams.action) ? searchParams.action : undefined;
-  const page = parsePage(searchParams.page);
+  const action = query.action && Object.prototype.hasOwnProperty.call(AUDIT_ACTIONS, query.action) ? query.action : undefined;
+  const page = parsePage(query.page);
   const { items, total, pageSize } = await listAuditLogs(prisma, { action, page });
   const href = (target: number) => `/admin/audit-logs?${new URLSearchParams({ ...(action ? { action } : {}), page: String(target) }).toString()}`;
 

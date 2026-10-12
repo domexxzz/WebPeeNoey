@@ -10,10 +10,11 @@ import { AdminPageHeader, inputClass, Pagination } from "@/components/admin/admi
 export const metadata: Metadata = { title: "สมาชิก", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
-export default async function AdminMembersPage({ searchParams }: { searchParams: { q?: string; page?: string } }) {
+export default async function AdminMembersPage({ searchParams }: { searchParams: Promise<{ q?: string; page?: string }> }) {
+  const query = await searchParams;
   await requireAdminPage();
-  const q = searchParams.q?.trim().slice(0, 100) || undefined;
-  const page = parsePage(searchParams.page);
+  const q = query.q?.trim().slice(0, 100) || undefined;
+  const page = parsePage(query.page);
   const now = new Date();
   const { items, total, pageSize } = await searchMembers(prisma, { q, page, now });
   const href = (target: number) => `/admin/members?${new URLSearchParams({ ...(q ? { q } : {}), page: String(target) }).toString()}`;

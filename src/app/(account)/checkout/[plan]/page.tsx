@@ -15,17 +15,18 @@ import { createOrderAction } from "../actions";
 export const metadata: Metadata = { title: "ยืนยันคำสั่งซื้อ", robots: { index: false, follow: false } };
 
 interface PageProps {
-  params: { plan: string };
-  searchParams: { error?: string };
+  params: Promise<{ plan: string }>;
+  searchParams: Promise<{ error?: string }>;
 }
 
 export default async function CheckoutPlanPage({ params, searchParams }: PageProps) {
+  const [{ plan: planSlug }, query] = await Promise.all([params, searchParams]);
   const session = await getServerSession(authOptions);
-  const checkout = session?.user ? await quoteForUser(prisma, { userId: session.user.id, planSlug: params.plan }) : null;
+  const checkout = session?.user ? await quoteForUser(prisma, { userId: session.user.id, planSlug }) : null;
   if (!checkout) notFound();
 
   const availability = await getPaymentAvailability(prisma);
-  const error = checkoutErrorMessage(searchParams.error);
+  const error = checkoutErrorMessage(query.error);
   const { plan, quote } = checkout;
   const showStrikePrice = quote.reason !== "REGULAR" && plan.originalPrice !== null && plan.originalPrice > quote.basePrice;
 

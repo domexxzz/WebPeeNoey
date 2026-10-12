@@ -7,12 +7,6 @@ import { SlipUploadForm } from "@/components/checkout/slip-upload-form";
 import { Countdown, remainingMs } from "@/components/checkout/countdown";
 import { OrderStatusBadge } from "@/components/checkout/order-status-badge";
 
-// react-dom ของ node_modules (18.3 stable) ไม่มี useFormState/useFormStatus แบบที่ Next.js ใช้ — จำลองไว้สำหรับ render
-vi.mock("react-dom", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("react-dom")>()),
-  useFormState: (action: unknown, initialState: unknown) => [initialState, action],
-  useFormStatus: () => ({ pending: false }),
-}));
 vi.mock("@/app/(account)/checkout/actions", () => ({ submitSlipAction: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 

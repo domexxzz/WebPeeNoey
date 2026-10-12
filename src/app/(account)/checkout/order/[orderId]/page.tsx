@@ -123,9 +123,10 @@ function StatusPanel({ order, serverNow }: { order: OrderView; serverNow: string
   }
 }
 
-export default async function OrderPaymentPage({ params }: { params: { orderId: string } }) {
+export default async function OrderPaymentPage({ params }: { params: Promise<{ orderId: string }> }) {
+  const { orderId } = await params;
   const session = await getServerSession(authOptions);
-  const order = session?.user ? await getOrderForUser(prisma, { userId: session.user.id, orderId: params.orderId }) : null;
+  const order = session?.user ? await getOrderForUser(prisma, { userId: session.user.id, orderId }) : null;
   if (!order) notFound();
 
   const serverNow = new Date().toISOString();

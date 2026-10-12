@@ -6,12 +6,6 @@ import { createTelegramLinkToken, unlinkTelegramForUser } from "@/lib/telegram/l
 import { createTelegramLinkAction, unlinkTelegramAction } from "@/app/(account)/account/telegram-actions";
 import { TelegramConnect } from "@/components/account/telegram-connect";
 
-// react-dom 18.3 stable ไม่มี useFormState/useFormStatus แบบที่ Next.js ใช้ — จำลองไว้สำหรับ render
-vi.mock("react-dom", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("react-dom")>()),
-  useFormState: (action: unknown, initialState: unknown) => [initialState, action],
-  useFormStatus: () => ({ pending: false }),
-}));
 vi.mock("next-auth", () => ({ getServerSession: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/auth", () => ({ authOptions: {} }));
