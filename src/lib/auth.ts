@@ -3,9 +3,8 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "./prisma";
-import { verifyPassword } from "./security";
-import { checkRateLimit, resetRateLimit } from "./rate-limit";
 import { getAuthSecret } from "./auth-secret";
+import { authorizeCredentials } from "./login";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -32,60 +31,8 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials, req) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error("กรุณากรอกอีเมลและรหัสผ่านให้ครบถ้วน");
-        }
-
-        const normalizedEmail = credentials.email.trim().toLowerCase();
-
-        // 1. Rate Limiting สำหรับการเข้าสู่ระบบ (สูงสุด 5 ครั้ง ใน 15 นาที)
-        const ip =
-          req?.headers?.["x-forwarded-for"] ||
-          req?.headers?.["x-real-ip"] ||
-          "local";
-        const rateKey = `login:${ip}:${normalizedEmail}`;
-        const limitCheck = await checkRateLimit(rateKey, 5, 15 * 60);
-
-        if (!limitCheck.success) {
-          const waitMinutes = Math.ceil(
-            (limitCheck.resetAt.getTime() - Date.now()) / (60 * 1000)
-          );
-          throw new Error(
-            `พยายามเข้าสู่ระบบมากเกินไป กรุณารออีก ${waitMinutes} นาที`
-          );
-        }
-
-        // 2. ค้นหาผู้ใช้ในฐานข้อมูล
-        const user = await prisma.user.findUnique({
-          where: { email: normalizedEmail },
-        });
-
-        if (!user || !user.passwordHash) {
-          throw new Error("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
-        }
-
-        // 3. ตรวจสอบความถูกต้องของรหัสผ่าน
-        const isMatch = await verifyPassword(
-          credentials.password,
-          user.passwordHash
-        );
-        if (!isMatch) {
-          throw new Error("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
-        }
-
-        // 4. เข้าสู่ระบบสำเร็จ ให้รีเซ็ต Rate Limit
-        await resetRateLimit(rateKey);
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          image: user.image,
-          role: user.role,
-          tradingViewUsername: user.tradingViewUsername,
-        };
-      },
+      // rate limit ต่อ IP+อีเมล และต่ออีเมล (IP อ่านแบบตรวจรูปแบบแล้ว — ปลอม header เพื่อเลี่ยงไม่ได้)
+      authorize: (credentials, req) => authorizeCredentials(credentials, req?.headers),
     }),
   ],
   callbacks: {

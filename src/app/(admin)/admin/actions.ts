@@ -26,7 +26,7 @@ const done = (message: string): AdminActionState => ({ status: "success", messag
 async function requireAdmin(): Promise<ActorContext | null> {
   const session = await getServerSession(authOptions);
   const admin = await getAdminActor(prisma, session?.user?.id);
-  return admin ? { id: admin.id, ipAddress: getClientIp() ?? null } : null;
+  return admin ? { id: admin.id, ipAddress: (await getClientIp()) ?? null } : null;
 }
 
 /** ห่อทุก action: ตรวจสิทธิ์ + log ข้อผิดพลาดที่ไม่คาดคิด (ห้ามล้มเงียบ) */

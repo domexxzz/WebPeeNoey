@@ -1,17 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { generateSecureToken } from "@/lib/security";
+import { generateSecureToken, hashToken } from "@/lib/security";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { rateLimitIp } from "@/lib/request";
+
+const WINDOW_SECONDS = 15 * 60;
+/** ต่ออีเมล ไม่สน IP — กันการยิงอีเมลรีเซ็ตใส่เหยื่อโดยสลับ IP/ปลอม header */
+const PER_EMAIL = 3;
+const PER_IP = 10;
 
 const forgotSchema = z.object({
-  email: z.string().email("รูปแบบอีเมลไม่ถูกต้อง").toLowerCase(),
+  email: z.string().max(254, "รูปแบบอีเมลไม่ถูกต้อง").email("รูปแบบอีเมลไม่ถูกต้อง").toLowerCase(),
 });
 
 export async function POST(req: NextRequest) {
   try {
-    const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown-ip";
     const body = await req.json();
     const parsed = forgotSchema.safeParse(body);
 
@@ -24,9 +29,10 @@ export async function POST(req: NextRequest) {
 
     const { email } = parsed.data;
 
-    // Rate limit: สูงสุด 3 ครั้งต่อ 15 นาที
-    const rateCheck = await checkRateLimit(`forgot:${ip}:${email}`, 3, 15 * 60);
-    if (!rateCheck.success) {
+    // Rate limit: ต่ออีเมล 3 ครั้ง และต่อ IP 10 ครั้ง ใน 15 นาที
+    const perEmail = await checkRateLimit(`forgot-email:${email}`, PER_EMAIL, WINDOW_SECONDS);
+    const perIp = perEmail.success ? await checkRateLimit(`forgot-ip:${rateLimitIp(req.headers)}`, PER_IP, WINDOW_SECONDS) : perEmail;
+    if (!perEmail.success || !perIp.success) {
       return NextResponse.json(
         { error: "ส่งคำขอรีเซ็ตรหัสผ่านบ่อยเกินไป กรุณารอ 15 นาที" },
         { status: 429 }
@@ -47,16 +53,16 @@ export async function POST(req: NextRequest) {
     const token = generateSecureToken();
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 ชั่วโมง
 
-    // ลบ token เก่าของอีเมลนี้ทิ้งก่อน
+    // ไม่ลบลิงก์เดิมที่ยังไม่หมดอายุ — ไม่งั้นคนอื่นกดขอรีเซ็ตแทนเราเพื่อทำให้ลิงก์ที่เราถืออยู่ใช้ไม่ได้ (จำนวนถูกจำกัดด้วย rate limit ต่ออีเมล)
     await prisma.passwordResetToken.deleteMany({
-      where: { email },
+      where: { email, expiresAt: { lt: new Date() } },
     });
 
-    // บันทึก token ใหม่
+    // เก็บเฉพาะ hash ของโทเคน — โทเคนจริงอยู่ในอีเมลเท่านั้น
     await prisma.passwordResetToken.create({
       data: {
         email,
-        token,
+        token: hashToken(token),
         expiresAt,
       },
     });

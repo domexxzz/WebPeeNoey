@@ -3,10 +3,11 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/security";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { rateLimitIp } from "@/lib/request";
 
 const registerSchema = z.object({
   name: z.string().min(2, "ชื่อต้องมีความยาวอย่างน้อย 2 ตัวอักษร").max(100),
-  email: z.string().email("รูปแบบอีเมลไม่ถูกต้อง").toLowerCase(),
+  email: z.string().max(254, "รูปแบบอีเมลไม่ถูกต้อง").email("รูปแบบอีเมลไม่ถูกต้อง").toLowerCase(),
   password: z.string().min(8, "รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร"),
   // แสดงในข้อความถึงแอดมินและใช้เปิดสิทธิ์ TradingView — จำกัดรูปแบบกันการปลอมบรรทัด/ข้อความยาวผิดปกติ
   tradingViewUsername: z
@@ -19,8 +20,8 @@ const registerSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown-ip";
-    const rateCheck = await checkRateLimit(`register:${ip}`, 5, 10 * 60);
+    // IP ที่ตรวจรูปแบบแล้ว — ค่าปลอมใน x-forwarded-for ใช้ถังเดียวกันหมด จึงสลับค่าเพื่อเลี่ยง limit ไม่ได้
+    const rateCheck = await checkRateLimit(`register:${rateLimitIp(req.headers)}`, 5, 10 * 60);
 
     if (!rateCheck.success) {
       return NextResponse.json(

@@ -31,6 +31,11 @@ export function generateSecureToken(): string {
   return crypto.randomBytes(32).toString("hex");
 }
 
+/** hash ของโทเคนที่ส่งทางอีเมล — เก็บแค่ hash ในฐานข้อมูล (ข้อมูลหลุดก็ใช้รีเซ็ตรหัสผ่านไม่ได้) */
+export function hashToken(token: string): string {
+  return crypto.createHash("sha256").update(token).digest("hex");
+}
+
 /**
  * สุ่มรหัส Order Number เช่น ORD-20261010-A89F3C (วันที่ตามเวลาไทย + สุ่ม 6 หลัก)
  * ผู้เรียกต้องลองใหม่เมื่อชน unique constraint (โอกาสต่ำมาก)

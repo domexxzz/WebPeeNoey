@@ -58,7 +58,7 @@ export async function createOrderAction(formData: FormData): Promise<void> {
         planSlug,
         expectedBasePrice: parsePrice(formData.get("expectedBasePrice")),
         termsVersion: legalConfig.effectiveDate,
-        ipAddress: getClientIp(),
+        ipAddress: await getClientIp(),
       });
       target = result.ok ? `/checkout/order/${result.orderId}` : `${checkoutPath}?error=${result.code}`;
     } catch (error) {
@@ -103,7 +103,7 @@ function refreshOrderPages(orderId: string): void {
   }
 }
 
-/** รับสลิปจากฟอร์ม (ใช้กับ useFormState) */
+/** รับสลิปจากฟอร์ม (ใช้กับ useActionState) */
 export async function submitSlipAction(_previous: SlipFormState, formData: FormData): Promise<SlipFormState> {
   const orderId = String(formData.get("orderId") ?? "");
   const userId = await requireUserId(`/checkout/order/${encodeURIComponent(orderId)}`);
