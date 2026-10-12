@@ -29,8 +29,8 @@ export default async function AdminSettingsPage() {
 
       <p
         role="status"
-        className={`rounded-lg border px-4 py-3 text-sm ${
-          availability.open ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200" : "border-amber-500/30 bg-amber-500/10 text-amber-100"
+        className={`border px-4 py-3 text-sm ${
+          availability.open ? "border-signal bg-signal-muted text-gray-100" : "border-amber-500/30 bg-amber-500/10 text-amber-100"
         }`}
       >
         สถานะตอนนี้: {availability.open ? `เปิดรับชำระเงิน → ${availability.accountName} (${availability.target})` : AVAILABILITY_TEXT[availability.reason]}
@@ -47,14 +47,14 @@ export default async function AdminSettingsPage() {
             <input id="promptpayAccountName" name="promptpayAccountName" defaultValue={setting?.promptpayAccountName ?? ""} maxLength={100} className={inputClass} />
           </div>
           <label className="flex items-start gap-2 text-sm text-gray-300">
-            <input type="checkbox" name="paymentsEnabled" defaultChecked={setting?.paymentsEnabled ?? false} className="mt-1 accent-emerald-500" />
+            <input type="checkbox" name="paymentsEnabled" defaultChecked={setting?.paymentsEnabled ?? false} className="mt-1 accent-[#6EEA6E]" />
             <span>
               เปิดรับชำระเงิน
               <span className="block text-xs text-gray-400">ปิดเมื่อไรก็ได้ — QR ของคำสั่งซื้อที่ค้างจะถูกซ่อนทันที แต่ลูกค้ายังแนบสลิปได้</span>
             </span>
           </label>
           <label className="flex items-start gap-2 text-sm text-gray-300">
-            <input type="checkbox" name="maintenanceMode" defaultChecked={setting?.maintenanceMode ?? false} className="mt-1 accent-amber-500" />
+            <input type="checkbox" name="maintenanceMode" defaultChecked={setting?.maintenanceMode ?? false} className="mt-1 accent-[#6EEA6E]" />
             โหมดปิดปรับปรุง (ปิดรับคำสั่งซื้อใหม่)
           </label>
         </ActionForm>

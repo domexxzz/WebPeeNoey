@@ -5,6 +5,7 @@ import { getDashboardStats } from "@/lib/admin/dashboard";
 import { prisma } from "@/lib/prisma";
 import { formatBaht } from "@/lib/format";
 import { PAYMENT_RULES } from "@/config/payment";
+import { AdminPageHeader } from "@/components/admin/admin-ui";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,7 @@ const PAYMENT_CLOSED_REASON = {
   NOT_CONFIGURED: "ยังไม่ได้ตั้งบัญชี PromptPay",
 } as const;
 
+/** ช่องตัวเลขในตารางกรอบ (วางใน grid ที่มี gap-px บนพื้นสีเส้น) */
 function StatCard({ label, icon, value, valueClass = "text-white", children }: {
   label: string;
   icon: React.ReactNode;
@@ -22,16 +24,19 @@ function StatCard({ label, icon, value, valueClass = "text-white", children }: {
   children?: React.ReactNode;
 }) {
   return (
-    <div className="glass-panel rounded-2xl p-5 border border-white/10">
-      <div className="flex items-center justify-between text-gray-400 mb-2">
+    <div className="bg-ink p-5 sm:p-6">
+      <div className="flex items-center justify-between gap-3 text-gray-400">
         <span className="text-xs">{label}</span>
         {icon}
       </div>
-      <div className={`text-2xl font-bold ${valueClass}`}>{value}</div>
+      <div className={`mt-3 font-display text-3xl font-bold tracking-tight tabular-nums ${valueClass}`}>{value}</div>
       {children}
     </div>
   );
 }
+
+const outlineLink =
+  "inline-flex items-center gap-2 border border-line px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:border-signal hover:bg-signal hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-signal";
 
 export default async function AdminDashboardPage() {
   const admin = await requireAdminPage();
@@ -40,44 +45,35 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl glass-panel-admin border border-red-500/30">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
-            <span className="text-xs font-mono uppercase tracking-wider text-red-400 font-bold">ADMIN CONTROL CENTER</span>
-          </div>
-          <h1 className="text-2xl font-bold text-white">ภาพรวมระบบและการเงิน</h1>
-          <p className="text-xs text-gray-400 mt-1">ยินดีต้อนรับ ผู้ดูแลระบบ {admin.email}</p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="px-4 py-2 rounded-xl bg-[#161F30] border border-white/10 flex items-center gap-3">
-            <span className="text-xs text-gray-400">ระบบรับชำระเงิน:</span>
+      <AdminPageHeader title="ภาพรวมระบบและการเงิน" description={`ยินดีต้อนรับ ผู้ดูแลระบบ ${admin.email}`}>
+        <div className="flex flex-wrap items-stretch border border-line">
+          <div className="flex items-center gap-3 px-4 py-2.5">
+            <span className="text-xs text-gray-400">ระบบรับชำระเงิน</span>
             {payments.open ? (
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" /> เปิดอยู่
+              <span className="inline-flex items-center gap-1.5 text-sm font-bold text-signal">
+                <span aria-hidden="true" className="w-2 h-2 bg-signal" /> เปิดอยู่
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-400">
-                <PowerOff className="w-3.5 h-3.5" aria-hidden="true" /> {PAYMENT_CLOSED_REASON[payments.reason]}
+              <span className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-300">
+                <PowerOff className="w-4 h-4" aria-hidden="true" /> {PAYMENT_CLOSED_REASON[payments.reason]}
               </span>
             )}
           </div>
           <Link
             href="/admin/settings"
-            className="text-xs text-amber-400 hover:text-amber-300 font-medium px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20"
+            className="flex items-center border-l border-line px-4 py-2.5 text-sm font-semibold text-signal transition-colors hover:bg-signal hover:text-ink"
           >
             ตั้งค่าสวิตช์ →
           </Link>
         </div>
-      </div>
+      </AdminPageHeader>
 
       {stats.pendingDeprovision > 0 && (
         <Link
           href="/admin/status"
-          className="flex items-center gap-3 rounded-2xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200 hover:bg-red-500/15"
+          className="flex items-center gap-3 border border-red-400/60 bg-red-500/10 p-4 text-sm text-red-100 transition-colors hover:bg-red-500/15"
         >
-          <UserX className="w-5 h-5 shrink-0 text-red-400" aria-hidden="true" />
+          <UserX className="w-5 h-5 shrink-0 text-red-300" aria-hidden="true" />
           <span>
             มี <strong className="text-white">{stats.pendingDeprovision}</strong> ช่วงสิทธิ์ที่หมดอายุ/ถูกปิดแล้ว แต่ยังบันทึกว่าเปิดสิทธิ์ใน TradingView / Discord / Telegram — ต้องถอดสิทธิ์ด้วยมือ
           </span>
@@ -85,62 +81,61 @@ export default async function AdminDashboardPage() {
         </Link>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="ยอดขายสะสมสุทธิ" icon={<DollarSign className="w-4 h-4 text-emerald-400" aria-hidden="true" />} value={`${formatBaht(revenue.net)} ฿`}>
-          <span className="text-[11px] text-gray-400 block mt-1">
+      <div className="grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="ยอดขายสะสมสุทธิ" icon={<DollarSign className="w-4 h-4 text-signal" aria-hidden="true" />} value={`${formatBaht(revenue.net)} ฿`}>
+          <span className="mt-2 block text-xs text-gray-400">
             รับเข้า {formatBaht(revenue.gross)} ฿ จาก {revenue.paidOrders} ออเดอร์
             {revenue.refunded > 0 && <> · คืนเงิน {formatBaht(revenue.refunded)} ฿</>}
           </span>
         </StatCard>
 
-        <StatCard label="สลิปรอตรวจสอบ" icon={<ClipboardCheck className="w-4 h-4 text-amber-400" aria-hidden="true" />} value={stats.pendingReview} valueClass="text-amber-400">
-          <Link href="/admin/orders?tab=review" className="text-[11px] text-amber-300 hover:underline block mt-1">
+        <StatCard
+          label="สลิปรอตรวจสอบ"
+          icon={<ClipboardCheck className="w-4 h-4 text-amber-300" aria-hidden="true" />}
+          value={stats.pendingReview}
+          valueClass={stats.pendingReview > 0 ? "text-amber-300" : "text-white"}
+        >
+          <Link href="/admin/orders?tab=review" className="mt-2 block text-xs font-semibold text-signal hover:underline">
             ไปตรวจสอบทันที →
           </Link>
         </StatCard>
 
-        <StatCard label="สมาชิกที่กำลังใช้งาน" icon={<Users className="w-4 h-4 text-blue-400" aria-hidden="true" />} value={members.active}>
-          <span className="text-[11px] text-gray-400 block mt-1">ผู้ใช้ทั้งหมดในระบบ: {stats.totalUsers} บัญชี</span>
+        <StatCard label="สมาชิกที่กำลังใช้งาน" icon={<Users className="w-4 h-4 text-signal" aria-hidden="true" />} value={members.active}>
+          <span className="mt-2 block text-xs text-gray-400">ผู้ใช้ทั้งหมดในระบบ: {stats.totalUsers} บัญชี</span>
         </StatCard>
 
         <StatCard
           label={`ใกล้หมดอายุใน ${PAYMENT_RULES.expiryReminderDays} วัน`}
-          icon={<Clock className="w-4 h-4 text-pink-400" aria-hidden="true" />}
+          icon={<Clock className="w-4 h-4 text-amber-300" aria-hidden="true" />}
           value={members.expiringSoon}
-          valueClass="text-pink-400"
+          valueClass={members.expiringSoon > 0 ? "text-amber-300" : "text-white"}
         >
-          <span className="text-[11px] text-gray-400 block mt-1">นับรายคน — คนที่ต่ออายุทบวันไว้แล้วไม่นับ</span>
+          <span className="mt-2 block text-xs text-gray-400">นับรายคน — คนที่ต่ออายุทบวันไว้แล้วไม่นับ</span>
         </StatCard>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="glass-panel rounded-2xl p-6 border border-white/10">
-          <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-            <ClipboardCheck className="w-5 h-5 text-emerald-400" aria-hidden="true" />
+      <div className="grid gap-px border border-line bg-line md:grid-cols-2">
+        <div className="bg-ink p-6">
+          <h2 className="flex items-center gap-2 font-display text-lg font-bold text-white">
+            <ClipboardCheck className="w-5 h-5 text-signal" aria-hidden="true" />
             การจัดการออเดอร์และการเงิน
           </h2>
-          <p className="text-xs text-gray-400 mb-4">ตรวจสลิปโอนเงิน PromptPay อนุมัติสิทธิ์ ปฏิเสธ หรือบันทึกการคืนเงิน — ทุกการกระทำบันทึก Audit Log</p>
-          <Link
-            href="/admin/orders"
-            className="inline-flex px-4 py-2.5 rounded-xl text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 transition-all items-center gap-2"
-          >
-            <span>เปิดรายการออเดอร์</span>
-            <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+          <p className="mt-2 mb-5 text-sm text-gray-400">ตรวจสลิปโอนเงิน PromptPay อนุมัติสิทธิ์ ปฏิเสธ หรือบันทึกการคืนเงิน — ทุกการกระทำบันทึก Audit Log</p>
+          <Link href="/admin/orders" className={outlineLink}>
+            เปิดรายการออเดอร์
+            <ArrowRight className="w-4 h-4" aria-hidden="true" />
           </Link>
         </div>
 
-        <div className="glass-panel rounded-2xl p-6 border border-white/10">
-          <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-cyan-400" aria-hidden="true" />
-            สถานะความพร้อมของระบบ (System Health)
+        <div className="bg-ink p-6">
+          <h2 className="flex items-center gap-2 font-display text-lg font-bold text-white">
+            <Activity className="w-5 h-5 text-signal" aria-hidden="true" />
+            สถานะความพร้อมของระบบ
           </h2>
-          <p className="text-xs text-gray-400 mb-4">ตรวจการเชื่อมต่อฐานข้อมูล, ตัวแปรสภาพแวดล้อม (ไม่แสดงค่าความลับ) และคิวงานที่ค้าง</p>
-          <Link
-            href="/admin/status"
-            className="inline-flex px-4 py-2.5 rounded-xl text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/20 transition-all items-center gap-2"
-          >
-            <span>ตรวจสอบสถานะเซิร์ฟเวอร์</span>
-            <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+          <p className="mt-2 mb-5 text-sm text-gray-400">ตรวจการเชื่อมต่อฐานข้อมูล ตัวแปรสภาพแวดล้อม (ไม่แสดงค่าความลับ) งานอัตโนมัติ และคิวงานที่ค้าง</p>
+          <Link href="/admin/status" className={outlineLink}>
+            ตรวจสอบสถานะระบบ
+            <ArrowRight className="w-4 h-4" aria-hidden="true" />
           </Link>
         </div>
       </div>

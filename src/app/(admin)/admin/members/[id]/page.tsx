@@ -27,7 +27,7 @@ export default async function AdminMemberDetailPage({ params }: { params: Promis
       <Link href="/admin/members" className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-white">
         <ArrowLeft className="w-4 h-4" aria-hidden="true" /> กลับไปรายชื่อสมาชิก
       </Link>
-      <h1 className="font-heading text-2xl font-bold text-white break-all">{member.email}</h1>
+      <h1 className="font-display text-2xl font-bold text-white break-all">{member.email}</h1>
 
       <AdminCard title="ข้อมูลสมาชิก">
         <DefinitionList
@@ -51,14 +51,14 @@ export default async function AdminMemberDetailPage({ params }: { params: Promis
         ) : (
           <ul className="space-y-4">
             {member.subscriptions.map((subscription) => (
-              <li key={subscription.id} className="rounded-lg border border-white/10 p-4 space-y-3">
+              <li key={subscription.id} className="border border-line p-4 space-y-3">
                 <div className="flex flex-wrap items-center gap-3 text-sm text-gray-300">
                   <SubscriptionBadge status={subscription.status} />
                   <span>{subscription.plan.name}</span>
                   <span>{formatDate(subscription.currentPeriodStart)} → {formatDate(subscription.currentPeriodEnd)}</span>
                   <span className="font-mono text-xs text-gray-400">{subscription.order.orderNumber}</span>
                   {subscription.isPriceLocked && subscription.lockedPrice !== null && (
-                    <span className="text-xs text-amber-300">ล็อกราคา {formatBaht(subscription.lockedPrice)}</span>
+                    <span className="text-xs text-signal">ล็อกราคา {formatBaht(subscription.lockedPrice)}</span>
                   )}
                 </div>
                 {subscription.revocationReason && <p className="text-xs text-red-300">ปิดสิทธิ์: {subscription.revocationReason}</p>}
@@ -75,10 +75,10 @@ export default async function AdminMemberDetailPage({ params }: { params: Promis
         {member.orders.length === 0 ? (
           <p className="text-sm text-gray-400">ยังไม่มี</p>
         ) : (
-          <ul className="divide-y divide-white/5 text-sm">
+          <ul className="divide-y divide-line-soft text-sm">
             {member.orders.map((order) => (
               <li key={order.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
-                <Link href={`/admin/orders/${order.id}`} className="font-mono text-amber-300 hover:underline">{order.orderNumber}</Link>
+                <Link href={`/admin/orders/${order.id}`} className="font-mono text-signal hover:underline">{order.orderNumber}</Link>
                 <span className="text-gray-400">{order.plan.name} · {formatDate(order.createdAt)}</span>
                 <span className="font-mono text-white">{formatBaht(order.amount)}</span>
                 <AdminOrderBadge status={order.status} />

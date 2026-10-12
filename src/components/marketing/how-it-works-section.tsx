@@ -1,36 +1,48 @@
 import { HOME_SECTION_IDS, HOW_IT_WORKS } from "@/config/marketing";
 import { SectionHeading } from "./section-heading";
 
+/** การ์ดซ้อนกันบนพื้นเขียว — ใบสุดท้ายตัดเฉียงให้ดูมีจังหวะ (เฉพาะจอ md ขึ้นไป) */
+const CARD_OFFSETS = ["md:ml-0", "md:ml-10", "md:ml-20", "md:ml-6"];
+
 export function HowItWorksSection() {
+  const lastIndex = HOW_IT_WORKS.length - 1;
   return (
     <section
       aria-labelledby={`${HOME_SECTION_IDS.howItWorks}-heading`}
       id={HOME_SECTION_IDS.howItWorks}
-      className="scroll-mt-20 py-20 sm:py-24 border-y border-white/5 bg-[#0D121C]"
+      className="scroll-mt-20 bg-signal text-ink"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <SectionHeading
-          id={`${HOME_SECTION_IDS.howItWorks}-heading`}
-          eyebrow="ขั้นตอนการเข้าใช้งาน"
-          title="เริ่มใช้งานได้ใน 4 ขั้นตอน"
-          description="ทุกขั้นตอนทำผ่านหน้าเว็บ ไม่ต้องทักแชตเพื่อสั่งซื้อ และติดตามสถานะคำสั่งซื้อได้จากแดชบอร์ดสมาชิก"
-        />
+      <div className="grid gap-12 px-4 sm:px-6 lg:px-10 py-20 sm:py-28 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.4fr)]">
+        <div className="lg:sticky lg:top-28 lg:self-start">
+          <SectionHeading
+            id={`${HOME_SECTION_IDS.howItWorks}-heading`}
+            eyebrow="ขั้นตอนการเข้าใช้งาน"
+            title="เริ่มใช้งานได้ใน 4 ขั้นตอน"
+            description="ทุกขั้นตอนทำผ่านหน้าเว็บ ไม่ต้องทักแชตเพื่อสั่งซื้อ และติดตามสถานะคำสั่งซื้อได้จากแดชบอร์ดสมาชิก"
+            tone="signal"
+          />
+        </div>
 
-        <ol className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {HOW_IT_WORKS.map((item) => (
-            <li key={item.step} className="relative pl-14 lg:pl-0 lg:pt-16">
-              <span
-                aria-hidden="true"
-                className="absolute left-0 top-0 w-11 h-11 rounded-full border border-amber-500/40 bg-[#0B0F17] flex items-center justify-center font-heading font-bold text-amber-400"
-              >
-                {item.step}
-              </span>
-              <span aria-hidden="true" className="hidden lg:block absolute left-12 right-0 top-[22px] h-px bg-gradient-to-r from-amber-500/40 to-transparent" />
-              <h3 className="font-heading text-lg font-semibold text-white">
-                <span className="sr-only">ขั้นตอนที่ {item.step}: </span>
-                {item.title}
-              </h3>
-              <p className="mt-2 text-sm text-gray-400 leading-relaxed">{item.description}</p>
+        <ol className="space-y-3">
+          {HOW_IT_WORKS.map((item, index) => (
+            <li
+              key={item.step}
+              className={`bg-ink text-white px-6 sm:px-8 py-7 sm:py-8 ${CARD_OFFSETS[index % CARD_OFFSETS.length]} ${
+                index === lastIndex ? "md:[clip-path:polygon(0_0,100%_0,97%_100%,3%_100%)] md:px-12" : ""
+              }`}
+            >
+              <div className="flex items-start gap-5 sm:gap-8">
+                <span aria-hidden="true" className="font-display text-4xl sm:text-5xl font-bold leading-none text-signal tabular-nums">
+                  {String(item.step).padStart(2, "0")}
+                </span>
+                <div>
+                  <h3 className="font-display text-xl sm:text-2xl font-bold tracking-tight">
+                    <span className="sr-only">ขั้นตอนที่ {item.step}: </span>
+                    {item.title}
+                  </h3>
+                  <p className="mt-2 text-sm sm:text-base text-gray-300 leading-relaxed">{item.description}</p>
+                </div>
+              </div>
             </li>
           ))}
         </ol>

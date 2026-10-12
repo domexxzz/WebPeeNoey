@@ -8,39 +8,40 @@ export function SiteFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-auto border-t border-white/10 bg-[#0D121C] text-sm text-gray-400">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
-        <div className="space-y-4">
-          <BrandMark />
-          <p className="max-w-sm leading-relaxed">{siteConfig.description}</p>
+    <footer className="mt-auto border-t border-line text-sm text-gray-300">
+      <div className="grid gap-10 px-4 sm:px-6 lg:px-10 py-14 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.6fr)]">
+        <div className="space-y-5">
+          <BrandMark size="xl" />
+          <p className="max-w-sm text-gray-400 leading-relaxed">{siteConfig.description}</p>
         </div>
 
-        {FOOTER_NAV.map((group) => (
-          <nav key={group.title} aria-label={group.title}>
-            <h2 className="text-sm font-semibold text-gray-300">{group.title}</h2>
-            <ul className="mt-4 space-y-2.5">
-              {group.links.map((link) => (
-                <li key={link.href}>
-                  <Link href={link.href} className="hover:text-amber-400 transition-colors">
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        ))}
-      </div>
-
-      <div className="border-t border-white/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-3">
-          <p className="flex items-start gap-2 text-xs leading-relaxed text-gray-400">
-            <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5 text-amber-500/70" aria-hidden="true" />
+        <div className="grid gap-4 sm:grid-cols-2">
+          {FOOTER_NAV.map((group) => (
+            <nav key={group.title} aria-label={group.title} className="border border-line p-6">
+              <h2 className="font-display text-base font-bold text-white">{group.title}</h2>
+              <ul className="mt-4 space-y-2.5">
+                {group.links.map((link) => (
+                  <li key={link.href}>
+                    <Link href={link.href} className="hover:text-signal transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-signal">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ))}
+          <p className="sm:col-span-2 flex items-start gap-3 border border-line p-6 text-xs leading-relaxed text-gray-400">
+            <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5 text-signal" aria-hidden="true" />
             <span>{RISK_DISCLAIMER}</span>
           </p>
-          <p className="text-xs text-gray-400">
-            © {year} {siteConfig.name}
-          </p>
         </div>
+      </div>
+
+      <div className="border-t border-line px-4 sm:px-6 lg:px-10 py-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-xs text-gray-400">
+        <p>
+          © {year} {siteConfig.name}
+        </p>
+        <p>ชำระผ่าน PromptPay · ไม่มีการตัดเงินอัตโนมัติ</p>
       </div>
     </footer>
   );

@@ -21,8 +21,8 @@ export function SlipUploadForm({ orderId }: { orderId: string }) {
 
   if (state.status === "success") {
     return (
-      <p role="status" className="flex items-start gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-        <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400" aria-hidden="true" />
+      <p role="status" className="flex items-start gap-2 border border-signal bg-signal-muted px-4 py-3 text-sm text-gray-100">
+        <CheckCircle2 className="w-5 h-5 shrink-0 text-signal" aria-hidden="true" />
         {state.message}
       </p>
     );
@@ -35,7 +35,7 @@ export function SlipUploadForm({ orderId }: { orderId: string }) {
       <input type="hidden" name="orderId" value={orderId} />
       <label className="block">
         <span className="flex items-center gap-2 text-sm font-medium text-white">
-          <ImageUp className="w-4 h-4 text-amber-400" aria-hidden="true" />
+          <ImageUp className="w-4 h-4 text-signal" aria-hidden="true" />
           แนบสลิปการโอน
         </span>
         <span className="mt-1 block text-xs text-gray-400">
@@ -49,7 +49,7 @@ export function SlipUploadForm({ orderId }: { orderId: string }) {
           onChange={onFileChange}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? "slip-error" : undefined}
-          className="mt-3 block w-full text-sm text-gray-300 file:mr-4 file:rounded-lg file:border-0 file:bg-white/10 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-white/20"
+          className="mt-3 block w-full text-sm text-gray-300 file:mr-4 file: file:border-0 file:bg-white/10 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-white/20"
         />
       </label>
 

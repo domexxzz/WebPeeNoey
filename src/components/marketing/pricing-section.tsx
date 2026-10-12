@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Info } from "lucide-react";
+import { ArrowRight, Check, Info } from "lucide-react";
 import { PROMO_SETTINGS, SITE_PLANS, formatTHB, type PlanConfig } from "@/config/plans";
 import { HOME_SECTION_IDS, RISK_DISCLAIMER } from "@/config/marketing";
 import { SectionHeading } from "./section-heading";
@@ -9,39 +9,41 @@ export function getPlanCtaHref(plan: PlanConfig): string {
   return `/checkout/${encodeURIComponent(plan.slug)}`;
 }
 
-function PlanCard({ plan }: { plan: PlanConfig }) {
+/** กล่องราคาเหลื่อมขึ้นลงสลับกันบนจอใหญ่ (จังหวะแบบเดียวกับกล่องจุดเด่นในต้นแบบ) */
+const STAGGER = ["lg:translate-y-0", "lg:translate-y-6", "lg:-translate-y-2", "lg:translate-y-4"];
+
+function PlanCard({ plan, index }: { plan: PlanConfig; index: number }) {
+  const featured = Boolean(plan.popular);
   return (
     <li
       data-plan={plan.slug}
-      className={`relative rounded-2xl p-6 border flex flex-col transition-all ${
-        plan.popular
-          ? "glass-panel-gold border-amber-500/50 shadow-glow lg:-translate-y-3"
-          : "glass-panel border-white/10 hover:border-white/20"
+      className={`relative flex flex-col border p-6 sm:p-7 transition-transform ${STAGGER[index % STAGGER.length]} ${
+        featured ? "border-signal bg-signal text-ink" : "border-line bg-ink text-white"
       }`}
     >
       {plan.badge && (
-        <span className="absolute -top-3 left-6 px-3 py-0.5 rounded-full bg-amber-500 text-black text-[11px] font-bold tracking-wide">
+        <span className={`absolute -top-3 left-6 px-2.5 py-1 text-xs font-bold tracking-wide ${featured ? "bg-ink text-signal" : "bg-signal text-ink"}`}>
           {plan.badge}
         </span>
       )}
 
-      <h3 className="font-heading text-lg font-bold text-white">{plan.name}</h3>
-      <p className="text-xs text-gray-400 mt-1 min-h-[32px] leading-relaxed">{plan.description}</p>
+      <h3 className="font-display text-xl font-bold tracking-tight">{plan.name}</h3>
+      <p className={`mt-1 min-h-[40px] text-sm leading-relaxed ${featured ? "text-ink/75" : "text-gray-400"}`}>{plan.description}</p>
 
-      <div className="mt-5 mb-6">
-        <div className="flex items-baseline gap-2">
-          <span className="font-heading text-3xl font-bold text-amber-400">{formatTHB(plan.price)}</span>
+      <div className={`mt-6 border-t pt-5 ${featured ? "border-ink/25" : "border-line-soft"}`}>
+        <div className="flex flex-wrap items-baseline gap-x-2">
+          <span className="font-display text-4xl font-bold tracking-tight tabular-nums">{formatTHB(plan.price)}</span>
           {plan.originalPrice > plan.price && (
-            <span className="text-sm text-gray-400 line-through">{formatTHB(plan.originalPrice)}</span>
+            <span className={`text-sm line-through ${featured ? "text-ink/60" : "text-gray-500"}`}>{formatTHB(plan.originalPrice)}</span>
           )}
         </div>
-        <span className="text-xs text-gray-400 block mt-1">อายุการใช้งาน {plan.durationLabel}</span>
+        <span className={`mt-1 block text-xs ${featured ? "text-ink/70" : "text-gray-400"}`}>อายุการใช้งาน {plan.durationLabel}</span>
       </div>
 
-      <ul className="border-t border-white/10 pt-4 space-y-2.5 flex-1">
+      <ul className="mt-6 flex-1 space-y-2.5">
         {plan.features.map((feature) => (
-          <li key={feature} className="flex items-start gap-2 text-xs text-gray-300 leading-relaxed">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" aria-hidden="true" />
+          <li key={feature} className={`flex items-start gap-2 text-sm leading-relaxed ${featured ? "text-ink/85" : "text-gray-300"}`}>
+            <Check className={`w-4 h-4 mt-0.5 shrink-0 ${featured ? "text-ink" : "text-signal"}`} aria-hidden="true" />
             <span>{feature}</span>
           </li>
         ))}
@@ -50,8 +52,10 @@ function PlanCard({ plan }: { plan: PlanConfig }) {
       <Link
         href={getPlanCtaHref(plan)}
         aria-label={`เลือกแพ็กเกจนี้: ${plan.name} ราคา ${formatTHB(plan.price)}`}
-        className={`mt-8 w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-1.5 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300 ${
-          plan.popular ? "bg-amber-400 hover:bg-amber-300 text-black shadow-glow" : "bg-white/10 hover:bg-white/20 text-white"
+        className={`mt-8 flex items-center justify-center gap-2 px-4 py-3.5 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
+          featured
+            ? "bg-ink text-signal hover:bg-ink-raised focus-visible:outline-ink"
+            : "border border-line text-white hover:bg-signal hover:text-ink hover:border-signal focus-visible:outline-signal"
         }`}
       >
         เลือกแพ็กเกจนี้
@@ -63,42 +67,46 @@ function PlanCard({ plan }: { plan: PlanConfig }) {
 
 export function PricingSection() {
   return (
-    <section aria-labelledby={`${HOME_SECTION_IDS.pricing}-heading`} id={HOME_SECTION_IDS.pricing} className="scroll-mt-20 py-20 sm:py-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <SectionHeading
-          id={`${HOME_SECTION_IDS.pricing}-heading`}
-          eyebrow="แพ็กเกจและราคา"
-          title="เลือกระยะเวลา ที่เหมาะกับคุณ"
-          description="ชำระครั้งเดียวต่อรอบผ่าน PromptPay ไม่มีการตัดเงินอัตโนมัติ"
-          align="center"
-        />
-
-        <div className="mt-8 mx-auto max-w-3xl rounded-2xl glass-panel-gold px-5 py-4 text-center">
-          <p className="font-heading font-semibold text-amber-300">{PROMO_SETTINGS.promoTitle}</p>
-          <p className="mt-1 text-xs sm:text-sm text-gray-300">{PROMO_SETTINGS.promoSubtitle}</p>
+    <section aria-labelledby={`${HOME_SECTION_IDS.pricing}-heading`} id={HOME_SECTION_IDS.pricing} className="scroll-mt-20 border-b border-line">
+      <div className="px-4 sm:px-6 lg:px-10 py-20 sm:py-28">
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+          <SectionHeading
+            id={`${HOME_SECTION_IDS.pricing}-heading`}
+            eyebrow="แพ็กเกจและราคา"
+            title="เลือกระยะเวลา ที่เหมาะกับคุณ"
+            description="ชำระครั้งเดียวต่อรอบผ่าน PromptPay ไม่มีการตัดเงินอัตโนมัติ"
+          />
+          <div className="flex max-w-md border border-line">
+            <span aria-hidden="true" className="w-2 shrink-0 bg-signal" />
+            <div className="px-5 py-4">
+              <p className="font-display font-bold text-white">{PROMO_SETTINGS.promoTitle}</p>
+              <p className="mt-1 text-sm text-gray-300 leading-relaxed">{PROMO_SETTINGS.promoSubtitle}</p>
+            </div>
+          </div>
         </div>
 
-        <ul className="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-5">
-          {SITE_PLANS.map((plan) => (
-            <PlanCard key={plan.id} plan={plan} />
+        <ul className="mt-16 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 lg:pb-6">
+          {SITE_PLANS.map((plan, index) => (
+            <PlanCard key={plan.id} plan={plan} index={index} />
           ))}
         </ul>
 
-        <p className="mt-6 mx-auto max-w-3xl text-xs text-gray-400 text-center leading-relaxed">{RISK_DISCLAIMER}</p>
-
-        <p className="mt-4 flex items-start justify-center gap-2 text-xs text-gray-400 text-center">
-          <Info className="w-4 h-4 shrink-0" aria-hidden="true" />
-          <span>
-            ก่อนชำระเงิน โปรดอ่าน{" "}
-            <Link href="/terms" className="underline underline-offset-2 hover:text-amber-400">
-              ข้อกำหนดการใช้บริการ
-            </Link>{" "}
-            และ{" "}
-            <Link href="/refund" className="underline underline-offset-2 hover:text-amber-400">
-              นโยบายการคืนเงิน
-            </Link>
-          </span>
-        </p>
+        <div className="mt-14 grid gap-px bg-line border border-line md:grid-cols-[1.6fr_1fr]">
+          <p className="bg-ink px-5 py-4 text-xs sm:text-sm text-gray-400 leading-relaxed">{RISK_DISCLAIMER}</p>
+          <p className="flex items-start gap-2 bg-ink px-5 py-4 text-xs sm:text-sm text-gray-300 leading-relaxed">
+            <Info className="w-4 h-4 mt-0.5 shrink-0 text-signal" aria-hidden="true" />
+            <span>
+              ก่อนชำระเงิน โปรดอ่าน{" "}
+              <Link href="/terms" className="underline underline-offset-4 hover:text-signal">
+                ข้อกำหนดการใช้บริการ
+              </Link>{" "}
+              และ{" "}
+              <Link href="/refund" className="underline underline-offset-4 hover:text-signal">
+                นโยบายการคืนเงิน
+              </Link>
+            </span>
+          </p>
+        </div>
       </div>
     </section>
   );

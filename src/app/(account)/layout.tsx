@@ -1,117 +1,99 @@
 import Link from "next/link";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { 
-  LayoutDashboard, 
-  KeyRound, 
-  Receipt, 
-  Home, 
-  ShieldAlert,
-  Sparkles
-} from "lucide-react";
+import { LayoutDashboard, Receipt, ShieldAlert, Tags } from "lucide-react";
+import { authOptions } from "@/lib/auth";
+import { siteConfig } from "@/config/site";
 import { AccountSignOutButton } from "@/components/account-sign-out";
+import { BrandMark } from "@/components/marketing/site-header";
+import { displayFont, thaiFont } from "@/components/marketing/fonts";
 
-export default async function AccountLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+const ACCOUNT_NAV = [
+  { href: "/account", label: "แดชบอร์ด", icon: LayoutDashboard },
+  { href: "/account/orders", label: "ประวัติคำสั่งซื้อ", icon: Receipt },
+  { href: "/#pricing", label: "แพ็กเกจ / ต่ออายุ", icon: Tags },
+] as const;
+
+const navCell =
+  "flex items-center justify-center gap-2 px-4 xl:px-6 text-sm text-gray-200 transition-colors hover:bg-white/[0.04] hover:text-signal focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-signal";
+
+export default async function AccountLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    redirect("/auth/signin?callbackUrl=/account");
-  }
+  if (!session?.user) redirect("/auth/signin?callbackUrl=/account");
 
   const isAdmin = session.user.role === "ADMIN";
 
   return (
-    <div className="min-h-screen bg-[#0B0F17] flex flex-col">
-      {/* Top Navigation */}
-      <header className="border-b border-white/10 bg-[#111827]/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center font-bold text-black shadow-glow">
-                P
-              </div>
-              <div>
-                <span className="font-bold text-lg text-white group-hover:text-amber-400 transition-colors">
-                  Peenoey
-                </span>
-                <span className="text-xs text-amber-400 ml-1.5 px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 font-medium">
-                  Portal
-                </span>
-              </div>
-            </Link>
-
-            <nav className="hidden md:flex items-center gap-1">
-              <Link
-                href="/account"
-                className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-200 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2"
-              >
-                <LayoutDashboard className="w-4 h-4 text-amber-400" />
-                แดชบอร์ด
-              </Link>
-              <Link
-                href="/account/subscriptions"
-                className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2"
-              >
-                <KeyRound className="w-4 h-4 text-emerald-400" />
-                สิทธิ์การใช้งาน
-              </Link>
-              <Link
-                href="/account/orders"
-                className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2"
-              >
-                <Receipt className="w-4 h-4 text-blue-400" />
-                ประวัติคำสั่งซื้อ
-              </Link>
-            </nav>
+    <div className={`${displayFont.variable} ${thaiFont.variable} font-thai min-h-screen bg-ink text-white flex flex-col selection:bg-signal selection:text-ink`}>
+      <header className="sticky top-0 z-40 border-b border-line bg-ink/95 backdrop-blur supports-[backdrop-filter]:bg-ink/85">
+        <div className="flex h-16 lg:h-[72px] items-stretch">
+          <div className="flex items-center gap-3 px-4 sm:px-6 lg:px-8 border-r border-line">
+            <BrandMark />
+            <span className="hidden sm:inline border border-line px-2 py-0.5 text-[11px] font-semibold tracking-wide text-signal">PORTAL</span>
           </div>
 
-          <div className="flex items-center gap-3">
-            {isAdmin && (
-              <Link
-                href="/admin"
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20 transition-all flex items-center gap-1.5"
-              >
-                <ShieldAlert className="w-3.5 h-3.5" />
-                ระบบจัดการหลังบ้าน
+          <nav aria-label="เมนูบัญชี" className="hidden md:flex items-stretch">
+            {ACCOUNT_NAV.map(({ href, label, icon: Icon }) => (
+              <Link key={href} href={href} className={`${navCell} border-r border-line`}>
+                <Icon className="w-4 h-4 text-signal" aria-hidden="true" />
+                {label}
               </Link>
-            )}
+            ))}
+          </nav>
 
-            <div className="hidden sm:flex flex-col text-right">
-              <span className="text-sm font-medium text-white truncate max-w-[150px]">
-                {session.user.name || session.user.email}
-              </span>
-              <span className="text-xs text-gray-400 flex items-center justify-end gap-1">
-                <Sparkles className="w-3 h-3 text-amber-400" />
-                {session.user.role === "ADMIN" ? "แอดมิน" : "สมาชิกทั่วไป"}
-              </span>
-            </div>
+          <div className="flex-1" />
 
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className="flex items-center gap-1.5 border-l border-line px-4 text-xs font-semibold text-red-300 transition-colors hover:bg-red-500/10 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-red-400"
+            >
+              <ShieldAlert className="w-4 h-4" aria-hidden="true" />
+              <span className="hidden sm:inline">ระบบจัดการหลังบ้าน</span>
+            </Link>
+          )}
+
+          <div className="hidden lg:flex flex-col justify-center border-l border-line px-5 text-right">
+            <span className="max-w-[180px] truncate text-sm font-medium text-white">{session.user.name || session.user.email}</span>
+            <span className="text-xs text-gray-400">{isAdmin ? "แอดมิน" : "สมาชิก"}</span>
+          </div>
+
+          <div className="flex items-center border-l border-line px-3 sm:px-4">
             <AccountSignOutButton />
           </div>
         </div>
+
+        {/* จอเล็ก: เมนูบัญชีเป็นแถบช่องกรอบใต้ header */}
+        <nav aria-label="เมนูบัญชี (มือถือ)" className="md:hidden grid grid-cols-3 border-t border-line">
+          {ACCOUNT_NAV.map(({ href, label, icon: Icon }, index) => (
+            <Link key={href} href={href} className={`${navCell} flex-col gap-1 py-2.5 px-2 text-xs ${index > 0 ? "border-l border-line" : ""}`}>
+              <Icon className="w-4 h-4 text-signal" aria-hidden="true" />
+              {label}
+            </Link>
+          ))}
+        </nav>
       </header>
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {children}
-      </main>
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">{children}</main>
 
-      {/* Footer */}
-      <footer className="border-t border-white/5 py-6 text-center text-xs text-gray-500">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p>© {new Date().getFullYear()} Peenoey Indicator. สงวนลิขสิทธิ์ทั้งหมด</p>
-          <div className="flex items-center gap-4">
-            <Link href="/" className="hover:text-gray-300 transition-colors flex items-center gap-1">
-              <Home className="w-3.5 h-3.5" /> หน้าแรก
+      <footer className="border-t border-line text-xs text-gray-400">
+        <div className="flex flex-col gap-3 px-4 sm:px-6 lg:px-8 py-6 sm:flex-row sm:items-center sm:justify-between">
+          <p>
+            © {new Date().getFullYear()} {siteConfig.name}
+          </p>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <Link href="/" className="hover:text-signal transition-colors">
+              หน้าแรก
             </Link>
-            <Link href="/guide" className="hover:text-gray-300 transition-colors">คู่มือการใช้งาน</Link>
-            <Link href="/terms" className="hover:text-gray-300 transition-colors">เงื่อนไข</Link>
-            <Link href="/privacy" className="hover:text-gray-300 transition-colors">ความเป็นส่วนตัว</Link>
+            <Link href="/guide" className="hover:text-signal transition-colors">
+              คู่มือการใช้งาน
+            </Link>
+            <Link href="/terms" className="hover:text-signal transition-colors">
+              เงื่อนไข
+            </Link>
+            <Link href="/privacy" className="hover:text-signal transition-colors">
+              ความเป็นส่วนตัว
+            </Link>
           </div>
         </div>
       </footer>

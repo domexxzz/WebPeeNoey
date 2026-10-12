@@ -25,23 +25,23 @@ export default async function AdminMembersPage({ searchParams }: { searchParams:
         <form role="search" className="flex gap-2" action="/admin/members">
           <label className="sr-only" htmlFor="member-search">ค้นหาสมาชิก</label>
           <input id="member-search" name="q" defaultValue={q} placeholder="ค้นหาสมาชิก" className={`${inputClass} sm:w-72`} />
-          <button type="submit" className="rounded-lg bg-white/10 px-3 text-gray-200 hover:bg-white/20" aria-label="ค้นหา">
+          <button type="submit" className="bg-white/10 px-3 text-gray-200 hover:bg-white/20" aria-label="ค้นหา">
             <Search className="w-4 h-4" aria-hidden="true" />
           </button>
         </form>
       </AdminPageHeader>
 
-      <div className="overflow-x-auto rounded-xl glass-panel-admin">
+      <div className="overflow-x-auto border border-line bg-ink">
         <table className="w-full min-w-[680px] text-sm">
           <thead className="text-left text-xs text-gray-400">
-            <tr className="border-b border-white/10">
+            <tr className="border-b border-line">
               <th className="px-4 py-3 font-medium">สมาชิก</th>
               <th className="px-4 py-3 font-medium">TradingView</th>
               <th className="px-4 py-3 font-medium">สถานะสิทธิ์</th>
               <th className="px-4 py-3 font-medium">สมัครเมื่อ</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/5">
+          <tbody className="divide-y divide-line-soft">
             {items.length === 0 && (
               <tr>
                 <td colSpan={4} className="px-4 py-10 text-center text-gray-400">ไม่พบสมาชิก</td>
@@ -50,13 +50,13 @@ export default async function AdminMembersPage({ searchParams }: { searchParams:
             {items.map((member) => (
               <tr key={member.id} className="hover:bg-white/5">
                 <td className="px-4 py-3">
-                  <Link href={`/admin/members/${member.id}`} className="text-amber-300 hover:underline">{member.email}</Link>
+                  <Link href={`/admin/members/${member.id}`} className="text-signal hover:underline">{member.email}</Link>
                   <div className="text-xs text-gray-400">{member.name ?? "—"}{member.role === "ADMIN" && " · แอดมิน"}</div>
                 </td>
                 <td className="px-4 py-3 text-gray-300">{member.tradingViewUsername ?? "—"}</td>
                 <td className="px-4 py-3">
                   {member.membership.active && member.membership.endsAt ? (
-                    <span className="text-emerald-300">ใช้งานได้ถึง {formatDate(member.membership.endsAt)} (อีก {daysUntil(member.membership.endsAt, now)} วัน)</span>
+                    <span className="text-signal">ใช้งานได้ถึง {formatDate(member.membership.endsAt)} (อีก {daysUntil(member.membership.endsAt, now)} วัน)</span>
                   ) : (
                     <span className="text-gray-400">ไม่มีสิทธิ์</span>
                   )}

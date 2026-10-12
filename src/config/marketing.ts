@@ -88,6 +88,10 @@ export const HERO_CONTENT = {
     "ต่ออายุแบบทบวัน วันที่เหลืออยู่ไม่หาย",
     "ไม่มีการตัดเงินอัตโนมัติ ต่ออายุเมื่อคุณพร้อม",
   ],
+  /** คำบรรยายใต้ภาพกราฟ — ภาพเป็นภาพประกอบ ไม่ใช่ผลการเทรด (CLAUDE.md ข้อ 3) */
+  visualCaption: "ภาพประกอบเพื่ออธิบายการทำงานของเครื่องมือ ไม่ใช่ผลการเทรดจริง",
+  /** แถบตัวอักษรเลื่อนใต้ Hero — ใช้เฉพาะชื่อสิ่งที่ได้รับจริง */
+  marquee: ["Peenoey Indicator", "TradingView", "Telegram VIP", "Discord Community"],
 };
 
 export const FEATURES: FeatureItem[] = [

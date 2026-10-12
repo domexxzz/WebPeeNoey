@@ -24,10 +24,10 @@ function SlipViewer({ order }: { order: AdminOrderDetail }) {
     <div className="space-y-3">
       <a href={`/api/slips/${latest.id}`} target="_blank" rel="noopener noreferrer" className="group block">
         {/* สลิปเป็นไฟล์ที่ต้องตรวจสิทธิ์ทุกครั้ง จึงไม่ผ่าน image optimizer (unoptimized) */}
-        <div className="relative mx-auto aspect-[9/16] max-h-[640px] w-full overflow-hidden rounded-lg bg-black/40">
+        <div className="relative mx-auto aspect-[9/16] max-h-[640px] w-full overflow-hidden bg-ink-raised">
           <Image src={`/api/slips/${latest.id}`} alt={`สลิปของคำสั่งซื้อ ${order.orderNumber}`} fill unoptimized sizes="(min-width: 1024px) 420px, 100vw" className="object-contain" />
         </div>
-        <span className="mt-2 inline-flex items-center gap-1 text-xs text-amber-300 group-hover:underline">
+        <span className="mt-2 inline-flex items-center gap-1 text-xs text-signal group-hover:underline">
           เปิดภาพเต็ม <ExternalLink className="w-3 h-3" aria-hidden="true" />
         </span>
       </a>
@@ -40,7 +40,7 @@ function SlipViewer({ order }: { order: AdminOrderDetail }) {
           <ul className="mt-2 space-y-1">
             {older.map((slip) => (
               <li key={slip.id}>
-                <a href={`/api/slips/${slip.id}`} target="_blank" rel="noopener noreferrer" className="text-amber-300 hover:underline">
+                <a href={`/api/slips/${slip.id}`} target="_blank" rel="noopener noreferrer" className="text-signal hover:underline">
                   {formatDateTime(slip.createdAt)}
                 </a>
               </li>
@@ -63,7 +63,7 @@ function ReviewForms({ order }: { order: AdminOrderDetail }) {
             <input id="referenceNo" name="referenceNo" required autoComplete="off" className={inputClass} placeholder="เช่น 2026101112345678" />
           </div>
           <label className="flex items-start gap-2 text-sm text-gray-300">
-            <input type="checkbox" name="confirmReceived" required className="mt-1 accent-emerald-500" />
+            <input type="checkbox" name="confirmReceived" required className="mt-1 accent-[#6EEA6E]" />
             ตรวจแล้วว่ามีเงิน {formatBaht(order.amount)} บาท เข้าบัญชี {order.payment?.promptpayAccountName || "ผู้รับ"} จริง
           </label>
         </ActionForm>
@@ -149,12 +149,12 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
 
         <div className="space-y-6">
           <AdminCard title="ข้อมูลคำสั่งซื้อ">
-            <p className="font-heading text-3xl font-bold text-emerald-300">
+            <p className="font-display text-3xl font-bold text-signal">
               {formatBaht(order.amount)} <span className="text-base text-gray-400">บาท</span>
             </p>
             <DefinitionList
               items={[
-                { label: "ลูกค้า", value: <Link href={`/admin/members/${order.user.id}`} className="text-amber-300 hover:underline">{order.user.email}</Link> },
+                { label: "ลูกค้า", value: <Link href={`/admin/members/${order.user.id}`} className="text-signal hover:underline">{order.user.email}</Link> },
                 { label: "TradingView Username", value: order.user.tradingViewUsername ?? "—" },
                 { label: "Discord User ID", value: order.user.discordUserId ?? "—" },
                 { label: "แพ็กเกจ", value: `${order.plan.name} (${order.plan.durationDays} วัน)` },
@@ -175,7 +175,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
               <div className="flex flex-wrap items-center gap-3 text-sm text-gray-300">
                 <SubscriptionBadge status={order.subscription.status} />
                 {formatDateTime(order.subscription.currentPeriodStart)} → {formatDateTime(order.subscription.currentPeriodEnd)}
-                {order.subscription.isPriceLocked && <span className="text-xs text-amber-300">ล็อกราคา</span>}
+                {order.subscription.isPriceLocked && <span className="text-xs text-signal">ล็อกราคา</span>}
               </div>
               <ProvisioningPanel subscription={order.subscription} />
             </AdminCard>

@@ -31,7 +31,7 @@ export default function FeaturesPage() {
             <a
               key={feature.id}
               href={`#${feature.id}`}
-              className="px-3.5 py-1.5 rounded-full border border-white/10 text-xs text-gray-300 hover:border-amber-500/40 hover:text-amber-300 transition-colors"
+              className="px-3.5 py-1.5 border border-line text-xs text-gray-300 hover:border-signal hover:text-signal transition-colors"
             >
               {feature.title}
             </a>
@@ -51,17 +51,17 @@ export default function FeaturesPage() {
               className="scroll-mt-24 grid gap-10 lg:grid-cols-2 lg:items-center"
             >
               <div className={isReversed ? "lg:order-2" : ""}>
-                <span className="inline-flex w-12 h-12 items-center justify-center rounded-xl bg-amber-500/15 text-amber-400">
+                <span className="inline-flex w-12 h-12 items-center justify-center border border-line text-signal">
                   <Icon className="w-6 h-6" aria-hidden="true" />
                 </span>
-                <h2 id={`${feature.id}-heading`} className="mt-5 font-heading text-2xl sm:text-3xl font-bold text-white">
+                <h2 id={`${feature.id}-heading`} className="mt-5 font-display text-2xl sm:text-3xl font-bold text-white">
                   {feature.title}
                 </h2>
                 <p className="mt-3 text-gray-300 leading-relaxed">{feature.description}</p>
                 <ul className="mt-6 space-y-3">
                   {bullets.map((bullet) => (
                     <li key={bullet} className="flex items-start gap-2.5 text-sm text-gray-300 leading-relaxed">
-                      <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-emerald-400" aria-hidden="true" />
+                      <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-signal" aria-hidden="true" />
                       {bullet}
                     </li>
                   ))}
@@ -76,16 +76,16 @@ export default function FeaturesPage() {
 
         {OTHER_FEATURES.length > 0 && (
           <section aria-labelledby="other-features-heading">
-            <h2 id="other-features-heading" className="font-heading text-2xl font-bold text-white">
+            <h2 id="other-features-heading" className="font-display text-2xl font-bold text-white">
               สิทธิ์อื่น ๆ สำหรับสมาชิก
             </h2>
             <ul className="mt-8 grid gap-4 sm:grid-cols-2">
               {OTHER_FEATURES.map((feature) => {
                 const Icon = FEATURE_ICONS[feature.icon];
                 return (
-                  <li key={feature.id} className="rounded-2xl glass-panel p-6">
-                    <Icon className="w-6 h-6 text-amber-400" aria-hidden="true" />
-                    <h3 className="mt-4 font-heading font-semibold text-white">{feature.title}</h3>
+                  <li key={feature.id} className=" border border-line bg-ink p-6">
+                    <Icon className="w-6 h-6 text-signal" aria-hidden="true" />
+                    <h3 className="mt-4 font-display font-semibold text-white">{feature.title}</h3>
                     <p className="mt-2 text-sm text-gray-400 leading-relaxed">{feature.description}</p>
                   </li>
                 );
@@ -94,25 +94,25 @@ export default function FeaturesPage() {
           </section>
         )}
 
-        <aside aria-label="คำเตือนความเสี่ยง" className="rounded-2xl border border-amber-500/25 bg-amber-500/5 p-6 flex items-start gap-3">
-          <ShieldAlert className="w-5 h-5 shrink-0 mt-0.5 text-amber-400" aria-hidden="true" />
+        <aside aria-label="คำเตือนความเสี่ยง" className=" border border-line bg-ink-raised p-6 flex items-start gap-3">
+          <ShieldAlert className="w-5 h-5 shrink-0 mt-0.5 text-signal" aria-hidden="true" />
           <p className="text-sm text-gray-300 leading-relaxed">{RISK_DISCLAIMER}</p>
         </aside>
 
-        <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between rounded-3xl glass-panel-gold p-8">
+        <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between border border-line bg-ink-raised p-8">
           <div>
-            <h2 className="font-heading text-xl font-bold text-white">พร้อมเริ่มใช้งานแล้วหรือยัง?</h2>
+            <h2 className="font-display text-xl font-bold text-white">พร้อมเริ่มใช้งานแล้วหรือยัง?</h2>
             <p className="mt-1 text-sm text-gray-300">เลือกแพ็กเกจ หรืออ่านคู่มือการใช้งานก่อนตัดสินใจ</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
             <Link
               href={`/#${HOME_SECTION_IDS.pricing}`}
-              className="px-6 py-3 rounded-xl text-sm font-semibold text-black bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 shadow-glow flex items-center justify-center gap-2"
+              className="px-6 py-3 text-sm font-semibold text-ink bg-signal hover:bg-signal-hover flex items-center justify-center gap-2"
             >
               ดูแพ็กเกจราคา
               <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </Link>
-            <Link href="/guide" className="px-6 py-3 rounded-xl text-sm font-medium text-gray-200 glass-panel hover:bg-white/10 text-center">
+            <Link href="/guide" className="px-6 py-3 text-sm font-medium text-gray-200 border border-line bg-ink hover:bg-white/10 text-center">
               อ่านคู่มือการใช้งาน
             </Link>
           </div>

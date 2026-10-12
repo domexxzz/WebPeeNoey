@@ -30,13 +30,13 @@ export function ChartDecoration({ className = "" }: { className?: string }) {
       {CANDLES.map((candle, index) => {
         const x = index * CANDLE_GAP + 10;
         const isUp = candle.close < candle.open;
-        const color = isUp ? "#10B981" : "#F59E0B";
+        const color = isUp ? "#6EEA6E" : "rgba(255,255,255,0.6)";
         const top = Math.min(candle.open, candle.close);
         const height = Math.max(Math.abs(candle.open - candle.close), 2);
         return (
           <g key={x} opacity={0.35 + (index / CANDLES.length) * 0.5}>
             <line x1={x + CANDLE_WIDTH / 2} x2={x + CANDLE_WIDTH / 2} y1={candle.high} y2={candle.low} stroke={color} strokeWidth="1.5" />
-            <rect x={x} y={top} width={CANDLE_WIDTH} height={height} rx="2" fill={color} fillOpacity={isUp ? 0.85 : 0.25} stroke={color} />
+            <rect x={x} y={top} width={CANDLE_WIDTH} height={height} fill={color} fillOpacity={isUp ? 0.85 : 0.25} stroke={color} />
           </g>
         );
       })}

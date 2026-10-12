@@ -36,7 +36,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
           <input type="hidden" name="tab" value={tab} />
           <label className="sr-only" htmlFor="order-search">ค้นหาคำสั่งซื้อ</label>
           <input id="order-search" name="q" defaultValue={q} placeholder="เลขออเดอร์ / อีเมล / เลขอ้างอิง" className={`${inputClass} sm:w-72`} />
-          <button type="submit" className="rounded-lg bg-white/10 px-3 text-gray-200 hover:bg-white/20" aria-label="ค้นหา">
+          <button type="submit" className="bg-white/10 px-3 text-gray-200 hover:bg-white/20" aria-label="ค้นหา">
             <Search className="w-4 h-4" aria-hidden="true" />
           </button>
         </form>
@@ -48,19 +48,19 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
             key={key}
             href={tabHref(key, q)}
             aria-current={key === tab ? "page" : undefined}
-            className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors ${
-              key === tab ? "border-amber-400 bg-amber-500/15 text-amber-300" : "border-white/10 text-gray-300 hover:bg-white/5"
+            className={`border px-3.5 py-1.5 text-xs font-medium transition-colors ${
+              key === tab ? "border-signal bg-signal text-ink" : "border-line text-gray-300 hover:bg-white/5"
             }`}
           >
-            {ADMIN_ORDER_TABS[key].label} <span className="ml-1 tabular-nums text-gray-400">{counts[key]}</span>
+            {ADMIN_ORDER_TABS[key].label} <span className="ml-1 tabular-nums opacity-70">{counts[key]}</span>
           </Link>
         ))}
       </nav>
 
-      <div className="overflow-x-auto rounded-xl glass-panel-admin">
+      <div className="overflow-x-auto border border-line bg-ink">
         <table className="w-full min-w-[720px] text-sm">
           <thead className="text-left text-xs text-gray-400">
-            <tr className="border-b border-white/10">
+            <tr className="border-b border-line">
               <th className="px-4 py-3 font-medium">คำสั่งซื้อ</th>
               <th className="px-4 py-3 font-medium">ลูกค้า</th>
               <th className="px-4 py-3 font-medium text-right">ยอดที่ต้องได้รับ</th>
@@ -68,7 +68,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
               <th className="px-4 py-3 font-medium">สถานะ</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/5">
+          <tbody className="divide-y divide-line-soft">
             {items.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-4 py-10 text-center text-gray-400">
@@ -79,7 +79,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
             {items.map((order) => (
               <tr key={order.id} className="hover:bg-white/5">
                 <td className="px-4 py-3">
-                  <Link href={`/admin/orders/${order.id}`} className="font-mono text-amber-300 hover:underline">
+                  <Link href={`/admin/orders/${order.id}`} className="font-mono text-signal hover:underline">
                     {order.orderNumber}
                   </Link>
                   <div className="text-xs text-gray-400">{order.planName}</div>
@@ -92,7 +92,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                 <td className="px-4 py-3 text-gray-300">
                   {order.slipUploadedAt ? formatDateTime(order.slipUploadedAt) : "—"}
                   {order.status === "SLIP_SUBMITTED" && !order.adminNotifiedAt && (
-                    <span className="mt-1 flex items-center gap-1 text-xs text-amber-400" title="ส่งแจ้งเตือน Telegram ไม่สำเร็จ">
+                    <span className="mt-1 flex items-center gap-1 text-xs text-signal" title="ส่งแจ้งเตือน Telegram ไม่สำเร็จ">
                       <BellOff className="w-3 h-3" aria-hidden="true" /> ยังไม่ได้แจ้งเตือน
                     </span>
                   )}

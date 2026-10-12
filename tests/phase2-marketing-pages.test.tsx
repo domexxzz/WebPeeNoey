@@ -24,6 +24,11 @@ import { GUIDE_SECTIONS, TROUBLESHOOTING } from "@/content/guide";
 import { LEGAL_DOCUMENTS } from "@/content/legal";
 
 // ค่าเริ่มต้นเป็นผู้เยี่ยมชม เพราะบาง describe render หน้าตั้งแต่ตอนเก็บรายการเทสต์ (ก่อน beforeEach)
+// next/font ถูกแปลงโดย compiler ของ Next.js — ในเทสต์จำลองให้คืนชื่อ class/ตัวแปรแทน
+vi.mock("next/font/google", () => {
+  const font = (options: { variable?: string }) => ({ className: "font-mock", variable: options.variable?.replace(/^--/, "") ?? "font-mock", style: { fontFamily: "mock" } });
+  return { Familjen_Grotesk: font, Anuphan: font };
+});
 vi.mock("next-auth/react", () => ({
   useSession: vi.fn(() => ({ data: null, status: "unauthenticated", update: vi.fn() })),
 }));

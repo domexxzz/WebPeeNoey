@@ -1,33 +1,27 @@
 import Link from "next/link";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { Activity, ClipboardCheck, ExternalLink, LayoutDashboard, ScrollText, Sliders, Users } from "lucide-react";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getAdminActor } from "@/lib/admin/guard";
-import {
-  ShieldAlert,
-  LayoutDashboard,
-  ClipboardCheck,
-  Users,
-  ScrollText,
-  Activity,
-  Sliders,
-  LogOut,
-  ExternalLink,
-  Lock,
-} from "lucide-react";
+import { formatDateTime } from "@/lib/format";
 import { AccountSignOutButton } from "@/components/account-sign-out";
+import { BrandMark } from "@/components/marketing/site-header";
+import { displayFont, thaiFont } from "@/components/marketing/fonts";
 
-export default async function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+const ADMIN_NAV = [
+  { href: "/admin", label: "ภาพรวมระบบ", icon: LayoutDashboard },
+  { href: "/admin/orders", label: "ตรวจสอบออเดอร์", icon: ClipboardCheck },
+  { href: "/admin/members", label: "สมาชิก & สิทธิ์", icon: Users },
+  { href: "/admin/audit-logs", label: "Audit Logs", icon: ScrollText },
+  { href: "/admin/status", label: "สถานะระบบ", icon: Activity },
+  { href: "/admin/settings", label: "ตั้งค่า & Kill-switch", icon: Sliders },
+] as const;
+
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    redirect("/auth/signin?callbackUrl=/admin");
-  }
+  if (!session?.user) redirect("/auth/signin?callbackUrl=/admin");
 
   // ตรวจ role จากฐานข้อมูลด้วย (JWT อาจเก่า เช่น แอดมินถูกลดสิทธิ์แล้วแต่ token ยังไม่หมดอายุ)
   if (session.user.role !== "ADMIN" || !(await getAdminActor(prisma, session.user.id))) {
@@ -35,108 +29,58 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[#070A0F] text-gray-200 flex flex-col md:flex-row">
-      {/* Admin Sidebar */}
-      <aside className="w-full md:w-64 bg-[#0D121C] border-r border-red-500/20 flex flex-col shrink-0">
-        <div className="p-5 border-b border-white/5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-amber-600 flex items-center justify-center font-bold text-white shadow-lg">
-              <ShieldAlert className="w-6 h-6" />
-            </div>
-            <div>
-              <span className="font-bold text-white tracking-wide block">
-                ADMIN CONSOLE
-              </span>
-              <span className="text-[11px] text-red-400 font-mono flex items-center gap-1">
-                <Lock className="w-2.5 h-2.5 inline" /> SECURE ROOT
-              </span>
-            </div>
-          </div>
+    <div className={`${displayFont.variable} ${thaiFont.variable} font-thai min-h-screen bg-ink text-gray-200 flex flex-col md:flex-row selection:bg-signal selection:text-ink`}>
+      <aside className="flex w-full shrink-0 flex-col border-b border-line md:sticky md:top-0 md:h-screen md:w-64 md:border-b-0 md:border-r">
+        <div className="flex h-16 items-center justify-between gap-3 border-b border-line px-5">
+          <BrandMark />
+          <span className="border border-red-400/70 px-2 py-0.5 text-[11px] font-bold tracking-wider text-red-300">ADMIN</span>
         </div>
 
-        {/* Navigation Links */}
-        <nav className="p-4 space-y-1.5 flex-1">
-          <Link
-            href="/admin"
-            className="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors border border-transparent hover:border-white/5"
-          >
-            <LayoutDashboard className="w-4 h-4 text-amber-400" />
-            ภาพรวมระบบ
-          </Link>
-          <Link
-            href="/admin/orders"
-            className="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors border border-transparent hover:border-white/5"
-          >
-            <ClipboardCheck className="w-4 h-4 text-emerald-400" />
-            ตรวจสอบออเดอร์
-          </Link>
-          <Link
-            href="/admin/members"
-            className="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors border border-transparent hover:border-white/5"
-          >
-            <Users className="w-4 h-4 text-blue-400" />
-            จัดการสมาชิก & สิทธิ์
-          </Link>
-          <Link
-            href="/admin/audit-logs"
-            className="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors border border-transparent hover:border-white/5"
-          >
-            <ScrollText className="w-4 h-4 text-purple-400" />
-            ประวัติ Audit Logs
-          </Link>
-          <Link
-            href="/admin/status"
-            className="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors border border-transparent hover:border-white/5"
-          >
-            <Activity className="w-4 h-4 text-cyan-400" />
-            สถานะระบบ (Health)
-          </Link>
-          <Link
-            href="/admin/settings"
-            className="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors border border-transparent hover:border-white/5"
-          >
-            <Sliders className="w-4 h-4 text-pink-400" />
-            ตั้งค่า & Kill-switch
-          </Link>
+        <nav aria-label="เมนูผู้ดูแลระบบ" className="flex overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:flex-1 md:flex-col md:overflow-visible">
+          {ADMIN_NAV.map(({ href, label, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              className="flex shrink-0 items-center gap-3 whitespace-nowrap border-r border-line px-4 py-3.5 text-sm text-gray-200 transition-colors hover:bg-white/[0.04] hover:text-signal focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-signal md:border-b md:border-r-0 md:px-5"
+            >
+              <Icon className="w-4 h-4 text-signal" aria-hidden="true" />
+              {label}
+            </Link>
+          ))}
         </nav>
 
-        {/* User profile & exit links */}
-        <div className="p-4 border-t border-white/5 space-y-3 bg-[#0A0E17]">
-          <div className="text-xs">
-            <span className="text-gray-400 block">ผู้ดูแลระบบ:</span>
-            <span className="text-white font-medium truncate block">
-              {session.user.email}
-            </span>
+        <div className="hidden md:block space-y-3 border-t border-line px-5 py-4 text-xs">
+          <div>
+            <span className="block text-gray-400">ผู้ดูแลระบบ</span>
+            <span className="block truncate font-medium text-white">{session.user.email}</span>
           </div>
-          <div className="flex items-center justify-between gap-2 pt-1">
-            <Link
-              href="/account"
-              className="text-xs text-gray-400 hover:text-amber-400 flex items-center gap-1 transition-colors"
-            >
-              <ExternalLink className="w-3 h-3" /> หน้าร้านค้า
+          <div className="flex items-center justify-between gap-2">
+            <Link href="/account" className="flex items-center gap-1 text-gray-400 transition-colors hover:text-signal">
+              <ExternalLink className="w-3 h-3" aria-hidden="true" /> หน้าสมาชิก
             </Link>
             <AccountSignOutButton />
           </div>
         </div>
       </aside>
 
-      {/* Admin Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Notification / Security Bar */}
-        <header className="h-14 border-b border-white/5 bg-[#0D121C]/90 backdrop-blur px-6 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs text-amber-300/80">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>ADMIN SECURE ZONE — Clickjacking Protection Active</span>
-          </div>
-          <div className="text-xs text-gray-400">
-            Node: Production Ready | Time: {new Date().toLocaleTimeString("th-TH")}
-          </div>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="flex min-h-14 flex-wrap items-center justify-between gap-x-6 gap-y-1 border-b border-line px-4 sm:px-6 lg:px-8 py-3 text-xs">
+          <p className="flex items-center gap-2 text-gray-300">
+            <span aria-hidden="true" className="w-2 h-2 bg-red-400" />
+            โซนผู้ดูแลระบบ — ทุกการเปลี่ยนแปลงถูกบันทึกใน Audit Log
+          </p>
+          <p className="text-gray-400">
+            เวลาไทย {formatDateTime(new Date())}
+            <span className="md:hidden">
+              {" · "}
+              <Link href="/account" className="text-gray-300 underline underline-offset-2 hover:text-signal">
+                หน้าสมาชิก
+              </Link>
+            </span>
+          </p>
         </header>
 
-        {/* Page Content */}
-        <main className="flex-1 p-6 lg:p-8 max-w-7xl w-full mx-auto">
-          {children}
-        </main>
+        <main className="mx-auto w-full max-w-7xl flex-1 px-4 sm:px-6 lg:px-8 py-8">{children}</main>
       </div>
     </div>
   );

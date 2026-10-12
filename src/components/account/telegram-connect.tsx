@@ -18,9 +18,9 @@ export function TelegramConnect({ enabled, linked, linkedAtLabel }: TelegramConn
   const [state, formAction] = useActionState(createTelegramLinkAction, initialState);
 
   return (
-    <div className="glass-panel rounded-2xl p-6 border border-white/10 space-y-3">
+    <div className="border border-line bg-ink p-6 border border-line space-y-3">
       <h2 className="text-base font-semibold text-white flex items-center gap-2">
-        <BellRing className="w-4 h-4 text-cyan-400" aria-hidden="true" />
+        <BellRing className="w-4 h-4 text-signal" aria-hidden="true" />
         แจ้งเตือนทาง Telegram
       </h2>
 
@@ -28,7 +28,7 @@ export function TelegramConnect({ enabled, linked, linkedAtLabel }: TelegramConn
         <p className="text-xs text-gray-400">การแจ้งเตือนทาง Telegram ยังไม่เปิดใช้งาน — ระบบจะแจ้งเตือนทางอีเมลแทน</p>
       ) : linked ? (
         <div className="space-y-3">
-          <p className="text-xs text-emerald-300 flex items-center gap-1.5">
+          <p className="text-xs text-signal flex items-center gap-1.5">
             <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
             เชื่อมต่อแล้ว{linkedAtLabel ? ` (ตั้งแต่ ${linkedAtLabel})` : ""} — จะได้รับแจ้งเตือนก่อนสิทธิ์หมดอายุ
           </p>
@@ -47,7 +47,7 @@ export function TelegramConnect({ enabled, linked, linkedAtLabel }: TelegramConn
                 href={state.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold text-black bg-cyan-400 hover:bg-cyan-300"
+                className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-ink bg-signal hover:bg-signal-hover"
               >
                 เปิด Telegram แล้วกด Start <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
               </a>

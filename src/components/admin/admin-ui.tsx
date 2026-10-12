@@ -8,24 +8,29 @@ export function AdminOrderBadge({ status }: { status: OrderStatus }) {
   return <OrderStatusBadge phase={phase} />;
 }
 
+/** สีตามความหมายเดียวกับป้ายคำสั่งซื้อ: เขียว = ใช้งาน, อำพัน = ใกล้หมด, แดง = ถูกปิด, เทา = หมดอายุ */
 const SUBSCRIPTION_LABELS: Record<SubscriptionStatus, { label: string; className: string }> = {
-  ACTIVE: { label: "ใช้งานอยู่", className: "bg-emerald-500/10 text-emerald-300 border-emerald-500/30" },
-  EXPIRING_SOON: { label: "ใกล้หมดอายุ", className: "bg-amber-500/10 text-amber-300 border-amber-500/30" },
-  EXPIRED: { label: "หมดอายุ", className: "bg-white/5 text-gray-300 border-white/10" },
-  REVOKED: { label: "ถูกปิดสิทธิ์", className: "bg-red-500/10 text-red-300 border-red-500/30" },
+  ACTIVE: { label: "ใช้งานอยู่", className: "border-signal bg-signal text-ink" },
+  EXPIRING_SOON: { label: "ใกล้หมดอายุ", className: "border-amber-400/60 text-amber-300" },
+  EXPIRED: { label: "หมดอายุ", className: "border-line-soft text-gray-400" },
+  REVOKED: { label: "ถูกปิดสิทธิ์", className: "border-red-400/60 text-red-300" },
 };
 
 export function SubscriptionBadge({ status }: { status: SubscriptionStatus }) {
   const { label, className } = SUBSCRIPTION_LABELS[status];
-  return <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${className}`}>{label}</span>;
+  return <span className={`inline-flex items-center whitespace-nowrap border px-2.5 py-1 text-xs font-semibold ${className}`}>{label}</span>;
 }
 
 export function AdminPageHeader({ title, description, children }: { title: string; description?: string; children?: React.ReactNode }) {
   return (
-    <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <header className="flex flex-col items-start gap-5 border-b border-line pb-6 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h1 className="font-heading text-2xl font-bold text-white">{title}</h1>
-        {description && <p className="mt-1 text-sm text-gray-400">{description}</p>}
+        <p className="inline-flex items-center gap-2 border border-red-400/60 px-2.5 py-0.5 text-[11px] font-bold tracking-wider text-red-300">
+          <span aria-hidden="true" className="w-1.5 h-1.5 bg-red-400" />
+          ADMIN
+        </p>
+        <h1 className="mt-4 font-display text-3xl sm:text-4xl font-bold tracking-tight text-white">{title}</h1>
+        {description && <p className="mt-2 max-w-3xl text-sm text-gray-400 leading-relaxed">{description}</p>}
       </div>
       {children}
     </header>
@@ -34,25 +39,28 @@ export function AdminPageHeader({ title, description, children }: { title: strin
 
 export function AdminCard({ title, children, className = "" }: { title?: string; children: React.ReactNode; className?: string }) {
   return (
-    <section className={`rounded-xl glass-panel-admin p-5 space-y-4 ${className}`}>
-      {title && <h2 className="font-heading text-base font-semibold text-white">{title}</h2>}
-      {children}
+    <section className={`border border-line bg-ink ${className}`}>
+      {title && <h2 className="border-b border-line px-5 py-3.5 font-display text-base font-bold text-white">{title}</h2>}
+      <div className="space-y-4 p-5">{children}</div>
     </section>
   );
 }
 
 export function DefinitionList({ items }: { items: { label: string; value: React.ReactNode }[] }) {
   return (
-    <dl className="grid gap-3 sm:grid-cols-2 text-sm">
+    <dl className="grid gap-px border border-line-soft bg-line-soft text-sm sm:grid-cols-2">
       {items.map((item) => (
-        <div key={item.label} className="rounded-lg bg-black/20 px-3 py-2">
+        <div key={item.label} className="bg-ink px-3.5 py-2.5">
           <dt className="text-xs text-gray-400">{item.label}</dt>
-          <dd className="mt-0.5 text-white break-words">{item.value}</dd>
+          <dd className="mt-0.5 break-words text-white">{item.value}</dd>
         </div>
       ))}
     </dl>
   );
 }
+
+const pageLink =
+  "border border-line px-3.5 py-1.5 text-gray-200 transition-colors hover:bg-signal hover:text-ink hover:border-signal focus-visible:outline focus-visible:outline-2 focus-visible:outline-signal";
 
 export function Pagination({ page, pageSize, total, href }: { page: number; pageSize: number; total: number; href: (page: number) => string }) {
   const pages = Math.max(1, Math.ceil(total / pageSize));
@@ -64,12 +72,12 @@ export function Pagination({ page, pageSize, total, href }: { page: number; page
       </span>
       <div className="flex gap-2">
         {page > 1 && (
-          <a href={href(page - 1)} className="rounded-lg border border-white/10 px-3 py-1.5 hover:bg-white/5">
+          <a href={href(page - 1)} className={pageLink}>
             ก่อนหน้า
           </a>
         )}
         {page < pages && (
-          <a href={href(page + 1)} className="rounded-lg border border-white/10 px-3 py-1.5 hover:bg-white/5">
+          <a href={href(page + 1)} className={pageLink}>
             ถัดไป
           </a>
         )}
@@ -79,5 +87,5 @@ export function Pagination({ page, pageSize, total, href }: { page: number; page
 }
 
 export const inputClass =
-  "w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:border-amber-400 focus:outline-none";
+  "w-full border border-line bg-ink-raised px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:border-signal focus:outline-none";
 export const labelClass = "block text-xs font-medium text-gray-300 mb-1";

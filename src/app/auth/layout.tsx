@@ -1,0 +1,47 @@
+import Link from "next/link";
+import { ArrowLeft, Check } from "lucide-react";
+import { BrandMark } from "@/components/marketing/site-header";
+import { displayFont, thaiFont } from "@/components/marketing/fonts";
+import { HeroChart } from "@/components/marketing/hero-chart";
+import { HERO_CONTENT } from "@/config/marketing";
+
+/** หน้าเข้าสู่ระบบ/สมัคร/ลืมรหัส — กรอบเส้นแบบหน้าบ้าน: ซ้ายเป็นแผงแบรนด์ (จอใหญ่) ขวาเป็นฟอร์ม */
+export default function AuthLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className={`${displayFont.variable} ${thaiFont.variable} font-thai min-h-screen bg-ink text-white flex flex-col selection:bg-signal selection:text-ink`}>
+      <header className="flex h-16 items-stretch border-b border-line">
+        <div className="flex items-center border-r border-line px-4 sm:px-6 lg:px-8">
+          <BrandMark />
+        </div>
+        <div className="flex-1" />
+        <Link
+          href="/"
+          className="flex items-center gap-2 border-l border-line px-4 sm:px-6 text-sm text-gray-200 transition-colors hover:bg-white/[0.04] hover:text-signal focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-signal"
+        >
+          <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+          กลับหน้าแรก
+        </Link>
+      </header>
+
+      <div className="flex-1 grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <aside aria-hidden="true" className="hidden lg:flex flex-col justify-between gap-10 border-r border-line bg-ink-raised p-10 xl:p-14">
+          <p className="font-display text-5xl xl:text-6xl font-bold tracking-tight leading-[1.05]">
+            {HERO_CONTENT.titleLead}
+            <span className="block text-signal">{HERO_CONTENT.titleHighlight}</span>
+          </p>
+          <HeroChart className="w-full h-auto" />
+          <ul className="grid gap-px bg-line border border-line">
+            {HERO_CONTENT.highlights.map((item) => (
+              <li key={item} className="flex items-start gap-2.5 bg-ink px-4 py-3 text-sm text-gray-200">
+                <Check className="w-4 h-4 mt-0.5 shrink-0 text-signal" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </aside>
+
+        <main className="flex items-start justify-center px-4 sm:px-6 py-10 sm:py-16 lg:items-center">{children}</main>
+      </div>
+    </div>
+  );
+}

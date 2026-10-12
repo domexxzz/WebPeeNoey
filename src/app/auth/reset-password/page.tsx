@@ -64,22 +64,16 @@ function ResetPasswordContent() {
   };
 
   return (
-    <div className="max-w-md w-full glass-panel rounded-2xl p-8 border border-white/10 relative z-10 shadow-2xl">
-      <div className="text-center mb-6">
-        <Link href="/" className="inline-flex items-center gap-2 mb-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center font-bold text-black text-xl shadow-glow">
-            P
-          </div>
-          <span className="font-bold text-2xl text-white">Peenoey</span>
-        </Link>
-        <h1 className="text-xl font-semibold text-gray-100">ตั้งรหัสผ่านใหม่</h1>
+    <div className="w-full max-w-md border border-line bg-ink p-6 sm:p-8">
+      <div className="mb-6">
+        <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-white">ตั้งรหัสผ่านใหม่</h1>
         <p className="text-sm text-gray-400 mt-1">
           ระบุรหัสผ่านใหม่สำหรับบัญชี {email ? `(${email})` : ""}
         </p>
       </div>
 
       {error && (
-        <div className="mb-6 p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-start gap-2.5">
+        <div role="alert" className="mb-6 p-3.5 bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-start gap-2.5">
           <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
@@ -87,7 +81,7 @@ function ResetPasswordContent() {
 
       {success ? (
         <div className="text-center space-y-4 py-4">
-          <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto">
+          <div className="w-14 h-14 bg-signal-muted border border-signal text-signal flex items-center justify-center mx-auto">
             <CheckCircle2 className="w-7 h-7" />
           </div>
           <div>
@@ -99,7 +93,7 @@ function ResetPasswordContent() {
           <div className="pt-2">
             <Link
               href="/auth/signin"
-              className="text-sm text-amber-400 hover:text-amber-300 font-medium"
+              className="text-sm text-signal hover:text-signal-hover font-medium"
             >
               คลิกที่นี่หากหน้าเว็บไม่เปลี่ยน
             </Link>
@@ -108,37 +102,39 @@ function ResetPasswordContent() {
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-gray-300 mb-1.5">
+            <label htmlFor="reset-password-field-1" className="block text-xs font-medium text-gray-300 mb-1.5">
               รหัสผ่านใหม่ (อย่างน้อย 8 ตัวอักษร)
             </label>
             <div className="relative">
               <Lock className="w-5 h-5 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
+                id="reset-password-field-1"
                 type="password"
                 required
                 minLength={8}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-[#161F30] border border-white/10 rounded-xl py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500 transition-colors"
+                className="w-full bg-ink-raised border border-line py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-signal transition-colors"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-300 mb-1.5">
+            <label htmlFor="reset-password-field-2" className="block text-xs font-medium text-gray-300 mb-1.5">
               ยืนยันรหัสผ่านใหม่อีกครั้ง
             </label>
             <div className="relative">
               <Lock className="w-5 h-5 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
+                id="reset-password-field-2"
                 type="password"
                 required
                 minLength={8}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-[#161F30] border border-white/10 rounded-xl py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500 transition-colors"
+                className="w-full bg-ink-raised border border-line py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-signal transition-colors"
               />
             </div>
           </div>
@@ -146,7 +142,7 @@ function ResetPasswordContent() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 py-3 px-4 rounded-xl font-medium text-black bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 transition-all shadow-glow flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full mt-2 py-3 px-4 font-medium text-ink bg-signal hover:bg-signal-hover transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {loading ? (
               <span className="inline-block animate-pulse">กำลังบันทึก...</span>
@@ -165,7 +161,7 @@ function ResetPasswordContent() {
 
 export default function ResetPasswordPage() {
   return (
-    <div className="min-h-screen bg-[#0B0F17] flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="w-full flex justify-center">
       <Suspense fallback={<div className="text-gray-400 text-sm">กำลังโหลด...</div>}>
         <ResetPasswordContent />
       </Suspense>

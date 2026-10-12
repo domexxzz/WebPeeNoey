@@ -38,11 +38,38 @@ const config: Config = {
           goldLight: "#FDE047",
           blue: "#3B82F6",
           red: "#EF4444",
-        }
+        },
+        // หน้าบ้าน (สไตล์ Bold): พื้นดำอมเขียว + เขียวสัญญาณ + เส้นกรอบสีขาว
+        ink: {
+          DEFAULT: "#111312",
+          raised: "#171A18",
+          deep: "#0C0E0D",
+        },
+        signal: {
+          DEFAULT: "#6EEA6E",
+          hover: "#93F293",
+          muted: "rgba(110, 234, 110, 0.14)",
+        },
+        line: {
+          DEFAULT: "rgba(255, 255, 255, 0.6)",
+          soft: "rgba(255, 255, 255, 0.14)",
+        },
       },
       fontFamily: {
         sans: ["var(--font-body)", "system-ui", "sans-serif"],
         heading: ["var(--font-prompt)", "var(--font-body)", "sans-serif"],
+        // หัวข้อหน้าบ้าน: อักษรละตินใช้ Familjen Grotesk ส่วนอักษรไทยตกไปที่ Anuphan (ไม่มีหัว เข้ากับ grotesk)
+        display: ["var(--font-familjen)", "var(--font-anuphan)", "sans-serif"],
+        thai: ["var(--font-anuphan)", "var(--font-body)", "sans-serif"],
+      },
+      keyframes: {
+        marquee: {
+          from: { transform: "translateX(0)" },
+          to: { transform: "translateX(-50%)" },
+        },
+      },
+      animation: {
+        marquee: "marquee 45s linear infinite",
       },
       boxShadow: {
         glow: "0 0 25px -5px rgba(245, 158, 11, 0.25)",

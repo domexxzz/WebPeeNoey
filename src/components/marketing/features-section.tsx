@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, BarChart3, LifeBuoy, Lock, PlayCircle, Send, Users, type LucideIcon } from "lucide-react";
 import { FEATURES, HOME_SECTION_IDS, type FeatureItem } from "@/config/marketing";
-import { ChartDecoration } from "./chart-decoration";
+import { FeatureArt } from "./feature-art";
 import { SectionHeading } from "./section-heading";
 
 export const FEATURE_ICONS: Record<FeatureItem["icon"], LucideIcon> = {
@@ -13,57 +13,73 @@ export const FEATURE_ICONS: Record<FeatureItem["icon"], LucideIcon> = {
   lock: Lock,
 };
 
-/**
- * Bento layout: การ์ดแรกเป็นฟีเจอร์หลัก กิน 2×2 ช่องบนจอใหญ่ (3 คอลัมน์ × 3 แถวพอดี)
- * การ์ดสุดท้ายกินเต็มแถวบนจอ 2 คอลัมน์ เพื่อไม่ให้เหลือช่องว่าง
- */
-const SPAN_CLASSES = ["sm:col-span-2 lg:row-span-2", "", "", "", "", "sm:col-span-2 lg:col-span-1"];
+/** 3 ฟีเจอร์หลักแสดงเป็นแถวใหญ่พร้อมภาพประกอบเอียง ส่วนที่เหลือเป็นกล่องเรียงแถว */
+const LEAD_COUNT = 3;
+const TILTS = ["-rotate-2", "rotate-2", "-rotate-1"];
 
 export function FeaturesSection() {
+  const lead = FEATURES.slice(0, LEAD_COUNT);
+  const rest = FEATURES.slice(LEAD_COUNT);
+
   return (
-    <section aria-labelledby={`${HOME_SECTION_IDS.features}-heading`} id={HOME_SECTION_IDS.features} className="scroll-mt-20 py-20 sm:py-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-          <SectionHeading
-            id={`${HOME_SECTION_IDS.features}-heading`}
-            eyebrow="สิ่งที่คุณได้รับ"
-            title="ครบทั้งเครื่องมือ การแจ้งเตือน และคอมมูนิตี้"
-            description="ทุกแพ็กเกจได้รับสิทธิ์หลักเหมือนกัน แพ็กเกจระยะยาวจะมีสิทธิประโยชน์เพิ่มเติมตามที่ระบุในตารางราคา"
-          />
-          <Link href="/features" className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-400 hover:text-amber-300 shrink-0">
+    <section aria-labelledby={`${HOME_SECTION_IDS.features}-heading`} id={HOME_SECTION_IDS.features} className="scroll-mt-20 border-b border-line">
+      <div className="px-4 sm:px-6 lg:px-10 pt-20 sm:pt-28 pb-12">
+        <SectionHeading
+          id={`${HOME_SECTION_IDS.features}-heading`}
+          eyebrow="สิ่งที่คุณได้รับ"
+          title="ครบทั้งเครื่องมือ การแจ้งเตือน และคอมมูนิตี้"
+        />
+        <div className="mt-8 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between lg:pl-[18%]">
+          <p className="max-w-2xl text-base sm:text-xl text-gray-200 leading-relaxed">
+            ทุกแพ็กเกจได้รับสิทธิ์หลักเหมือนกัน แพ็กเกจระยะยาวจะมีสิทธิประโยชน์เพิ่มเติมตามที่ระบุในตารางราคา
+          </p>
+          <Link
+            href="/features"
+            className="inline-flex items-center gap-2 shrink-0 text-sm font-semibold text-signal hover:text-signal-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-signal"
+          >
             ดูรายละเอียดฟีเจอร์ทั้งหมด
             <ArrowRight className="w-4 h-4" aria-hidden="true" />
           </Link>
         </div>
-
-        <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((feature, index) => {
-            const Icon = FEATURE_ICONS[feature.icon];
-            const isLead = index === 0;
-            return (
-              <li
-                key={feature.id}
-                className={`group relative rounded-2xl border p-6 transition-colors ${SPAN_CLASSES[index] ?? ""} ${
-                  isLead
-                    ? "glass-panel-gold border-amber-500/25 overflow-hidden lg:flex lg:flex-col lg:justify-end lg:p-8"
-                    : "glass-panel border-white/10 hover:border-amber-500/30"
-                }`}
-              >
-                {isLead && <ChartDecoration className="hidden lg:block w-full h-40 mb-auto" />}
-                <span
-                  className={`inline-flex items-center justify-center rounded-xl ${
-                    isLead ? "w-14 h-14 bg-amber-500 text-black" : "w-11 h-11 bg-white/5 text-amber-400 group-hover:bg-amber-500/15"
-                  }`}
-                >
-                  <Icon className={isLead ? "w-7 h-7" : "w-5 h-5"} aria-hidden="true" />
-                </span>
-                <h3 className={`mt-5 font-heading font-semibold text-white ${isLead ? "text-2xl" : "text-base"}`}>{feature.title}</h3>
-                <p className={`mt-2 leading-relaxed text-gray-400 ${isLead ? "text-base max-w-md" : "text-sm"}`}>{feature.description}</p>
-              </li>
-            );
-          })}
-        </ul>
       </div>
+
+      <ul className="mx-4 sm:mx-6 lg:mx-10">
+        {lead.map((feature, index) => {
+          const Icon = FEATURE_ICONS[feature.icon];
+          return (
+            <li key={feature.id} className="grid gap-10 border-t border-line py-12 sm:py-16 md:grid-cols-2 md:items-center lg:gap-16">
+              <div className="relative mx-4 sm:mx-10 lg:mx-16">
+                <div className={`border border-line bg-ink-raised ${TILTS[index % TILTS.length]}`}>
+                  <FeatureArt featureId={feature.id} />
+                </div>
+                <span className="absolute -left-4 -top-5 sm:-left-8 sm:-top-6 flex w-14 h-14 items-center justify-center border border-line bg-ink">
+                  <Icon className="w-6 h-6 text-signal" aria-hidden="true" />
+                </span>
+              </div>
+              <div className="max-w-md">
+                <p aria-hidden="true" className="font-display text-sm font-semibold text-signal">
+                  {String(index + 1).padStart(2, "0")}
+                </p>
+                <h3 className="mt-3 font-display text-2xl sm:text-3xl font-bold tracking-tight text-white">{feature.title}</h3>
+                <p className="mt-4 text-base text-gray-300 leading-relaxed">{feature.description}</p>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+
+      <ul className="grid gap-px bg-line border-t border-line sm:grid-cols-3">
+        {rest.map((feature) => {
+          const Icon = FEATURE_ICONS[feature.icon];
+          return (
+            <li key={feature.id} className="bg-ink px-6 sm:px-8 py-10 transition-colors hover:bg-ink-raised">
+              <Icon className="w-6 h-6 text-signal" aria-hidden="true" />
+              <h3 className="mt-5 font-display text-lg font-bold text-white">{feature.title}</h3>
+              <p className="mt-2 text-sm text-gray-400 leading-relaxed">{feature.description}</p>
+            </li>
+          );
+        })}
+      </ul>
     </section>
   );
 }

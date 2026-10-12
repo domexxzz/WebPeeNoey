@@ -1,5 +1,58 @@
 # เอกสารส่งต่องาน (Project Handoff & Session Log)
 
+## เซสชัน: รีดีไซน์หน้าบ้านตามสไตล์ "Finance App Landing Page (Bold)"
+**วันที่:** 12 ตุลาคม 2026  
+**สถานะ:** ทั้งเว็บใช้ธีมเดียวกันแล้ว (หน้าบ้าน, สมาชิก/ชำระเงิน, auth, หลังบ้าน) — unit 173/173, Integration กับ PostgreSQL จริง 113/113, `tsc` ผ่าน, `next build` ผ่าน (19/19 หน้า), smoke test บน production build ผ่าน: หน้าสาธารณะ + auth 10 หน้าได้ 200, สมาชิกเปิด /account /account/orders /checkout/monthly ได้ (500 ที่เคยเจอบน dev server เกิดจากหน่วยความจำหมด ไม่ใช่บั๊ก — บน production ได้ 200), แอดมินเปิดได้ทั้ง 6 หน้า + CSP nonce/`X-Frame-Options: DENY` ครบ, cron/watchdog/webhook Telegram ผ่าน, ไม่มี error ใน log เซิร์ฟเวอร์และ console เบราว์เซอร์ — ตรวจหน้าตาจาก HTML ที่ render จริง (มือถือ 375px / จอ 1280px ไม่มีเนื้อหาล้นจอ) และบน production server — ยังไม่ commit
+
+- ต้นแบบ: Wix template "Finance App Landing Page (Bold)" (https://www.wix.com/website-template/view/html/3977) — ใช้แนวทางการออกแบบ (โครงเส้นกรอบ, ตัวอักษรหนาขนาดใหญ่, เขียวสด) ไม่ได้คัดลอกรูปหรือข้อความ
+- โทเคน (`tailwind.config.ts`): `ink` #111312, `signal` #6EEA6E, `line` (ขาว 60%/14%), ฟอนต์ `font-display` (Familjen Grotesk → Anuphan สำหรับไทย), `font-thai` (Anuphan), animation `marquee` (หยุดเมื่อผู้ใช้ตั้งค่าลดการเคลื่อนไหว) — ฟอนต์โหลดเฉพาะหน้าบ้าน (`src/components/marketing/fonts.ts`)
+- หน้าแรก: header แบบช่องกรอบ, Hero (หัวข้อใหญ่ + ภาพกราฟ SVG วาดเอง + แถบตัวอักษรเลื่อน + แถบ CTA), จุดเด่น (แถวภาพเอียง + กล่องไอคอนซ้อน), ขั้นตอน 4 ข้อบนพื้นเขียว (แทนส่วนรีวิวของต้นแบบ — ตามกติกาข้อ 3), ราคา (กล่องเส้นเหลื่อม), FAQ, ปิดท้าย/ติดต่อ (ภาพใหญ่ + กล่องดำซ้อน), footer แบบกล่อง
+- หน้า features / guide / terms / privacy / refund เปลี่ยนเป็นธีมเดียวกัน (มุมเหลี่ยม เขียวสัญญาณ)
+- ภาพกราฟทั้งหมดเป็นภาพประกอบ ไม่มีตัวเลข/ราคา/กำไร และมีคำบรรยาย "ไม่ใช่ผลการเทรดจริง"
+- **โซนสมาชิก + ชำระเงิน** (`/account`, `/account/orders`, `/checkout/*`) เปลี่ยนเป็นธีมเดียวกันแล้ว: header แบบช่องกรอบ (มือถือมีแถบเมนู 3 ช่องใต้ header — เดิมมือถือไม่มีเมนู), หัวหน้า `AccountPageHeader`, การ์ดสถานะสมาชิกแบบกล่อง, ป้ายสถานะคำสั่งซื้อเหลี่ยม
+  - สีอำพันคงไว้เฉพาะความหมาย "เตือน/รอ/นับถอยหลัง" ส่วนสำเร็จใช้เขียวสัญญาณ
+  - แก้: เมนู "สิทธิ์การใช้งาน" เดิมลิงก์ไป `/account/subscriptions` ที่ไม่มีอยู่ (404) → เปลี่ยนเป็น "แพ็กเกจ / ต่ออายุ"; คำสั่งซื้อล่าสุดใช้ `OrderStatusBadge` จริง (เดิมแสดงคืนเงิน/หมดอายุเป็น "ปฏิเสธ/ยกเลิก") และกดเข้าแต่ละออเดอร์ได้; ลิงก์กลุ่ม Telegram ไม่ใช้ค่า fallback ที่ฮาร์ดโค้ดแล้ว
+- **หน้า auth** (`/auth/signin|signup|forgot-password|reset-password`): layout ใหม่ `src/app/auth/layout.tsx` (header กรอบ + แผงแบรนด์ซ้ายบนจอใหญ่ + ฟอร์มกรอบเส้น); แก้ a11y: ผูก `label` กับ `input` ทุกช่อง (`htmlFor`/`id`) และข้อความผิดพลาดมี `role="alert"`; เปลี่ยนข้อความ "256-bit SSL" เป็น "เชื่อมต่อแบบเข้ารหัส (HTTPS)"
+- **หลังบ้าน** (`/admin/*`): sidebar กรอบเส้น + ป้าย ADMIN สีแดง (มือถือเป็นแถบเมนูเลื่อนแนวนอน), `admin-ui.tsx` (การ์ด/หัวข้อ/ป้าย/input/แบ่งหน้า) และปุ่ม `ActionForm` ใช้ธีมใหม่ (หลัก = เขียว, อันตราย = แดง); แดชบอร์ดเป็นตารางกรอบตัวเลข; แท็บออเดอร์ที่เลือกเป็นสีเขียวทึบ
+  - แก้: แถบบนเดิมแสดงข้อความตกแต่งที่ไม่จริง ("Node: Production Ready") และเวลาจากนาฬิกาเซิร์ฟเวอร์ (บน Vercel เป็น UTC) → แสดงเวลาไทยและข้อความว่าทุกการเปลี่ยนแปลงบันทึกใน Audit Log
+- ฟอนต์ใหม่ของหลังบ้านโหลดจาก `next/font` (self-host) จึงผ่าน CSP `font-src 'self'` ของ /admin
+
+**กับดักที่เจอ**
+- เครื่อง dev หน่วยความจำ (commit memory) เหลือน้อย: `next dev` ล้มด้วย `Zone Allocation failed` และ `next build` ล้มด้วย `spawn UNKNOWN` — แก้ชั่วคราวด้วย `experimental.cpus: 1` ใน `next.config.mjs` ตอน build บนเครื่องนี้เท่านั้น (**ห้าม commit**) แล้วคืนค่าเดิม
+- เทสต์ที่ import layout หน้าบ้านต้อง mock `next/font/google` (ดู `tests/phase2-marketing-pages.test.tsx`)
+
+**ขั้นตอนถัดไป**
+- รอเจ้าของอนุมัติ commit (แยก dev tooling กับ redesign) — local `main` ยังไม่ได้ push
+- ควรเพิ่ม E2E (Playwright) ตรวจหน้าตาที่ 320/768/1440px และเมนูมือถือ — ตอนนี้ตรวจด้วยสคริปต์ + ภาพหน้าจอเท่านั้น
+
+---
+
+## เซสชัน: อัปเกรดเครื่องมือพัฒนา (vitest / tsx)
+**วันที่:** 12 ตุลาคม 2026  
+**สถานะ:** unit 173/173, Integration กับ PostgreSQL จริง 113/113, `tsc` ผ่าน, `npm run db:seed` ผ่าน tsx ตัวใหม่, `next build` ผ่าน — `npm audit --omit=dev` = 0; รวม dev จาก 16 → 7 (critical 2 → 0) — ยังไม่ commit
+
+### 1. สิ่งที่ทำ
+- vitest 2.1.9 → **5.0.3**, vite 5 → **7.3.7** (ตรึงไว้ที่ 7: vite 8 ใช้ rolldown/oxc ที่เป็น native binary ซึ่ง Windows Application Control บนเครื่องนี้บล็อก — vite 7 ใช้ rollup ที่ override เป็น WASM อยู่แล้ว)
+- tsx 4.19.2 → **4.23.15**, `@types/node` 20 → **22** (vitest 5 ต้องการ; ตรงกับ runtime ของ Vercel)
+- `vitest.config.ts`: `maxWorkers: 4` — vitest 5 เปิด worker เท่าจำนวน CPU (16) จนหน่วยความจำเครื่อง dev หมด
+- ช่องโหว่ critical ของ vitest/tinypool และ high ของ vite หายหมด
+- ลบ `eslint` + `eslint-config-next` และสคริปต์ `lint` (ไม่มี ESLint config อยู่แล้ว ไม่เคยใช้งาน — เจ้าของอนุมัติ); ถ้าจะใช้ lint ภายหลังให้ติดตั้งใหม่พร้อม `eslint.config.mjs` (flat config)
+- `overrides.next.postcss = "$postcss"` + `postcss` เป็น devDependency — ให้ Next ใช้ postcss รุ่นที่แก้ช่องโหว่แล้ว แทนรุ่นที่ฝังมากับ Next
+
+### 2. ที่เหลือ 7 รายการ (dev เท่านั้น ไม่ขึ้น production) — แก้ไม่ได้ถ้าไม่ย้ายไป Tailwind 4
+- `braces` ≤3.0.3 (stack exhaustion จาก pattern ซ้อนลึก) — ไม่มีเวอร์ชัน 3.x ที่แก้แล้ว; มาจาก tailwind 3 (chokidar/micromatch/fast-glob)
+- `postcss-selector-parser` <7.1.6 (CPU จาก selector ยาวผิดปกติ) — แก้เฉพาะใน 7.x แต่ tailwind 3 ใช้ API 6.x
+- ความเสี่ยงจริงต่ำ: ทั้งหมดประมวลผลเฉพาะ CSS/pattern ของเราเองตอน build ไม่รับข้อมูลจากผู้ใช้
+- เจ้าของเลือก "ยังไม่ย้าย Tailwind 4" ในรอบนี้
+
+### 3. Tailwind 4 — สิ่งที่ต้องทำถ้าจะย้าย (ยังไม่ได้ทำ รอเจ้าของตัดสินใจ)
+- ใช้ `npx @tailwindcss/upgrade`: ย้าย `tailwind.config` → CSS (`@import "tailwindcss"` + `@theme`), PostCSS plugin เป็น `@tailwindcss/postcss`, เลิกใช้ autoprefixer
+- คลาสเปลี่ยนชื่อ/ความหมาย: `shadow-sm`→`shadow-xs`, `shadow`→`shadow-sm`, `rounded-sm`→`rounded-xs`, `outline-none`→`outline-hidden`, `ring` หนา 1px (เดิม 3px), สีขอบเริ่มต้นเป็น currentColor, `hover:` ทำงานเฉพาะอุปกรณ์ที่มี hover — ต้องตรวจหน้าตาทุกหน้า
+- **รองรับเฉพาะเบราว์เซอร์ใหม่**: Safari 16.4+, Chrome 111+, Firefox 128+ — มือถือรุ่นเก่าจะแสดงผลเพี้ยน (กระทบลูกค้าบางส่วน)
+- Tailwind 4 ใช้ native binary (Oxide / Lightning CSS) — **เสี่ยงถูก Windows Application Control บล็อกบนเครื่องนี้** (เหมือน rollup/SWC) ต้องทดสอบก่อน
+
+---
+
 ## เซสชัน: อัปเกรด Next.js 15.5 + ปิดช่องเลี่ยง rate limit (สมัคร / ล็อกอิน / ลืมรหัสผ่าน)
 **วันที่:** 12 ตุลาคม 2026  
 **สถานะ:** เสร็จ + แก้ตามผล security review แล้ว — unit 173/173, Integration กับ PostgreSQL จริง 113/113, `tsc` ผ่าน, `next build` ผ่าน (Next 15.5.27), smoke test บน production build ผ่านทุกหน้า (แอดมิน/สมาชิก/checkout/cron/webhook), ทดสอบฟอร์มล็อกอินในเบราว์เซอร์จริงผ่าน, dev server ไม่มีคำเตือน sync dynamic API — `npm audit --omit=dev` = 0 ช่องโหว่ — ยังไม่ commit (รอเจ้าของอนุมัติ แยก 2 commit)
@@ -21,7 +74,7 @@
 
 ### 3. ข้อควรรู้
 - บนเครื่องนี้ Windows Application Control บล็อก `@next/swc-win32-x64-msvc` ของ Next 15 → Next ใช้ SWC แบบ WASM แทนอัตโนมัติ (build ช้ากว่าเล็กน้อย, บน Vercel ใช้ตัว native ปกติ)
-- `npm audit` (รวม dev) ยังมี 16 รายการในเครื่องมือพัฒนา (vitest 2, tailwind 3, tsx, eslint-config-next) — ไม่ได้ส่งขึ้น production; แยกเป็นงาน "Upgrade vulnerable dev tooling"
+- `npm audit` (รวม dev) เดิม 16 รายการ — อัปเกรด vitest/tsx แล้วเหลือ 9 (ดูเซสชันอัปเกรดเครื่องมือพัฒนาด้านบน)
 - `next lint` ถูก deprecate ใน 15.5 และโปรเจกต์ยังไม่มี ESLint config
 - npm รุ่นนี้ถาม `approve-scripts` สำหรับ install script (esbuild/prisma) — หลัง `npm install` ให้รัน `npx prisma generate` เอง
 

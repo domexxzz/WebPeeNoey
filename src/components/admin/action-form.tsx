@@ -10,9 +10,9 @@ type Action = (previous: AdminActionState, formData: FormData) => Promise<AdminA
 const INITIAL_STATE: AdminActionState = { status: "idle" };
 
 const TONES = {
-  primary: "bg-emerald-500 hover:bg-emerald-400 text-black",
+  primary: "bg-signal hover:bg-signal-hover text-ink",
   danger: "bg-red-500 hover:bg-red-400 text-white",
-  neutral: "bg-white/10 hover:bg-white/20 text-white",
+  neutral: "border border-line text-white hover:bg-white/[0.06]",
 } as const;
 
 function SubmitButton({ label, pendingLabel, tone }: { label: string; pendingLabel: string; tone: keyof typeof TONES }) {
@@ -22,7 +22,7 @@ function SubmitButton({ label, pendingLabel, tone }: { label: string; pendingLab
       type="submit"
       disabled={pending}
       aria-disabled={pending}
-      className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${TONES[tone]}`}
+      className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${TONES[tone]}`}
     >
       {pending && <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />}
       {pending ? pendingLabel : label}
@@ -50,7 +50,7 @@ export function ActionForm({ action, submitLabel, pendingLabel = "กำลั�
       {children}
       <SubmitButton label={submitLabel} pendingLabel={pendingLabel} tone={tone} />
       {state.status === "success" && (
-        <p role="status" className="flex items-start gap-2 text-sm text-emerald-300">
+        <p role="status" className="flex items-start gap-2 text-sm text-signal">
           <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
           {state.message}
         </p>

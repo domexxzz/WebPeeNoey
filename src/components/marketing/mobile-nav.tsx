@@ -27,7 +27,7 @@ export function MobileNav({ links }: { links: NavLink[] }) {
   }, [isOpen]);
 
   return (
-    <div className="md:hidden">
+    <div className="lg:hidden">
       <button
         ref={toggleRef}
         type="button"
@@ -35,7 +35,7 @@ export function MobileNav({ links }: { links: NavLink[] }) {
         aria-expanded={isOpen}
         aria-controls={PANEL_ID}
         aria-label={isOpen ? "ปิดเมนู" : "เปิดเมนู"}
-        className="p-2 -mr-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/5"
+        className="p-2 -mr-2 text-gray-200 hover:text-signal focus-visible:outline focus-visible:outline-2 focus-visible:outline-signal"
       >
         {isOpen ? <X className="w-5 h-5" aria-hidden="true" /> : <Menu className="w-5 h-5" aria-hidden="true" />}
       </button>
@@ -44,15 +44,15 @@ export function MobileNav({ links }: { links: NavLink[] }) {
         <nav
           id={PANEL_ID}
           aria-label="เมนูหลัก (มือถือ)"
-          className="absolute left-0 right-0 top-16 border-b border-white/10 bg-[#0D121C]/95 backdrop-blur-md"
+          className="absolute left-0 right-0 top-16 border-b border-line bg-ink"
         >
-          <ul className="px-4 py-3 space-y-1">
+          <ul className="divide-y divide-line-soft">
             {links.map((link) => (
               <li key={link.href}>
                 <Link
                   href={link.href}
                   onClick={() => setIsOpen(false)}
-                  className="block px-3 py-3 rounded-lg text-sm text-gray-200 hover:bg-white/5 hover:text-amber-400"
+                  className="block px-5 py-4 text-base text-gray-100 hover:bg-white/[0.04] hover:text-signal"
                 >
                   {link.label}
                 </Link>
@@ -63,7 +63,7 @@ export function MobileNav({ links }: { links: NavLink[] }) {
                 <Link
                   href="/auth/signin"
                   onClick={() => setIsOpen(false)}
-                  className="block px-3 py-3 rounded-lg text-sm text-gray-200 hover:bg-white/5 hover:text-amber-400"
+                  className="block px-5 py-4 text-base text-gray-100 hover:bg-white/[0.04] hover:text-signal"
                 >
                   เข้าสู่ระบบ
                 </Link>

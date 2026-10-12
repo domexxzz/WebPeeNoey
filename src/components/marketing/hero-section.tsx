@@ -1,69 +1,105 @@
+import { Fragment } from "react";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
-import { HERO_CONTENT, HOME_SECTION_IDS, IMAGE_SLOTS } from "@/config/marketing";
-import { ImageSlot } from "./image-slot";
+import { ArrowRight, BellRing, Check, Send } from "lucide-react";
+import { HERO_CONTENT, HOME_SECTION_IDS } from "@/config/marketing";
+import { HeroChart } from "./hero-chart";
 import { Phrases } from "./phrases";
+
+/** แถบชื่อขนาดใหญ่เลื่อนวนแนวนอน (ตกแต่ง) — หยุดนิ่งเมื่อผู้ใช้ตั้งค่าลดการเคลื่อนไหว */
+function HeroMarquee() {
+  const copies = [0, 1];
+  return (
+    <div aria-hidden="true" className="overflow-hidden border-b border-line py-5 sm:py-7 select-none">
+      <div className="flex w-max animate-marquee motion-reduce:animate-none">
+        {copies.map((copy) => (
+          <div key={copy} className="flex shrink-0 items-center gap-6 sm:gap-10 pr-6 sm:pr-10">
+            {HERO_CONTENT.marquee.map((word, index) => (
+              <Fragment key={`${copy}-${word}`}>
+                <span
+                  className={`font-display font-bold tracking-tight whitespace-nowrap leading-none text-6xl sm:text-8xl lg:text-[8.5rem] ${
+                    index % 2 === 1 ? "text-transparent [-webkit-text-stroke:1.5px_rgba(255,255,255,0.85)]" : "text-white"
+                  }`}
+                >
+                  {word}
+                </span>
+                <span className="inline-block w-4 h-4 sm:w-6 sm:h-6 shrink-0 rotate-45 bg-signal" />
+              </Fragment>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export function HeroSection() {
   return (
-    <section aria-labelledby="hero-heading" className="relative overflow-hidden">
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:radial-gradient(ellipse_at_top_left,black_30%,transparent_75%)]"
-      />
+    <section aria-labelledby="hero-heading" className="border-b border-line">
+      <div className="grid lg:grid-cols-[minmax(0,1.12fr)_minmax(0,1fr)]">
+        <div className="flex flex-col justify-between gap-12 px-4 sm:px-6 lg:px-10 py-12 sm:py-16 lg:py-20 lg:border-r lg:border-line">
+          <div>
+            <p className="inline-flex items-center gap-2 border border-line px-3 py-1.5 text-xs font-semibold tracking-wide text-signal">
+              <span aria-hidden="true" className="w-1.5 h-1.5 bg-signal" />
+              {HERO_CONTENT.eyebrow}
+            </p>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-16 sm:pt-20 lg:pt-24 grid gap-12 lg:grid-cols-[1.05fr_1fr] lg:items-center">
-        <div className="space-y-7">
-          <p className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-medium">
-            <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
-            {HERO_CONTENT.eyebrow}
-          </p>
-
-          <h1 id="hero-heading" className="font-heading text-4xl sm:text-5xl lg:text-[3.5rem] font-bold tracking-tight text-white leading-[1.15]">
-            <Phrases text={HERO_CONTENT.titleLead} />{" "}
-            <span className="block mt-2 bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 bg-clip-text text-transparent">
-              <Phrases text={HERO_CONTENT.titleHighlight} />
-            </span>
-          </h1>
-
-          <p className="text-base sm:text-lg text-gray-300 leading-relaxed max-w-xl">{HERO_CONTENT.subtitle}</p>
-
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Link
-              href={`/#${HOME_SECTION_IDS.pricing}`}
-              className="px-7 py-3.5 rounded-xl font-semibold text-black bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 shadow-glow transition-all flex items-center justify-center gap-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
+            <h1
+              id="hero-heading"
+              className="mt-7 font-display font-bold tracking-tight text-white text-[2.05rem] leading-[1.12] min-[400px]:text-[2.3rem] sm:text-[3.4rem] lg:text-[3rem] xl:text-[3.5rem] 2xl:text-[4.25rem]"
             >
-              ดูแพ็กเกจและราคา
-              <ArrowRight className="w-4 h-4" aria-hidden="true" />
-            </Link>
-            <Link
-              href={`/#${HOME_SECTION_IDS.howItWorks}`}
-              className="px-7 py-3.5 rounded-xl font-medium text-gray-200 glass-panel hover:bg-white/10 hover:border-white/20 transition-colors text-sm text-center"
-            >
-              ดูขั้นตอนการใช้งาน
-            </Link>
+              <Phrases text={HERO_CONTENT.titleLead} />{" "}
+              <span className="block mt-1 text-signal">
+                <Phrases text={HERO_CONTENT.titleHighlight} />
+              </span>
+            </h1>
+
+            <p className="mt-7 max-w-xl text-base sm:text-lg text-gray-300 leading-relaxed">{HERO_CONTENT.subtitle}</p>
           </div>
 
-          <ul className="grid gap-2.5 pt-2">
+          <ul className="grid gap-px bg-line border border-line sm:grid-cols-3">
             {HERO_CONTENT.highlights.map((item) => (
-              <li key={item} className="flex items-start gap-2.5 text-sm text-gray-300">
-                <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-emerald-400" aria-hidden="true" />
+              <li key={item} className="flex items-start gap-2.5 bg-ink p-4 text-sm text-gray-200 leading-relaxed">
+                <Check className="w-4 h-4 mt-0.5 shrink-0 text-signal" aria-hidden="true" />
                 {item}
               </li>
             ))}
           </ul>
         </div>
 
-        <div className="relative">
-          <div aria-hidden="true" className="absolute -inset-6 rounded-[2rem] bg-amber-500/10 blur-3xl" />
-          <div className="relative rounded-3xl glass-panel-gold p-2.5 shadow-2xl shadow-black/40 lg:rotate-[0.6deg]">
-            <div className="flex items-center gap-1.5 px-3 pt-1.5 pb-3" aria-hidden="true">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-400/70" />
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-400/70" />
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400/70" />
-            </div>
-            <ImageSlot spec={IMAGE_SLOTS.heroChart} alt="ตัวอย่างอินดิเคเตอร์บนกราฟ TradingView" priority />
+        <figure className="relative flex flex-col justify-center gap-4 bg-ink-raised px-4 sm:px-8 lg:px-12 py-12 sm:py-16 lg:py-20">
+          <div className="relative">
+            <HeroChart className="w-full h-auto" />
+            <span aria-hidden="true" className="absolute -left-3 -top-4 sm:-left-6 sm:-top-6 flex w-12 h-12 sm:w-16 sm:h-16 items-center justify-center border border-line bg-ink">
+              <BellRing className="w-5 h-5 sm:w-6 sm:h-6 text-signal" />
+            </span>
+            <span aria-hidden="true" className="absolute -right-3 -bottom-4 sm:-right-6 sm:-bottom-6 flex w-12 h-12 sm:w-16 sm:h-16 items-center justify-center bg-signal">
+              <Send className="w-5 h-5 sm:w-6 sm:h-6 text-ink" />
+            </span>
           </div>
+          <figcaption className="text-xs text-gray-400 sm:pl-2">{HERO_CONTENT.visualCaption}</figcaption>
+        </figure>
+      </div>
+
+      <HeroMarquee />
+
+      <div className="px-4 sm:px-6 lg:px-10 py-8 sm:py-10">
+        <div className="flex flex-col md:flex-row md:items-stretch border border-line md:w-fit">
+          <p className="flex items-center px-5 py-4 text-sm sm:text-base text-gray-100 md:border-r md:border-line">
+            สมัคร จ่าย แนบสลิป แล้วรับสิทธิ์ — ทำได้เองทั้งหมดผ่านหน้าเว็บ
+          </p>
+          <Link
+            href={`/#${HOME_SECTION_IDS.pricing}`}
+            className="flex items-center justify-center gap-2 bg-signal px-7 py-4 text-sm font-semibold text-ink transition-colors hover:bg-signal-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal"
+          >
+            ดูแพ็กเกจและราคา
+            <ArrowRight className="w-4 h-4" aria-hidden="true" />
+          </Link>
+          <Link
+            href={`/#${HOME_SECTION_IDS.howItWorks}`}
+            className="flex items-center justify-center px-7 py-4 text-sm font-medium text-gray-100 border-t border-line md:border-t-0 md:border-l transition-colors hover:bg-white/[0.04] hover:text-signal focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-signal"
+          >
+            ดูขั้นตอนการใช้งาน
+          </Link>
         </div>
       </div>
     </section>
