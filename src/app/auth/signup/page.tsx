@@ -154,6 +154,7 @@ export default function SignUpPage() {
                 type="text"
                 value={tradingViewUsername}
                 onChange={(e) => setTradingViewUsername(e.target.value)}
+                maxLength={50}
                 placeholder="ชื่อบัญชีใน TradingView (ไม่ใส่ก็ได้)"
                 className="w-full bg-[#161F30] border border-white/10 rounded-xl py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500 transition-colors"
               />

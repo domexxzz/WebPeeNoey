@@ -1,7 +1,7 @@
 import { Prisma, type OrderStatus, type PrismaClient } from "@prisma/client";
 import type { ActorContext } from "./guard";
 import { writeAudit } from "./audit";
-import { nextPeriodFor, repackFutureSegments } from "./membership";
+import { carryOverProvisioning, nextPeriodFor, repackFutureSegments } from "./membership";
 
 type Tx = Prisma.TransactionClient;
 
@@ -19,7 +19,7 @@ export type RejectResult =
   | { ok: false; code: "ORDER_NOT_FOUND" | "NOT_PENDING_REVIEW" | "REASON_REQUIRED" };
 
 export type RefundResult =
-  | { ok: true; orderNumber: string; email: string; amount: number }
+  | { ok: true; orderNumber: string; email: string; amount: number; continuing: boolean }
   | { ok: false; code: "ORDER_NOT_FOUND" | "NOT_REFUNDABLE" | "INVALID_AMOUNT" | "REASON_REQUIRED" };
 
 /** ทำให้เลขอ้างอิงธนาคารเป็นรูปแบบเดียวกัน (ตัดช่องว่าง/ขีด, ตัวพิมพ์ใหญ่) เพื่อให้เทียบซ้ำได้จริง */
@@ -217,6 +217,11 @@ export async function refundOrder(
         });
         // ช่วงสิทธิ์ที่ต่อทบไว้หลังจากนี้เลื่อนเข้ามา ไม่ให้ลูกค้าที่จ่ายช่วงถัดไปเข้าใช้ไม่ได้
         const periodsMoved = await repackFutureSegments(tx, { userId: order.userId, now });
+        // ถ้าสมาชิกยังมีช่วงที่จ่ายไว้ต่อ ช่องทางที่เปิดไว้ต้องคงอยู่ → ย้ายสถานะไปช่วงปัจจุบัน ไม่ให้ถูกนับว่าต้องถอด
+        const carried = await carryOverProvisioning(tx, { userId: order.userId, fromIds: affected.map((subscription) => subscription.id), now });
+        const continuing = (await tx.subscription.count({
+          where: { userId: order.userId, status: { in: ["ACTIVE", "EXPIRING_SOON"] }, currentPeriodStart: { lte: now }, currentPeriodEnd: { gt: now } },
+        })) > 0;
         await writeAudit(tx, {
           actor: input.actor,
           action: "ORDER_REFUND",
@@ -236,9 +241,11 @@ export async function refundOrder(
               currentPeriodEnd: subscription.currentPeriodEnd.toISOString(),
             })),
             periodsMoved,
+            continuing,
+            carriedOver: carried ? { toSubscriptionId: carried.toSubscriptionId, channels: carried.channels } : null,
           },
         });
-        return { ok: true, orderNumber: order.orderNumber, email: order.user.email, amount };
+        return { ok: true, orderNumber: order.orderNumber, email: order.user.email, amount, continuing };
       },
       { timeout: TRANSACTION_TIMEOUT_MS },
     );

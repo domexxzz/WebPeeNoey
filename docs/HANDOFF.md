@@ -1,5 +1,57 @@
 # เอกสารส่งต่องาน (Project Handoff & Session Log)
 
+## เซสชัน: Phase 5 — งานอัตโนมัติ, Watchdog, บอท Telegram และการสำรองข้อมูล
+**วันที่:** 12 ตุลาคม 2026  
+**สถานะ:** Phase 5 เสร็จ + แก้ตามผล security review แล้ว — unit 166/166, Integration กับ PostgreSQL จริง 104/104, `tsc` ผ่าน, `next build` ผ่าน, smoke test บน production build ผ่าน, ซ้อมกู้คืนฐานข้อมูลจริงผ่าน — **ยังไม่ commit** (รอเจ้าของอนุมัติ)
+
+### 1. สิ่งที่ทำเสร็จแล้ว
+- **งานประจำวัน `GET /api/cron/check-expiry`** (Vercel Cron 02:00 UTC = 09:00 น. ไทย, `vercel.json`) — `src/lib/jobs/expiry.ts`
+  1. ปิดออเดอร์ค้างชำระที่หมดเวลา
+  2. ช่วงสิทธิ์ที่เลยวันสิ้นสุด → `EXPIRED` ทีละคนภายใต้ advisory lock `membership:<userId>` (ลำดับ lock เดียวกับอนุมัติ/คืนเงิน) + AuditLog แบบระบบ (`actorId = null`)
+  3. **ย้ายสถานะเปิดสิทธิ์ไปช่วงที่ต่ออายุไว้** (`carryOverProvisioning`) — คนที่ต่อทบวันจึงไม่ถูกนับว่า "ต้องถอดสิทธิ์"; คืนเงินช่วงปัจจุบันก็ใช้ตัวเดียวกัน
+  4. เตือนก่อนหมด 3 วันแบบ "รายคน" (วันหมดของช่วงสุดท้ายที่ต่อกัน) ทางอีเมล + Telegram ส่วนตัว — จองด้วย `expiryReminderClaimedAt` ก่อนส่ง (รันซ้อนก็เตือนครั้งเดียว), สำเร็จบันทึก `expiryReminderSentAt`, ส่งไม่ได้ทุกช่องทาง → ปล่อยการจองให้รอบหน้าลองใหม่, การจองค้างเกิน 30 นาที (งานถูกตัดกลางคัน) ส่งใหม่ได้
+  5. ส่งสรุปเข้ากลุ่มแอดมิน: ใครหมดอายุ + ช่องทางที่ต้องถอดด้วยมือ (อีเมลแบบปิดบางส่วน / TradingView username / ลิงก์หน้าสมาชิกในหลังบ้าน) — เงียบถ้าไม่มีอะไรต้องแจ้ง; ส่งไม่สำเร็จ → บันทึก `summaryDelivered=false` ให้ Watchdog เตือน
+  6. จำกัดเวลา 40 วินาทีต่อรอบ (ก่อน serverless timeout 60 วินาที) — ที่เหลือทำต่อรอบถัดไป
+- **Watchdog `GET /api/cron/watchdog`** (เรียกทุกชั่วโมงจาก GitHub Actions `.github/workflows/watchdog.yml`) — `src/lib/jobs/watchdog.ts`
+  - งานตรวจวันหมดอายุไม่สำเร็จเกิน 26 ชม. / งานค้าง RUNNING เกิน 30 นาที (ปิดเป็น FAILED ให้) / สลิปรอตรวจเกิน 24 ชม. / สิทธิ์ที่ต้องถอดค้างเกิน 24 ชม. / สรุปรอบล่าสุดส่งไม่ถึงแอดมิน / webhook บอทมี error หรือค้าง
+  - **ส่งแจ้งสลิปใหม่ซ้ำ** สำหรับออเดอร์ที่ `adminNotifiedAt = null` (ซ่อมเองได้)
+  - แจ้งปัญหาชุดเดิมซ้ำได้ทุก 6 ชม. (กันสแปม) และแจ้ง "กลับมาปกติ"; ตอบ 503 + `adminNotified` — workflow ล้มเหลว (แจ้ง Telegram เอง + GitHub ส่งอีเมล) เมื่อแอปล่ม หรือเมื่อแอปแจ้งแอดมินไม่ได้ (เช่น Telegram ล่ม/token ถูกเพิกถอน)
+- **JobRun**: ทุกงานบันทึก RUNNING/SUCCESS/FAILED + summary + error; ล้มเหลว → log + แจ้งแอดมินทันที (`src/lib/jobs/job-run.ts`); หน้า `/admin/status` แสดงรันล่าสุดของทุกงาน
+- **บอท Telegram สำหรับสมาชิก** (webhook `POST /api/telegram/webhook`, ยืนยันด้วย `X-Telegram-Bot-Api-Secret-Token`)
+  - หน้า `/account` มีการ์ด "เชื่อมต่อ Telegram" → ลิงก์ `t.me/<bot>?start=<token>` ใช้ครั้งเดียว อายุ 15 นาที (เก็บแค่ SHA-256), 1 แชตผูกได้ 1 บัญชี — แชตที่ผูกบัญชีอื่นอยู่จะไม่ถูกย้ายเงียบ ๆ (ต้อง /stop ก่อน)
+  - คำสั่ง `/status` (วันหมดอายุรวม), `/stop` (ยกเลิก); ตอบเฉพาะแชตส่วนตัว, จำกัด 20 ข้อความ/นาที/แชต
+- **หน้า `/account` แก้บั๊ก**: เดิมเช็กแค่สถานะ `ACTIVE` ของช่วงล่าสุด → สมาชิกที่ถูกเตือนแล้ว (`EXPIRING_SOON`) จะเห็นว่า "ไม่มีสิทธิ์" ช่วง 3 วันสุดท้าย และคนที่ต่ออายุเห็นช่องทาง "รอระบบอัปเดต" — ตอนนี้ใช้สถานะรวมรายคน + แถบเตือน "ต่ออายุ" เมื่อเหลือ ≤ 3 วัน
+- **สำรองข้อมูล**: `.github/workflows/backup.yml` (pg_dump ทุกวัน 02:30 น. → ตรวจไฟล์ → เข้ารหัสด้วย GPG **public key** → artifact เก็บ 30 วัน, ล้มเหลวแจ้ง Telegram) — GitHub ไม่มีกุญแจถอดรหัส (ทดสอบเข้ารหัส/ถอดรหัสด้วยคำสั่งเดียวกันบนเครื่องแล้ว)
+- **ซ้อมกู้คืนจริง 1 รอบ** (`npm run db:restore-drill`): สำรอง → กู้ลงฐานข้อมูลชั่วคราว → เทียบจำนวนแถว 17 ตารางตรงกันหมด + trigger AuditLog กลับมาครบ → ลบทิ้ง (ไฟล์ 41 KB, 0.9 วินาที) — ทำกับฐานข้อมูล dev บนเครื่อง
+- Migration `phase5_automation`: `JobRun`, `TelegramLinkToken`, `User.telegramChatId` unique + `telegramLinkedAt`, `AuditLog.actorId` nullable (งานของระบบ); `phase5_reminder_lease`: `Subscription.expiryReminderClaimedAt/SentAt`
+- เทสต์: `tests/integration/jobs.test.ts` (19), `tests/integration/telegram.test.ts` (8), `tests/integration/register.test.ts` (+1), `tests/phase5-automation.test.ts`, `tests/phase5-routes.test.ts`, `tests/phase5-account.test.tsx`
+
+### แก้ตามผล Security Review (Phase 5 — ไม่มี CRITICAL, ไม่มีช่องข้ามการยืนยันตัวตน)
+- **[HIGH]** Watchdog ภายนอกเงียบเมื่อ Telegram เองล่ม → endpoint ส่ง `adminNotified`; workflow ล้มเหลวเมื่อ 503 แต่แอปแจ้งไม่ได้ (GitHub อีเมลเป็นช่องทางสำรอง)
+- [MEDIUM] สรุปถึงแอดมินส่งไม่สำเร็จแล้วรายชื่อหาย → `summaryDelivered` + Watchdog ตรวจ + ตรวจคิวถอดสิทธิ์ค้าง 24 ชม.
+- [MEDIUM] การจองส่งเตือนหายเมื่องานถูกตัดกลางคัน / สมาชิกเกิน 300 คนไม่ถูกเตือน / งานค้าง RUNNING ตลอดไป → lease (`claimedAt`/`sentAt`), จำกัดเวลา 40 วินาที, เลือกเฉพาะที่ยังไม่ส่ง, Watchdog ปิดงานค้างเป็น FAILED
+- [MEDIUM] `CRON_SECRET` ค่าตัวอย่างใน `.env.example` ผ่านการตรวจความยาว → ตรวจความแข็งแรง (`isStrongSecret`: ยาว ≥32, ตัวอักษรต่างกัน ≥12, ไม่ใช่ค่าตัวอย่าง) + ลบค่าตัวอย่าง
+- [MEDIUM] ลิงก์ของคนอื่นตัดการแจ้งเตือนของเราได้ (ย้ายแชตเงียบ ๆ) → ปฏิเสธ `CHAT_LINKED_ELSEWHERE`
+- [MEDIUM] TradingView username ไม่จำกัดรูปแบบ (ปลอมบรรทัดในข้อความแอดมิน) → ตรวจตอนสมัคร (≤50, `A-Za-z0-9_.-`) + ตัดบรรทัด/ความยาวตอนสร้างข้อความ
+- [MEDIUM] อีเมลสมาชิกในกลุ่ม Telegram (PDPA) → ปิดบางส่วน + ลิงก์หน้าสมาชิกในหลังบ้าน
+- [LOW] ตรวจ content-length ก่อนอ่าน body webhook; ลบ connection string / bot token / อีเมลออกจาก error ก่อน log/บันทึก/แจ้ง (`src/lib/redact.ts`); log ความลับที่ไม่ได้ตั้งครั้งเดียว; workflow บังคับ https; ช่องทางเตือนแยกกัน (`allSettled`); Watchdog ตรวจ webhook เฉพาะเมื่อบอทเปิดใช้ครบ; สำรองข้อมูลเข้ารหัสแบบกุญแจคู่
+
+### 2. สิ่งที่เจ้าของต้องตั้งค่าตอน deploy
+- Vercel: `CRON_SECRET` (สุ่มยาว 32+ ตัว เช่น `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`, Sensitive) — Vercel Cron ส่ง `Authorization: Bearer` ให้อัตโนมัติ
+- GitHub → Settings → Secrets and variables → Actions: `vars.APP_URL`, `secrets.CRON_SECRET` (ค่าเดียวกับ Vercel), `secrets.TELEGRAM_BOT_TOKEN`, `secrets.TELEGRAM_ADMIN_CHAT_ID`, `secrets.BACKUP_DATABASE_URL` (Neon direct URL ของ role ที่อ่านได้อย่างเดียว), `vars.BACKUP_GPG_PUBLIC_KEY` (สร้างตามคำแนะนำในหัวไฟล์ `backup.yml` — **private key เก็บออฟไลน์/ใน password manager เท่านั้น หายแล้วกู้ไฟล์ไม่ได้**)
+- บอทสมาชิก (ไม่บังคับ): สร้างบอทกับ @BotFather → ตั้ง `TELEGRAM_BOT_USERNAME` + `TELEGRAM_WEBHOOK_SECRET` ใน Vercel → รัน `npm run telegram:webhook` (ใช้ token/secret จาก env ของเครื่องที่รัน)
+- หลัง deploy ครั้งแรก: เรียก check-expiry 1 ครั้ง (หรือรอ 09:00) ไม่งั้น Watchdog จะเตือนว่า "ยังไม่เคยรันสำเร็จ"
+- ซ้อมกู้คืนกับ Neon จริงอีกรอบหลังขึ้น production (ดาวน์โหลด artifact → `gpg --decrypt` → `pg_restore` ลง Neon branch ใหม่)
+
+### 3. ข้อควรรู้ / ยังไม่ได้ทำ
+- การถอดสิทธิ์ TradingView / Discord / กลุ่ม Telegram ยังเป็นงานมือ (ไม่มี API ทางการของ TradingView) — ระบบส่งรายชื่อ + คิวในหน้าสถานะ
+- Vercel Hobby รัน Cron ได้วันละครั้ง จึงให้ Watchdog รายชั่วโมงอยู่บน GitHub Actions (ตารางของ GitHub อาจช้าได้หลายนาทีในช่วงคิวแน่น)
+- โปรเจกต์ยังไม่มีการตั้งค่า ESLint (`next lint` ถามให้สร้าง config) — ยังไม่ได้เพิ่มในเฟสนี้
+- บนเครื่อง dev: role ของแอปเป็น superuser (ติดตั้งเอง) — production บน Neon ต้องใช้ role ปกติ
+- `src/app/api/auth/register/route.ts` ยังใช้ `x-forwarded-for` ดิบเป็น key ของ rate limit (ปลอม header เพื่อเลี่ยงได้) — ควรเปลี่ยนเป็น `getClientIp()` (นอกขอบเขตเฟสนี้)
+
+---
+
 ## เซสชัน: Phase 4 — ระบบหลังบ้านแอดมิน
 **วันที่:** 12 ตุลาคม 2026  
 **สถานะ:** Phase 4 เสร็จ + แก้ตามผล security review แล้ว — unit 138/138, Integration กับ PostgreSQL จริง 76/76, `tsc` ผ่าน, `next build` ผ่าน, smoke test บน production build ผ่าน (ไม่ล็อกอิน → 307 ไปหน้า signin; แอดมินเปิดได้ทั้ง 7 หน้า + หน้าสมาชิก, CSP มี nonce และไม่มี `unsafe-inline` ใน script-src, `X-Frame-Options: DENY`, script ทุกตัวมี nonce ตรงกับ header) — **ยังไม่ commit** (Phase 3 ก็ยังไม่ commit — รอเจ้าของอนุมัติ แยก commit ตามเฟส)
@@ -37,7 +89,7 @@
 
 ### ขั้นตอนถัดไป
 1. เจ้าของอนุมัติ → commit Phase 3 และ Phase 4 แยกกัน (เฉพาะไฟล์ที่เกี่ยวข้อง)
-2. Phase 5: Cron (หมดอายุ/แจ้งเตือนก่อนหมด 3 วัน — ใช้ `getMemberCounts`/ตรรกะรายคนเดียวกัน), Telegram bot + watchdog ตาม CLAUDE.md ข้อ 5
+2. Phase 5: เสร็จแล้ว (ดูด้านบน)
 3. อัปเกรด Next.js 15.5
 
 ---

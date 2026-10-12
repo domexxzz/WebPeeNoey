@@ -8,7 +8,13 @@ const registerSchema = z.object({
   name: z.string().min(2, "ชื่อต้องมีความยาวอย่างน้อย 2 ตัวอักษร").max(100),
   email: z.string().email("รูปแบบอีเมลไม่ถูกต้อง").toLowerCase(),
   password: z.string().min(8, "รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร"),
-  tradingViewUsername: z.string().optional(),
+  // แสดงในข้อความถึงแอดมินและใช้เปิดสิทธิ์ TradingView — จำกัดรูปแบบกันการปลอมบรรทัด/ข้อความยาวผิดปกติ
+  tradingViewUsername: z
+    .string()
+    .trim()
+    .max(50, "ชื่อผู้ใช้ TradingView ยาวเกินไป")
+    .regex(/^[A-Za-z0-9_.-]*$/, "ชื่อผู้ใช้ TradingView ใช้ได้เฉพาะ A-Z, a-z, 0-9, _ . -")
+    .optional(),
 });
 
 export async function POST(req: NextRequest) {

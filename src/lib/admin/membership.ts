@@ -89,3 +89,35 @@ export async function getMembershipSummaries(db: Db, { userIds, now }: { userIds
     userIds.map((userId) => [userId, summarize(live.filter((segment) => segment.userId === userId), now)]),
   );
 }
+
+export const GRANT_FIELDS = ["tradingViewGranted", "discordRoleGranted", "telegramGranted"] as const;
+export type GrantField = (typeof GRANT_FIELDS)[number];
+
+/**
+ * ย้ายสถานะ "เปิดสิทธิ์แล้ว" จากช่วงที่จบไปแล้ว (หมดอายุ/คืนเงิน) ไปยังช่วงที่ใช้งานอยู่ตอนนี้ของสมาชิกคนเดียวกัน
+ * สมาชิกที่ต่ออายุทบวันยังใช้ช่องทางเดิมต่อเนื่อง — ถ้าไม่ย้าย ช่วงเก่าจะค้างในคิว "ต้องถอดสิทธิ์" ทั้งที่ห้ามถอด
+ * คืน null ถ้าไม่มีช่วงที่ใช้งานอยู่ (สมาชิกหมดสิทธิ์จริง ต้องถอดด้วยมือ) หรือไม่มีช่องทางที่เปิดไว้
+ * ผู้เรียกต้องถือ advisory lock "membership:<userId>"
+ */
+export async function carryOverProvisioning(
+  db: Db,
+  { userId, fromIds, now }: { userId: string; fromIds: string[]; now: Date },
+): Promise<{ toSubscriptionId: string; channels: GrantField[] } | null> {
+  if (fromIds.length === 0) return null;
+  const current = await db.subscription.findFirst({
+    where: { userId, id: { notIn: fromIds }, status: { in: [...LIVE_STATUSES] }, currentPeriodStart: { lte: now }, currentPeriodEnd: { gt: now } },
+    orderBy: { currentPeriodStart: "asc" },
+    select: { id: true },
+  });
+  if (!current) return null;
+  const ended = await db.subscription.findMany({
+    where: { userId, id: { in: fromIds } },
+    select: { tradingViewGranted: true, discordRoleGranted: true, telegramGranted: true },
+  });
+  const channels = GRANT_FIELDS.filter((field) => ended.some((segment) => segment[field]));
+  if (channels.length === 0) return null;
+  const flags = (value: boolean) => Object.fromEntries(channels.map((field) => [field, value])) as Partial<Record<GrantField, boolean>>;
+  await db.subscription.update({ where: { id: current.id }, data: flags(true) });
+  await db.subscription.updateMany({ where: { id: { in: fromIds } }, data: flags(false) });
+  return { toSubscriptionId: current.id, channels };
+}

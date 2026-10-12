@@ -101,7 +101,11 @@ export async function refundOrderAction(_previous: AdminActionState, formData: F
     });
     if (!result.ok) return fail(result.code);
     refreshOrder(orderId);
-    return done(`บันทึกคืนเงิน ${result.amount.toFixed(2)} บาท ของ ${result.orderNumber} และปิดสิทธิ์แล้ว — อย่าลืมถอดสิทธิ์ใน TradingView / Discord / Telegram`);
+    return done(
+      result.continuing
+        ? `บันทึกคืนเงิน ${result.amount.toFixed(2)} บาท ของ ${result.orderNumber} แล้ว — สมาชิกยังมีช่วงสิทธิ์ที่จ่ายไว้ต่อ จึงยังไม่ต้องถอดสิทธิ์ในช่องทางต่าง ๆ`
+        : `บันทึกคืนเงิน ${result.amount.toFixed(2)} บาท ของ ${result.orderNumber} และปิดสิทธิ์แล้ว — อย่าลืมถอดสิทธิ์ใน TradingView / Discord / Telegram`,
+    );
   });
 }
 

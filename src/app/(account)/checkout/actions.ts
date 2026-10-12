@@ -12,6 +12,7 @@ import { PAYMENT_RULES } from "@/config/payment";
 import { createOrder, markAdminNotified, submitSlip, type SubmitSlipResult } from "@/lib/orders/checkout";
 import { checkoutErrorMessage, type CheckoutErrorCode } from "@/lib/orders/messages";
 import { sendAdminTelegram } from "@/lib/notify/telegram";
+import { buildNewSlipMessage } from "@/lib/orders/slip-notification";
 import { getClientIp } from "@/lib/request";
 
 const RATE_WINDOW_SECONDS = 10 * 60;
@@ -78,17 +79,9 @@ function slipError(code: CheckoutErrorCode): SlipFormState {
 
 type AcceptedSlip = Extract<SubmitSlipResult, { ok: true }>;
 
-/** แจ้งแอดมินเรื่องสลิปใหม่ — ส่งไม่สำเร็จจะไม่บันทึก adminNotifiedAt เพื่อให้ Cron ส่งซ้ำได้ */
+/** แจ้งแอดมินเรื่องสลิปใหม่ — ส่งไม่สำเร็จจะไม่บันทึก adminNotifiedAt เพื่อให้ Watchdog ส่งซ้ำได้ */
 async function notifyNewSlip(slip: AcceptedSlip): Promise<void> {
-  const text = [
-    "🧾 สลิปใหม่รอตรวจสอบ",
-    `ออเดอร์: ${slip.orderNumber}`,
-    `แพ็กเกจ: ${slip.planName}`,
-    `ยอดที่ต้องได้รับ: ${slip.amount.toFixed(2)} บาท`,
-    `ตรวจสอบ: ${siteConfig.url}/admin/orders/${slip.orderId}`,
-  ].join("\n");
-
-  const sent = await sendAdminTelegram(text);
+  const sent = await sendAdminTelegram(buildNewSlipMessage(slip, siteConfig.url));
   if (!sent.ok) {
     console.error("[checkout] ยังไม่ได้แจ้งแอดมินเรื่องสลิปใหม่ (adminNotifiedAt = null)", { orderNumber: slip.orderNumber, reason: sent.reason });
     return;

@@ -134,3 +134,49 @@ export async function sendSlipRejectedEmail(email: string, orderNumber: string, 
     return false;
   }
 }
+
+export interface ExpiryReminderEmail {
+  planName: string;
+  endsAt: Date;
+  daysLeft: number;
+  renewUrl: string;
+}
+
+/** เตือนก่อนสิทธิ์หมดอายุ (Flow 6 ขั้นที่ 1) พร้อมปุ่มต่ออายุ — ราคาที่ล็อกไว้คิดให้อัตโนมัติตอนสร้างออเดอร์ */
+export async function sendExpiryReminderEmail(email: string, reminder: ExpiryReminderEmail): Promise<boolean> {
+  if (!resend) {
+    if (process.env.NODE_ENV === "production") {
+      console.error("[Email] RESEND_API_KEY ไม่ได้ตั้งค่า — ไม่ได้ส่งอีเมลเตือนก่อนหมดอายุ");
+      return false;
+    }
+    console.info(`[Email Simulation] Expiry reminder for ${email}: ${reminder.planName} ends in ${reminder.daysLeft} day(s)`);
+    return true;
+  }
+  const endsAt = reminder.endsAt.toLocaleDateString("th-TH", { timeZone: "Asia/Bangkok", year: "numeric", month: "long", day: "numeric" });
+  try {
+    const { error } = await resend.emails.send({
+      from: fromEmail,
+      to: email,
+      subject: `สิทธิ์สมาชิกของคุณจะหมดอายุในอีก ${reminder.daysLeft} วัน - Peenoey Indicator`,
+      html: `
+        <div style="font-family: sans-serif; background-color: #0B0F17; color: #FFFFFF; padding: 40px; border-radius: 8px;">
+          <h2 style="color: #F59E0B;">สิทธิ์ของคุณใกล้หมดอายุแล้ว</h2>
+          <p>แพ็กเกจ <strong>${escapeHtml(reminder.planName)}</strong> จะหมดอายุวันที่ <strong>${escapeHtml(endsAt)}</strong> (อีก ${reminder.daysLeft} วัน)</p>
+          <p>ต่ออายุก่อนหมด วันใช้งานจะทบต่อจากวันหมดอายุเดิมทันที ไม่เสียวันที่เหลือ และหากคุณได้ล็อกราคาโปรโมชันไว้ ระบบจะคิดราคาเดิมให้อัตโนมัติ</p>
+          <div style="margin: 30px 0;">
+            <a href="${escapeHtml(reminder.renewUrl)}" style="background-color: #F59E0B; color: #000000; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">ต่ออายุสมาชิก</a>
+          </div>
+          <p style="color: #9CA3AF; font-size: 12px;">หากต่ออายุแล้ว ไม่ต้องดำเนินการใด ๆ เพิ่มเติม</p>
+        </div>
+      `,
+    });
+    if (error) {
+      console.error("[Email Error] Failed to send expiry reminder via Resend:", error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("[Email Exception] Unexpected error sending expiry reminder:", err);
+    return false;
+  }
+}

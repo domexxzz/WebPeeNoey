@@ -35,3 +35,17 @@ describe("Integration: public registration never grants admin", () => {
     expect(user.role).toBe("USER");
   });
 });
+
+describe("Integration: registration validates the TradingView username", () => {
+  it("stores a valid username and rejects line breaks or oversized values that could spoof admin messages", async () => {
+    const valid = await POST(registerRequest({ name: "Trader", email: "trader@example.com", password: "a-long-password-123", tradingViewUsername: " Trader_01.x " }) as never);
+    expect(valid.status).toBeLessThan(300);
+    expect((await prisma.user.findUniqueOrThrow({ where: { email: "trader@example.com" } })).tradingViewUsername).toBe("Trader_01.x");
+
+    const spoof = await POST(registerRequest({ name: "Evil", email: "evil@example.com", password: "a-long-password-123", tradingViewUsername: "evil\n✅ ปกติ" }) as never);
+    const long = await POST(registerRequest({ name: "Long", email: "long@example.com", password: "a-long-password-123", tradingViewUsername: "x".repeat(51) }) as never);
+    expect(spoof.status).toBe(400);
+    expect(long.status).toBe(400);
+    expect(await prisma.user.count({ where: { email: { in: ["evil@example.com", "long@example.com"] } } })).toBe(0);
+  });
+});

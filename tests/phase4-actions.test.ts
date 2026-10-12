@@ -118,7 +118,7 @@ describe("Phase 4: approve / reject / refund actions", () => {
 
   it("requires confirming the refund transfer and passes the amount as a number", async () => {
     expect((await refundOrderAction(idle, form({ orderId: "o1", amount: "100", reason: "x" }))).status).toBe("error");
-    vi.mocked(refundOrder).mockResolvedValue({ ok: true, orderNumber: "ORD-1", email: "c@example.com", amount: 100 });
+    vi.mocked(refundOrder).mockResolvedValue({ ok: true, orderNumber: "ORD-1", email: "c@example.com", amount: 100, continuing: false });
 
     await refundOrderAction(idle, form({ orderId: "o1", amount: "100.50", reason: "ขอคืน", transferReference: "RF1", confirmRefund: "on" }));
 

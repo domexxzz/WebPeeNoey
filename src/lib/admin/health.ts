@@ -1,4 +1,5 @@
-import type { PrismaClient } from "@prisma/client";
+import type { JobRunStatus, PrismaClient } from "@prisma/client";
+import { JOB_NAMES, type JobName } from "@/lib/jobs/job-run";
 import { getPaymentAvailability, type PaymentAvailability } from "@/lib/orders/availability";
 import { countPendingDeprovision, getMemberCounts } from "./dashboard";
 
@@ -13,7 +14,9 @@ export const MONITORED_ENV = [
   { key: "EMAIL_FROM", required: false, purpose: "ผู้ส่งอีเมล" },
   { key: "TELEGRAM_BOT_TOKEN", required: false, purpose: "แจ้งเตือนแอดมิน" },
   { key: "TELEGRAM_ADMIN_CHAT_ID", required: false, purpose: "กลุ่มแจ้งเตือนแอดมิน" },
-  { key: "CRON_SECRET", required: false, purpose: "ป้องกัน Cron endpoint" },
+  { key: "TELEGRAM_BOT_USERNAME", required: false, purpose: "ลิงก์เชื่อมบัญชีสมาชิกกับบอท" },
+  { key: "TELEGRAM_WEBHOOK_SECRET", required: false, purpose: "ยืนยันว่า webhook มาจาก Telegram" },
+  { key: "CRON_SECRET", required: true, purpose: "ป้องกัน Cron / Watchdog endpoint" },
 ] as const;
 
 export interface SystemHealth {
@@ -22,6 +25,32 @@ export interface SystemHealth {
   env: { key: string; required: boolean; purpose: string; configured: boolean }[];
   payments: PaymentAvailability;
   queues: { pendingReview: number; unnotifiedSlips: number; awaitingPayment: number; expiringSoon: number; pendingDeprovision: number };
+  jobs: JobHealth[];
+}
+
+export const JOB_LABELS: Record<JobName, string> = {
+  "check-expiry": "ตรวจวันหมดอายุ + เตือนก่อนหมด (ทุกวัน 09:00)",
+  watchdog: "Watchdog เฝ้าระบบ (ทุกชั่วโมง)",
+};
+
+export interface JobHealth {
+  job: JobName;
+  label: string;
+  lastRun: { status: JobRunStatus; startedAt: Date; finishedAt: Date | null; error: string | null } | null;
+  lastSuccessAt: Date | null;
+}
+
+/** สถานะงานอัตโนมัติล่าสุดของแต่ละงาน (แสดงในหน้าสถานะระบบ) */
+export async function getJobHealth(db: PrismaClient): Promise<JobHealth[]> {
+  return Promise.all(
+    Object.values(JOB_NAMES).map(async (job) => {
+      const [lastRun, lastSuccess] = await Promise.all([
+        db.jobRun.findFirst({ where: { job }, orderBy: { startedAt: "desc" }, select: { status: true, startedAt: true, finishedAt: true, error: true } }),
+        db.jobRun.findFirst({ where: { job, status: "SUCCESS" }, orderBy: { startedAt: "desc" }, select: { startedAt: true } }),
+      ]);
+      return { job, label: JOB_LABELS[job], lastRun, lastSuccessAt: lastSuccess?.startedAt ?? null };
+    }),
+  );
 }
 
 export async function getSystemHealth(
@@ -46,10 +75,11 @@ export async function getSystemHealth(
       env: envStatus,
       payments: { open: false, reason: "DISABLED" },
       queues: { pendingReview: 0, unnotifiedSlips: 0, awaitingPayment: 0, expiringSoon: 0, pendingDeprovision: 0 },
+      jobs: [],
     };
   }
 
-  const [payments, pendingReview, unnotifiedSlips, awaitingPayment, members, pendingDeprovision] = await Promise.all([
+  const [payments, pendingReview, unnotifiedSlips, awaitingPayment, members, pendingDeprovision, jobs] = await Promise.all([
     getPaymentAvailability(db),
     db.order.count({ where: { status: "SLIP_SUBMITTED" } }),
     db.order.count({ where: { status: "SLIP_SUBMITTED", adminNotifiedAt: null } }),
@@ -57,6 +87,7 @@ export async function getSystemHealth(
     // นับรายคน: คนที่ต่ออายุทบวันไว้แล้วไม่ถือว่าใกล้หมด
     getMemberCounts(db, { now }),
     countPendingDeprovision(db),
+    getJobHealth(db),
   ]);
 
   return {
@@ -65,5 +96,6 @@ export async function getSystemHealth(
     env: envStatus,
     payments,
     queues: { pendingReview, unnotifiedSlips, awaitingPayment, expiringSoon: members.expiringSoon, pendingDeprovision },
+    jobs,
   };
 }

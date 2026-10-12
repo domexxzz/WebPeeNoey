@@ -1,0 +1,81 @@
+# สำรองฐานข้อมูลรายวัน (docs/PLAN.md ข้อ 7) — pg_dump → เข้ารหัสด้วย GPG public key → เก็บเป็น artifact 30 วัน
+# เสริมจาก Point-in-Time Recovery ของ Neon (กรณีโปรเจกต์ Neon ถูกลบ/บัญชีมีปัญหา)
+# เข้ารหัสแบบกุญแจคู่: GitHub มีแค่ public key — แม้ secret ของ GitHub หลุดก็ถอดรหัสไฟล์สำรองไม่ได้
+# (ไฟล์สำรองมี password hash, session และ OAuth token ของสมาชิก)
+#
+# เตรียมครั้งเดียว (บนเครื่องเจ้าของ):
+#   gpg --quick-generate-key "Peenoey Backup" default default never   (ได้ subkey สำหรับเข้ารหัส — ตั้งรหัสผ่านกุญแจด้วย)
+#   gpg --armor --export "Peenoey Backup"            → ใส่ใน vars.BACKUP_GPG_PUBLIC_KEY (ไม่ใช่ความลับ)
+#   gpg --armor --export-secret-keys "Peenoey Backup" → เก็บออฟไลน์/ใน password manager เท่านั้น (หาย = กู้ไม่ได้)
+# ต้องตั้ง: secrets.BACKUP_DATABASE_URL (Neon direct URL ของ role ที่อ่านได้อย่างเดียว), vars.BACKUP_GPG_PUBLIC_KEY
+#   + secrets.TELEGRAM_BOT_TOKEN, secrets.TELEGRAM_ADMIN_CHAT_ID สำหรับแจ้งเตือนเมื่อล้มเหลว
+# กู้คืน: gpg --decrypt <ไฟล์>.dump.gpg > backup.dump && pg_restore --no-owner --dbname=<URL ปลายทาง> backup.dump
+name: Database backup
+
+on:
+  schedule:
+    - cron: "30 19 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: database-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Install PostgreSQL 17 client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -qq postgresql-client-17
+
+      - name: Dump, verify and encrypt
+        env:
+          DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+          BACKUP_GPG_PUBLIC_KEY: ${{ vars.BACKUP_GPG_PUBLIC_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "$DATABASE_URL" ] || [ -z "$BACKUP_GPG_PUBLIC_KEY" ]; then
+            echo "::error::ยังไม่ได้ตั้ง secrets.BACKUP_DATABASE_URL หรือ vars.BACKUP_GPG_PUBLIC_KEY"
+            exit 1
+          fi
+          printf '%s\n' "$BACKUP_GPG_PUBLIC_KEY" > backup-public.asc
+          stamp=$(date -u +%Y%m%dT%H%M%SZ)
+          /usr/lib/postgresql/17/bin/pg_dump --format=custom --no-owner --no-privileges --dbname="$DATABASE_URL" --file=backup.dump
+          test -s backup.dump
+          # ตรวจว่าไฟล์ dump อ่านได้จริงก่อนเก็บ
+          /usr/lib/postgresql/17/bin/pg_restore --list backup.dump > /dev/null
+          gpg --batch --yes --trust-model always --recipient-file backup-public.asc --encrypt \
+            --output "webpeenoey-${stamp}.dump.gpg" backup.dump
+          rm -f backup.dump backup-public.asc
+          echo "BACKUP_FILE=webpeenoey-${stamp}.dump.gpg" >> "$GITHUB_ENV"
+
+      - name: Upload encrypted backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ github.run_id }}
+          path: ${{ env.BACKUP_FILE }}
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Alert admins on failure
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_CHAT_ID }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_ADMIN_CHAT_ID" ]; then
+            echo "::warning::ไม่ได้ตั้ง Telegram secrets — ใช้อีเมลแจ้งเตือนของ GitHub แทน"
+            exit 0
+          fi
+          curl -sS --max-time 20 -o /dev/null -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_ADMIN_CHAT_ID}" \
+            --data-urlencode "text=🚨 สำรองฐานข้อมูลรายวันล้มเหลว — ${RUN_URL}"

@@ -1,0 +1,72 @@
+"use client";
+
+import { useFormState } from "react-dom";
+import { BellRing, CheckCircle2, ExternalLink } from "lucide-react";
+import { createTelegramLinkAction, unlinkTelegramAction, type TelegramLinkState } from "@/app/(account)/account/telegram-actions";
+import { SubmitButton } from "@/components/checkout/submit-button";
+
+interface TelegramConnectProps {
+  enabled: boolean;
+  linked: boolean;
+  linkedAtLabel: string | null;
+}
+
+const initialState: TelegramLinkState = { status: "idle" };
+
+/** เชื่อมบัญชีกับบอท Telegram เพื่อรับแจ้งเตือนก่อนสิทธิ์หมดอายุ */
+export function TelegramConnect({ enabled, linked, linkedAtLabel }: TelegramConnectProps) {
+  const [state, formAction] = useFormState(createTelegramLinkAction, initialState);
+
+  return (
+    <div className="glass-panel rounded-2xl p-6 border border-white/10 space-y-3">
+      <h2 className="text-base font-semibold text-white flex items-center gap-2">
+        <BellRing className="w-4 h-4 text-cyan-400" aria-hidden="true" />
+        แจ้งเตือนทาง Telegram
+      </h2>
+
+      {!enabled ? (
+        <p className="text-xs text-gray-400">การแจ้งเตือนทาง Telegram ยังไม่เปิดใช้งาน — ระบบจะแจ้งเตือนทางอีเมลแทน</p>
+      ) : linked ? (
+        <div className="space-y-3">
+          <p className="text-xs text-emerald-300 flex items-center gap-1.5">
+            <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
+            เชื่อมต่อแล้ว{linkedAtLabel ? ` (ตั้งแต่ ${linkedAtLabel})` : ""} — จะได้รับแจ้งเตือนก่อนสิทธิ์หมดอายุ
+          </p>
+          <form action={unlinkTelegramAction}>
+            <button type="submit" className="text-xs text-gray-400 underline underline-offset-2 hover:text-gray-200">
+              ยกเลิกการเชื่อมต่อ
+            </button>
+          </form>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <p className="text-xs text-gray-400">รับแจ้งเตือนก่อนสิทธิ์หมดอายุ 3 วันผ่านแชตส่วนตัวกับบอท (นอกเหนือจากอีเมล)</p>
+          {state.status === "ready" ? (
+            <div className="space-y-2">
+              <a
+                href={state.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold text-black bg-cyan-400 hover:bg-cyan-300"
+              >
+                เปิด Telegram แล้วกด Start <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
+              </a>
+              <p className="text-[11px] text-gray-500">ลิงก์ใช้ได้ครั้งเดียวภายใน 15 นาที — กด Start ในแชตบอทแล้วรีเฟรชหน้านี้</p>
+            </div>
+          ) : (
+            <form action={formAction}>
+              <SubmitButton pendingLabel="กำลังสร้างลิงก์..." className="!px-4 !py-2.5 !text-xs">
+                เชื่อมต่อ Telegram
+              </SubmitButton>
+            </form>
+          )}
+          {state.status === "error" && (
+            <p role="alert" className="text-xs text-red-400">
+              {state.message}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

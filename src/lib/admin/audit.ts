@@ -10,12 +10,18 @@ export const AUDIT_ACTIONS = {
   MEMBER_REVOKE: "ปิดสิทธิ์สมาชิก",
   PROVISIONING_UPDATE: "อัปเดตการเปิดสิทธิ์",
   SETTINGS_UPDATE: "แก้ไขการตั้งค่าระบบ",
+  SUBSCRIPTION_EXPIRE: "สิทธิ์หมดอายุ (อัตโนมัติ)",
+  PROVISIONING_CARRY_OVER: "ย้ายสถานะเปิดสิทธิ์ไปช่วงถัดไป (อัตโนมัติ)",
 } as const;
+
+/** ชื่อที่แสดงแทนผู้กระทำเมื่อเป็นงานอัตโนมัติ (actorId = null) */
+export const SYSTEM_ACTOR_LABEL = "ระบบอัตโนมัติ";
 
 export type AuditAction = keyof typeof AUDIT_ACTIONS;
 
 interface AuditEntry {
-  actor: ActorContext;
+  /** null = งานอัตโนมัติของระบบ (Cron) */
+  actor: ActorContext | null;
   action: AuditAction;
   targetType: "Order" | "Subscription" | "User" | "System";
   targetId: string;
@@ -26,12 +32,12 @@ interface AuditEntry {
 export async function writeAudit(tx: Tx, entry: AuditEntry): Promise<void> {
   await tx.auditLog.create({
     data: {
-      actorId: entry.actor.id,
+      actorId: entry.actor?.id ?? null,
       action: entry.action,
       targetType: entry.targetType,
       targetId: entry.targetId,
       details: entry.details,
-      ipAddress: entry.actor.ipAddress ?? null,
+      ipAddress: entry.actor?.ipAddress ?? null,
     },
   });
 }
@@ -78,7 +84,7 @@ export async function listAuditLogs(
       targetId: log.targetId,
       details: log.details,
       ipAddress: log.ipAddress,
-      actorEmail: log.actor.email,
+      actorEmail: log.actor?.email ?? SYSTEM_ACTOR_LABEL,
       createdAt: log.createdAt,
     })),
     total,

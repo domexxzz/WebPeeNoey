@@ -46,7 +46,8 @@ model User {
   // Platform identifiers สำหรับการให้สิทธิ์
   tradingViewUsername   String?
   discordUserId         String?
-  telegramChatId        String?
+  telegramChatId        String?        @unique // เชื่อมผ่านบอท (/start <token>) — 1 แชตต่อ 1 บัญชี
+  telegramLinkedAt      DateTime?
   
   // ความสัมพันธ์
   accounts              Account[]
@@ -54,6 +55,7 @@ model User {
   orders                Order[]
   subscriptions         Subscription[]
   auditLogs             AuditLog[]     @relation("AdminAuditLogs")
+  telegramLinkTokens    TelegramLinkToken[]
   
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
@@ -230,6 +232,10 @@ model Subscription {
   discordRoleGranted  Boolean            @default(false)
   telegramGranted     Boolean            @default(false)
   
+  // เตือนก่อนหมดอายุ (Flow 6): จองก่อนส่ง → บันทึกเวลาส่งสำเร็จ — การจองที่ค้างเกิน 30 นาที (งานถูกตัดกลางคัน) ถูกส่งใหม่ได้
+  expiryReminderClaimedAt DateTime?
+  expiryReminderSentAt    DateTime?
+
   // การเพิกถอนสิทธิ์
   revokedAt           DateTime?
   revocationReason    String?
@@ -263,14 +269,14 @@ model Refund {
 
 model AuditLog {
   id                  String         @id @default(cuid())
-  actorId             String         // ID แอดมินผู้กระทำ
+  actorId             String?        // ID แอดมินผู้กระทำ (null = ระบบอัตโนมัติ เช่น Cron)
   action              String         // เช่น 'ORDER_APPROVE', 'ORDER_REJECT', 'SUBSCRIPTION_REVOKE', 'REFUND_ISSUE'
   targetType          String         // 'Order', 'Subscription', 'User', 'System'
   targetId            String
   details             Json?          // ข้อมูลการเปลี่ยนแปลงก่อน-หลัง
   ipAddress           String?
   
-  actor               User           @relation("AdminAuditLogs", fields: [actorId], references: [id], onDelete: Restrict)
+  actor               User?          @relation("AdminAuditLogs", fields: [actorId], references: [id], onDelete: Restrict)
   
   createdAt           DateTime       @default(now())
 
@@ -298,4 +304,39 @@ model SystemSetting {
   supportTelegramUrl  String?
   maintenanceMode     Boolean        @default(false)
   updatedAt           DateTime       @updatedAt
+}
+
+enum JobRunStatus {
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+/// บันทึกการรันงานอัตโนมัติทุกครั้ง (CLAUDE.md ข้อ 5: ห้ามล้มเงียบ) — Watchdog ใช้ตรวจว่างานรันตามรอบและไม่ค้าง
+model JobRun {
+  id                  String         @id @default(cuid())
+  job                 String         // เช่น "check-expiry", "watchdog"
+  status              JobRunStatus   @default(RUNNING)
+  startedAt           DateTime       @default(now())
+  finishedAt          DateTime?
+  summary             Json?
+  error               String?
+  alertedAt           DateTime?      // เวลาที่ส่งแจ้งเตือนแอดมินจากรอบนี้ (ใช้กันแจ้งเตือนซ้ำถี่เกินไป)
+
+  @@index([job, startedAt])
+  @@index([status, startedAt])
+}
+
+/// โทเคนใช้ครั้งเดียวสำหรับเชื่อมบัญชีกับ Telegram (เก็บเฉพาะ SHA-256 ไม่เก็บโทเคนจริง)
+model TelegramLinkToken {
+  id                  String         @id @default(cuid())
+  userId              String
+  tokenHash           String         @unique
+  expiresAt           DateTime
+  usedAt              DateTime?
+  createdAt           DateTime       @default(now())
+
+  user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

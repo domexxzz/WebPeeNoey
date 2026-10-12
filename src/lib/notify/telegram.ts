@@ -1,10 +1,14 @@
+import { redactSensitive } from "@/lib/redact";
+
 /**
- * ส่งข้อความแจ้งเตือนเข้ากลุ่ม Telegram ของแอดมิน
+ * เรียก Telegram Bot API — ใช้ทั้งแจ้งเตือนกลุ่มแอดมิน, ส่งข้อความถึงสมาชิก และตรวจสถานะ webhook
  * ไม่ throw — คืนผลลัพธ์ให้ผู้เรียกตัดสินใจ แต่ทุกความล้มเหลวจะถูก log เสมอ (CLAUDE.md ข้อ 5: ห้ามล้มเงียบ)
  * ส่งเป็นข้อความธรรมดา (ไม่ใช้ parse_mode) เพื่อกันการแทรก HTML/Markdown จากข้อมูลผู้ใช้
+ * ห้าม log URL ของ API เพราะมี bot token อยู่ใน path
  */
 
-export type TelegramResult = { ok: true } | { ok: false; reason: "NOT_CONFIGURED" | "HTTP_ERROR" | "NETWORK_ERROR" };
+export type TelegramFailure = "NOT_CONFIGURED" | "HTTP_ERROR" | "NETWORK_ERROR";
+export type TelegramResult = { ok: true } | { ok: false; reason: TelegramFailure };
 
 interface TelegramOptions {
   env?: Partial<Record<"TELEGRAM_BOT_TOKEN" | "TELEGRAM_ADMIN_CHAT_ID", string>>;
@@ -13,32 +17,82 @@ interface TelegramOptions {
 }
 
 const DEFAULT_TIMEOUT_MS = 5000;
+/** Telegram รับข้อความยาวสุด 4096 ตัวอักษร */
+const MAX_MESSAGE_LENGTH = 4000;
 
-export async function sendAdminTelegram(text: string, options: TelegramOptions = {}): Promise<TelegramResult> {
+type CallResult = { ok: true; result: unknown } | { ok: false; reason: TelegramFailure };
+
+async function callTelegram(method: string, payload: Record<string, unknown>, options: TelegramOptions): Promise<CallResult> {
   const env = options.env ?? process.env;
-  const fetchImpl = options.fetchImpl ?? fetch;
   const token = env.TELEGRAM_BOT_TOKEN;
-  const chatId = env.TELEGRAM_ADMIN_CHAT_ID;
-
-  if (!token || !chatId) {
-    console.error("[notify:telegram] ไม่ได้ตั้งค่า TELEGRAM_BOT_TOKEN / TELEGRAM_ADMIN_CHAT_ID — ข้อความแจ้งเตือนไม่ถูกส่ง:", text);
-    return { ok: false, reason: "NOT_CONFIGURED" };
-  }
+  if (!token) return { ok: false, reason: "NOT_CONFIGURED" };
 
   try {
-    const response = await fetchImpl(`https://api.telegram.org/bot${token}/sendMessage`, {
+    const response = await (options.fetchImpl ?? fetch)(`https://api.telegram.org/bot${token}/${method}`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text, disable_web_page_preview: true }),
+      body: JSON.stringify(payload),
       signal: AbortSignal.timeout(options.timeoutMs ?? DEFAULT_TIMEOUT_MS),
     });
     if (!response.ok) {
-      console.error(`[notify:telegram] Telegram ตอบกลับ HTTP ${response.status}`);
+      console.error(`[notify:telegram] ${method}: Telegram ตอบกลับ HTTP ${response.status}`);
       return { ok: false, reason: "HTTP_ERROR" };
     }
-    return { ok: true };
+    const body = (await response.json().catch(() => null)) as { result?: unknown } | null;
+    return { ok: true, result: body?.result ?? null };
   } catch (error) {
-    console.error("[notify:telegram] ส่งข้อความไม่สำเร็จ:", error instanceof Error ? error.message : error);
+    console.error(`[notify:telegram] ${method}: เรียก Telegram ไม่สำเร็จ:`, redactSensitive(error instanceof Error ? error.message : String(error)));
     return { ok: false, reason: "NETWORK_ERROR" };
   }
+}
+
+function truncate(text: string): string {
+  return text.length > MAX_MESSAGE_LENGTH ? `${text.slice(0, MAX_MESSAGE_LENGTH)}\n…(ตัดข้อความที่ยาวเกิน)` : text;
+}
+
+/** ส่งข้อความถึงแชตที่ระบุ (เช่น สมาชิกที่เชื่อมบัญชีกับบอทแล้ว) */
+export async function sendTelegramMessage(chatId: string, text: string, options: TelegramOptions = {}): Promise<TelegramResult> {
+  const result = await callTelegram("sendMessage", { chat_id: chatId, text: truncate(text), disable_web_page_preview: true }, options);
+  if (!result.ok && result.reason === "NOT_CONFIGURED") {
+    console.error("[notify:telegram] ไม่ได้ตั้งค่า TELEGRAM_BOT_TOKEN — ข้อความถึงสมาชิกไม่ถูกส่ง");
+  }
+  return result.ok ? { ok: true } : result;
+}
+
+/** ส่งข้อความแจ้งเตือนเข้ากลุ่ม Telegram ของแอดมิน */
+export async function sendAdminTelegram(text: string, options: TelegramOptions = {}): Promise<TelegramResult> {
+  const env = options.env ?? process.env;
+  const chatId = env.TELEGRAM_ADMIN_CHAT_ID;
+  if (!env.TELEGRAM_BOT_TOKEN || !chatId) {
+    // log เป็นช่องทางสำรองเมื่อยังไม่ตั้ง Telegram (ห้ามล้มเงียบ) — ปิดบังอีเมล/ความลับในข้อความก่อน
+    console.error("[notify:telegram] ไม่ได้ตั้งค่า TELEGRAM_BOT_TOKEN / TELEGRAM_ADMIN_CHAT_ID — ข้อความแจ้งเตือนไม่ถูกส่ง:", redactSensitive(text));
+    return { ok: false, reason: "NOT_CONFIGURED" };
+  }
+  const result = await callTelegram("sendMessage", { chat_id: chatId, text: truncate(text), disable_web_page_preview: true }, options);
+  return result.ok ? { ok: true } : result;
+}
+
+export interface TelegramWebhookInfo {
+  url: string;
+  pendingUpdateCount: number;
+  lastErrorDate: Date | null;
+  lastErrorMessage: string | null;
+}
+
+/** อ่านสถานะ webhook ของบอท (Watchdog ใช้ตรวจว่าบอทยังรับข้อความได้) */
+export async function getTelegramWebhookInfo(
+  options: TelegramOptions = {},
+): Promise<{ ok: true; info: TelegramWebhookInfo } | { ok: false; reason: TelegramFailure }> {
+  const result = await callTelegram("getWebhookInfo", {}, options);
+  if (!result.ok) return result;
+  const raw = (result.result ?? {}) as { url?: unknown; pending_update_count?: unknown; last_error_date?: unknown; last_error_message?: unknown };
+  return {
+    ok: true,
+    info: {
+      url: typeof raw.url === "string" ? raw.url : "",
+      pendingUpdateCount: typeof raw.pending_update_count === "number" ? raw.pending_update_count : 0,
+      lastErrorDate: typeof raw.last_error_date === "number" ? new Date(raw.last_error_date * 1000) : null,
+      lastErrorMessage: typeof raw.last_error_message === "string" ? raw.last_error_message : null,
+    },
+  };
 }

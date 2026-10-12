@@ -1,5 +1,6 @@
 import type { OrderStatus, Prisma, PrismaClient } from "@prisma/client";
 import { expireStaleOrders } from "@/lib/orders/create-order";
+import { SYSTEM_ACTOR_LABEL } from "./audit";
 
 export const ADMIN_ORDER_TABS = {
   review: { label: "รอตรวจสลิป", statuses: ["SLIP_SUBMITTED"] },
@@ -132,7 +133,7 @@ export async function getAdminOrderDetail(db: PrismaClient, orderId: string) {
     payment: order.payment ? { ...order.payment, amount: order.payment.amount.toNumber() } : null,
     refund: order.refund ? { ...order.refund, amount: order.refund.amount.toNumber() } : null,
     slips: order.slipUploads,
-    auditLogs: auditLogs.map((log) => ({ id: log.id, action: log.action, details: log.details, actorEmail: log.actor.email, createdAt: log.createdAt })),
+    auditLogs: auditLogs.map((log) => ({ id: log.id, action: log.action, details: log.details, actorEmail: log.actor?.email ?? SYSTEM_ACTOR_LABEL, createdAt: log.createdAt })),
   };
 }
 

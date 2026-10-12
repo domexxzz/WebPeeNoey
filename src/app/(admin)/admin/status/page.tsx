@@ -15,6 +15,8 @@ function StatusIcon({ ok, warn }: { ok: boolean; warn?: boolean }) {
   return warn ? <CircleAlert className="w-4 h-4 text-amber-400" aria-label="ควรตรวจสอบ" /> : <XCircle className="w-4 h-4 text-red-400" aria-label="ผิดปกติ" />;
 }
 
+const JOB_STATUS_LABEL = { RUNNING: "กำลังทำงาน", SUCCESS: "สำเร็จ", FAILED: "ล้มเหลว" } as const;
+
 export default async function AdminStatusPage() {
   await requireAdminPage();
   const health = await getSystemHealth(prisma);
@@ -56,6 +58,28 @@ export default async function AdminStatusPage() {
           </ul>
         </AdminCard>
       </div>
+
+      <AdminCard title="งานอัตโนมัติ (Cron / Watchdog)">
+        <ul className="space-y-3 text-sm">
+          {health.jobs.map((job) => (
+            <li key={job.job} className="rounded-lg bg-black/20 px-3 py-2">
+              <span className="flex items-center gap-2 text-gray-200">
+                <StatusIcon ok={job.lastRun?.status === "SUCCESS"} warn={job.lastRun === null || job.lastRun.status === "RUNNING"} />
+                {job.label}
+              </span>
+              <span className="block text-xs text-gray-400 mt-1">
+                {job.lastRun
+                  ? `รันล่าสุด ${formatDateTime(job.lastRun.startedAt)} · ${JOB_STATUS_LABEL[job.lastRun.status]}`
+                  : "ยังไม่เคยรัน"}
+                {job.lastSuccessAt && job.lastRun?.status !== "SUCCESS" && ` · สำเร็จล่าสุด ${formatDateTime(job.lastSuccessAt)}`}
+              </span>
+              {job.lastRun?.status === "FAILED" && job.lastRun.error && (
+                <span className="block text-xs text-red-300 mt-1 break-words">{job.lastRun.error.slice(0, 300)}</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </AdminCard>
 
       <AdminCard title="ตัวแปรสภาพแวดล้อม (Environment)">
         <ul className="grid gap-2 sm:grid-cols-2 text-sm">

@@ -13,21 +13,22 @@ import {
   Send,
   AlertTriangle,
 } from "lucide-react";
+import { getMembershipSummary } from "@/lib/admin/membership";
+import { daysUntil, formatDate } from "@/lib/format";
+import { PAYMENT_RULES } from "@/config/payment";
+import { telegramDeepLink } from "@/lib/telegram/link";
+import { TelegramConnect } from "@/components/account/telegram-connect";
 
 export default async function AccountDashboardPage() {
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
+  const now = new Date();
 
   // ดึงข้อมูลสมาชิกและสิทธิ์จากฐานข้อมูล
   const user = userId
     ? await prisma.user.findUnique({
         where: { id: userId },
         include: {
-          subscriptions: {
-            orderBy: { currentPeriodEnd: "desc" },
-            take: 1,
-            include: { plan: true },
-          },
           orders: {
             orderBy: { createdAt: "desc" },
             take: 3,
@@ -37,8 +38,16 @@ export default async function AccountDashboardPage() {
       })
     : null;
 
-  const currentSub = user?.subscriptions?.[0];
-  const isActive = currentSub && currentSub.status === "ACTIVE" && new Date(currentSub.currentPeriodEnd) > new Date();
+  // สถานะรวมทุกช่วงที่ต่อทบกัน: ช่วงที่ใช้งานอยู่ตอนนี้ (ถือสถานะเปิดสิทธิ์) + วันหมดอายุของช่วงสุดท้าย
+  const membership = userId ? await getMembershipSummary(prisma, { userId, now }) : null;
+  const currentSub = membership?.currentSubscriptionId
+    ? await prisma.subscription.findUnique({ where: { id: membership.currentSubscriptionId }, include: { plan: true } })
+    : null;
+  const isActive = Boolean(membership?.active && currentSub);
+  const endsAt = membership?.endsAt ?? null;
+  const daysLeft = endsAt ? daysUntil(endsAt, now) : null;
+  const expiringSoon = isActive && daysLeft !== null && daysLeft <= PAYMENT_RULES.expiryReminderDays;
+  const telegramEnabled = telegramDeepLink(process.env.TELEGRAM_BOT_USERNAME, "check") !== null;
 
   return (
     <div className="space-y-8">
@@ -95,6 +104,17 @@ export default async function AccountDashboardPage() {
 
           {isActive && currentSub ? (
             <div className="space-y-4">
+              {expiringSoon && (
+                <div role="status" className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200 flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 shrink-0 text-amber-400" aria-hidden="true" />
+                    สิทธิ์ของคุณจะหมดในอีก {daysLeft} วัน — ต่ออายุตอนนี้ วันใช้งานจะทบต่อทันที
+                  </span>
+                  <Link href={`/checkout/${currentSub.plan.slug}`} className="shrink-0 font-semibold text-amber-300 hover:text-amber-200">
+                    ต่ออายุ →
+                  </Link>
+                </div>
+              )}
               <div className="p-4 rounded-xl bg-[#161F30] border border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <span className="text-xs text-gray-400 block">แพ็กเกจที่ใช้งาน</span>
@@ -111,12 +131,9 @@ export default async function AccountDashboardPage() {
                   <span className="text-xs text-gray-400 block">วันหมดอายุ</span>
                   <span className="text-sm font-semibold text-white flex items-center sm:justify-end gap-1.5 mt-0.5">
                     <Calendar className="w-4 h-4 text-emerald-400" />
-                    {new Date(currentSub.currentPeriodEnd).toLocaleDateString("th-TH", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
+                    {endsAt ? formatDate(endsAt) : "-"}
                   </span>
+                  {daysLeft !== null && <span className="text-[11px] text-gray-400">เหลืออีก {daysLeft} วัน (รวมช่วงที่ต่ออายุไว้)</span>}
                 </div>
               </div>
 
@@ -194,6 +211,12 @@ export default async function AccountDashboardPage() {
           </div>
         </div>
       </div>
+
+      <TelegramConnect
+        enabled={telegramEnabled}
+        linked={Boolean(user?.telegramChatId)}
+        linkedAtLabel={user?.telegramLinkedAt ? formatDate(user.telegramLinkedAt) : null}
+      />
 
       {/* Recent Orders List */}
       <div className="glass-panel rounded-2xl p-6 border border-white/10">
