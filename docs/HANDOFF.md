@@ -2,7 +2,8 @@
 
 ## เซสชัน: Deploy ขึ้น Vercel (production)
 **วันที่:** 12 ตุลาคม 2026  
-**สถานะ:** ออนไลน์แล้วที่ **https://webpeenoey.vercel.app** (commit `14d5929`) — build บน Vercel ผ่าน (19/19 หน้า), smoke test บน production ผ่าน: หน้า public + auth ได้ 200, หน้าที่ต้องล็อกอินเด้งไป signin (307), `X-Frame-Options: DENY` / nosniff / HSTS ครบ, canonical เป็น URL จริง, cron / watchdog / webhook ไม่มี secret ได้ 401, console เบราว์เซอร์ไม่มี error — **ยังไม่ได้ทดสอบหลังล็อกอินบน production** (ให้เจ้าของล็อกอินแอดมินเอง)
+**สถานะ:** ออนไลน์แล้วที่ **https://webpeenoey.vercel.app** (commit `14d5929`) — build บน Vercel ผ่าน (19/19 หน้า), smoke test บน production ผ่าน: หน้า public + auth ได้ 200, หน้าที่ต้องล็อกอินเด้งไป signin (307), `X-Frame-Options: DENY` / nosniff / HSTS ครบ, canonical เป็น URL จริง, cron / watchdog / webhook ไม่มี secret ได้ 401, console เบราว์เซอร์ไม่มี error — เจ้าของล็อกอินแอดมินบน production ได้แล้ว (ฟังก์ชันต่อ Neon ผ่าน pooled URL ได้จริง), runtime log 50 รายการล่าสุดไม่มี error/5xx
+- อีเมลแอดมินเปลี่ยนเป็น `dometeenlek@gmail.com` ทั้ง production (DB + env `ADMIN_EMAIL` บน Vercel) และบนเครื่อง (DB + `.env`) — มี AuditLog `ADMIN_EMAIL_CHANGE` ทั้งสองที่
 
 ### 1. ที่ตั้งค่าแล้ว
 - Vercel project `webpeenoey` (ทีม `domezzxxs-projects`, Hobby) — ฟังก์ชันรันที่ `sin1` (สิงคโปร์), `vercel.json` มี `framework: nextjs` (โปรเจกต์สร้างจาก CLI จึงไม่ได้ตรวจเฟรมเวิร์กให้), `vercel-build` = `prisma generate && next build`
