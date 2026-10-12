@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Mail, MessageCircle, Send, type LucideIcon } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { HOME_SECTION_IDS } from "@/config/marketing";
+import { staggerStyle } from "@/lib/motion";
 import { HeroChart } from "./hero-chart";
 import { Phrases } from "./phrases";
 
@@ -35,46 +36,56 @@ export function ContactSection() {
     <section aria-labelledby={`${HOME_SECTION_IDS.contact}-heading`} id={HOME_SECTION_IDS.contact} className="scroll-mt-20">
       <div className="px-4 sm:px-6 lg:px-10 py-20 sm:py-28">
         <div className="relative">
-          <div className="border border-line bg-ink-raised p-3 sm:p-6 lg:pl-[38%]">
-            <HeroChart className="w-full h-auto opacity-90" />
+          <div data-reveal="zoom" data-loop="" className="border border-line bg-ink-raised p-3 sm:p-6 lg:pl-[38%]">
+            <HeroChart animated className="w-full h-auto opacity-90" />
           </div>
-          <div className="relative -mt-16 mx-3 sm:mx-8 lg:absolute lg:bottom-10 lg:left-10 lg:mt-0 lg:mx-0 lg:w-[42%] border border-line bg-ink p-7 sm:p-10">
+          <div
+            data-reveal="up"
+            style={staggerStyle(3, 120)}
+            className="relative -mt-16 mx-3 sm:mx-8 lg:absolute lg:bottom-10 lg:left-10 lg:mt-0 lg:mx-0 lg:w-[42%] border border-line bg-ink p-7 sm:p-10 shadow-[12px_12px_0_0_rgba(110,234,110,0.18)]"
+          >
             <p className="text-sm font-semibold text-signal">ติดต่อเรา</p>
-            <h2 id={`${HOME_SECTION_IDS.contact}-heading`} className="mt-3 font-display text-3xl sm:text-5xl font-bold tracking-tight leading-[1.05] text-white">
-              <Phrases text="มีคำถาม ติดต่อทีมงานได้โดยตรง" />
+            <h2
+              id={`${HOME_SECTION_IDS.contact}-heading`}
+              data-reveal="words"
+              style={staggerStyle(5, 120)}
+              className="mt-3 font-display text-3xl sm:text-5xl font-bold tracking-tight leading-[1.05] text-white"
+            >
+              <Phrases text="มีคำถาม ติดต่อทีมงานได้โดยตรง" animate />
             </h2>
             <p className="mt-4 text-sm sm:text-base text-gray-300 leading-relaxed">
               แจ้งอีเมลที่ใช้สมัครและหมายเลขคำสั่งซื้อ (ถ้ามี) เพื่อให้ทีมงานตรวจสอบได้รวดเร็วขึ้น
             </p>
             <Link
               href={`/#${HOME_SECTION_IDS.pricing}`}
-              className="mt-7 inline-flex items-center gap-2 bg-signal px-6 py-3.5 text-sm font-semibold text-ink transition-colors hover:bg-signal-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal"
+              data-magnetic=""
+              className="mx-shine group mt-7 inline-flex items-center gap-2 bg-signal px-6 py-3.5 text-sm font-semibold text-ink hover:bg-signal-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal"
             >
               พร้อมเริ่มแล้ว — ดูแพ็กเกจ
-              <ArrowRight className="w-4 h-4" aria-hidden="true" />
+              <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" />
             </Link>
           </div>
         </div>
 
         <ul className="mt-10 grid gap-px bg-line border border-line sm:grid-cols-3">
-          {getContactChannels().map((channel) => {
+          {getContactChannels().map((channel, index) => {
             const Icon = channel.icon;
             const isExternal = channel.href.startsWith("http");
             return (
-              <li key={channel.label} className="bg-ink">
+              <li key={channel.label} data-spotlight="" data-reveal="up" style={staggerStyle(index, 110)} className="bg-ink">
                 <a
                   href={channel.href}
                   {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                   className="group flex items-center gap-4 px-6 py-6 transition-colors hover:bg-ink-raised focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-signal"
                 >
-                  <span className="flex w-11 h-11 shrink-0 items-center justify-center border border-line text-signal group-hover:bg-signal group-hover:text-ink group-hover:border-signal">
+                  <span className="flex w-11 h-11 shrink-0 items-center justify-center border border-line text-signal transition-[transform,background-color,color,border-color] duration-500 group-hover:rotate-[-8deg] group-hover:scale-110 group-hover:bg-signal group-hover:text-ink group-hover:border-signal">
                     <Icon className="w-5 h-5" aria-hidden="true" />
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-xs text-gray-400">{channel.label}</span>
                     <span className="block truncate text-base font-medium text-white">{channel.value}</span>
                   </span>
-                  <ArrowUpRight className="w-4 h-4 shrink-0 text-gray-500 group-hover:text-signal" aria-hidden="true" />
+                  <ArrowUpRight className="w-4 h-4 shrink-0 text-gray-500 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-signal" aria-hidden="true" />
                 </a>
               </li>
             );

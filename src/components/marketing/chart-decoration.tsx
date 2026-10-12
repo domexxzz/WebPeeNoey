@@ -1,7 +1,9 @@
 /**
  * ลวดลายกราฟแท่งเทียนแบบนามธรรม — ใช้ตกแต่งเท่านั้น (aria-hidden)
  * ห้ามเพิ่มตัวเลข ราคา หรือป้ายกำกับที่สื่อถึงผลการเทรดจริง (CLAUDE.md ข้อ 3)
+ * animated = แท่งงอกขึ้นทีละแท่ง (เล่นเมื่อส่วนที่ครอบด้วย [data-reveal] เลื่อนมาถึง)
  */
+import { indexStyle } from "@/lib/motion";
 const CANDLES = [
   { open: 70, close: 58, high: 52, low: 76 },
   { open: 58, close: 64, high: 54, low: 68 },
@@ -20,10 +22,10 @@ const CANDLES = [
 const CANDLE_GAP = 26;
 const CANDLE_WIDTH = 12;
 
-export function ChartDecoration({ className = "" }: { className?: string }) {
+export function ChartDecoration({ className = "", animated = false }: { className?: string; animated?: boolean }) {
   const width = CANDLES.length * CANDLE_GAP + 10;
   return (
-    <svg aria-hidden="true" focusable="false" viewBox={`0 0 ${width} 90`} preserveAspectRatio="none" className={className}>
+    <svg aria-hidden="true" focusable="false" viewBox={`0 0 ${width} 90`} preserveAspectRatio="none" className={`${animated ? "cd-anim " : ""}${className}`.trim()}>
       {[20, 45, 70].map((y) => (
         <line key={y} x1="0" x2={width} y1={y} y2={y} stroke="rgba(255,255,255,0.06)" strokeDasharray="3 5" />
       ))}
@@ -34,7 +36,7 @@ export function ChartDecoration({ className = "" }: { className?: string }) {
         const top = Math.min(candle.open, candle.close);
         const height = Math.max(Math.abs(candle.open - candle.close), 2);
         return (
-          <g key={x} opacity={0.35 + (index / CANDLES.length) * 0.5}>
+          <g key={x} opacity={0.35 + (index / CANDLES.length) * 0.5} className={animated ? "cd-candle" : undefined} style={animated ? indexStyle(index) : undefined}>
             <line x1={x + CANDLE_WIDTH / 2} x2={x + CANDLE_WIDTH / 2} y1={candle.high} y2={candle.low} stroke={color} strokeWidth="1.5" />
             <rect x={x} y={top} width={CANDLE_WIDTH} height={height} fill={color} fillOpacity={isUp ? 0.85 : 0.25} stroke={color} />
           </g>

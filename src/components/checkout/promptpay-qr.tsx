@@ -6,12 +6,15 @@ import QRCode from "qrcode";
  */
 export async function PromptPayQr({ payload, label }: { payload: string; label: string }) {
   const svg = await QRCode.toString(payload, { type: "svg", errorCorrectionLevel: "M", margin: 2, width: 280 });
+  // กรอบมุมแบบช่องมองกล้อง (.mx-qr) อยู่รอบนอก QR เท่านั้น — ไม่ทับโมดูลของ QR
   return (
-    <div
-      role="img"
-      aria-label={label}
-      className="mx-auto w-full max-w-[280px] overflow-hidden bg-white p-2 [&>svg]:h-auto [&>svg]:w-full"
-      dangerouslySetInnerHTML={{ __html: svg }}
-    />
+    <div className="mx-qr mx-auto w-full max-w-[280px]">
+      <div
+        role="img"
+        aria-label={label}
+        className="w-full overflow-hidden bg-white p-2 [&>svg]:h-auto [&>svg]:w-full"
+        dangerouslySetInnerHTML={{ __html: svg }}
+      />
+    </div>
   );
 }

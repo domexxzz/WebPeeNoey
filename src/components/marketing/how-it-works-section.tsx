@@ -1,7 +1,11 @@
 import { HOME_SECTION_IDS, HOW_IT_WORKS } from "@/config/marketing";
+import { staggerStyle } from "@/lib/motion";
 import { SectionHeading } from "./section-heading";
 
-/** การ์ดซ้อนกันบนพื้นเขียว — ใบสุดท้ายตัดเฉียงให้ดูมีจังหวะ (เฉพาะจอ md ขึ้นไป) */
+/**
+ * การ์ดซ้อนกันบนพื้นเขียว — ใบสุดท้ายตัดเฉียงให้ดูมีจังหวะ (เฉพาะจอ md ขึ้นไป)
+ * เลื่อนมาถึง: การ์ดสไลด์เข้าทีละใบ ตัวเลขเลื่อนขึ้นจากใต้เส้น และเส้นด้านซ้ายเติมตามการเลื่อนหน้า
+ */
 const CARD_OFFSETS = ["md:ml-0", "md:ml-10", "md:ml-20", "md:ml-6"];
 
 export function HowItWorksSection() {
@@ -23,17 +27,25 @@ export function HowItWorksSection() {
           />
         </div>
 
-        <ol className="space-y-3">
+        <ol className="relative space-y-3">
+          <span aria-hidden="true" className="absolute -left-6 top-0 bottom-0 hidden w-[3px] bg-ink/15 md:block">
+            <span className="hiw-rail-fill block h-full w-full bg-ink" />
+          </span>
           {HOW_IT_WORKS.map((item, index) => (
             <li
               key={item.step}
-              className={`bg-ink text-white px-6 sm:px-8 py-7 sm:py-8 ${CARD_OFFSETS[index % CARD_OFFSETS.length]} ${
-                index === lastIndex ? "md:[clip-path:polygon(0_0,100%_0,97%_100%,3%_100%)] md:px-12" : ""
-              }`}
+              data-reveal="right"
+              style={staggerStyle(index, 130)}
+              className={`${CARD_OFFSETS[index % CARD_OFFSETS.length]} ${index === lastIndex ? "md:[clip-path:polygon(0_0,100%_0,97%_100%,3%_100%)]" : ""}`}
             >
+              <div
+                className={`group bg-ink text-white px-6 sm:px-8 py-7 sm:py-8 transition-[transform,box-shadow] duration-500 ease-out hover:translate-x-2 hover:shadow-[-8px_8px_0_0_rgba(17,19,18,0.35)] ${
+                  index === lastIndex ? "md:px-12" : ""
+                }`}
+              >
               <div className="flex items-start gap-5 sm:gap-8">
-                <span aria-hidden="true" className="font-display text-4xl sm:text-5xl font-bold leading-none text-signal tabular-nums">
-                  {String(item.step).padStart(2, "0")}
+                <span aria-hidden="true" className="mx-digit-mask font-display text-4xl sm:text-5xl font-bold leading-none text-signal tabular-nums">
+                  <span className="mx-digit">{String(item.step).padStart(2, "0")}</span>
                 </span>
                 <div>
                   <h3 className="font-display text-xl sm:text-2xl font-bold tracking-tight">
@@ -42,6 +54,7 @@ export function HowItWorksSection() {
                   </h3>
                   <p className="mt-2 text-sm sm:text-base text-gray-300 leading-relaxed">{item.description}</p>
                 </div>
+              </div>
               </div>
             </li>
           ))}

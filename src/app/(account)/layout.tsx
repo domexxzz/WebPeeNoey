@@ -7,6 +7,7 @@ import { siteConfig } from "@/config/site";
 import { AccountSignOutButton } from "@/components/account-sign-out";
 import { BrandMark } from "@/components/marketing/site-header";
 import { displayFont, thaiFont } from "@/components/marketing/fonts";
+import { MotionToggle } from "@/components/motion/motion-toggle";
 
 const ACCOUNT_NAV = [
   { href: "/account", label: "แดชบอร์ด", icon: LayoutDashboard },
@@ -75,6 +76,7 @@ export default async function AccountLayout({ children }: { children: React.Reac
       </header>
 
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">{children}</main>
+      <MotionToggle />
 
       <footer className="border-t border-line text-xs text-gray-400">
         <div className="flex flex-col gap-3 px-4 sm:px-6 lg:px-8 py-6 sm:flex-row sm:items-center sm:justify-between">

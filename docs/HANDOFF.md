@@ -1,5 +1,36 @@
 # เอกสารส่งต่องาน (Project Handoff & Session Log)
 
+## เซสชัน: อนิเมชันหน้าบ้าน (Motion)
+**วันที่:** 13 ตุลาคม 2026  
+**สถานะ:** unit 199/199 (เพิ่ม `tests/motion.test.tsx` 26 เทสต์), `tsc` ผ่าน, `next build` ผ่าน (19/19 หน้า, First Load JS หน้าแรก 106 kB, CSS รวม 12 kB gzip) — ตรวจบน dev server ในเบราว์เซอร์: เป้าหมาย reveal ครบ 46 ชิ้นแสดงผลหลังเลื่อนผ่าน, header ซ่อนตอนเลื่อนลง/โผล่ตอนเลื่อนขึ้น/โผล่เมื่อโฟกัสเข้า, ปุ่มหยุดภาพเคลื่อนไหวหยุดเฉพาะอนิเมชันวนและจำค่าได้, กันพลาดแสดงเนื้อหาเองใน 2.5 วินาทีถ้าสคริปต์ไม่ทำงาน, จอ 375px ไม่ล้นแนวนอน, ไม่มี error ใน console — ผ่าน code review (react-reviewer) และแก้ทุกข้อแล้ว — ยังไม่ commit / ยังไม่ deploy
+
+**แก้ตามผลรีวิว:** header ที่ซ่อนอยู่โผล่เมื่อโฟกัสคีย์บอร์ดเข้า (WCAG 2.4.11), เผยเนื้อหาทันทีเมื่อโฟกัสเข้าไป, runtime ที่เริ่มช้ากว่ากันพลาดไม่ทำให้เนื้อหาหายแล้วกลับมา, ย้าย `--scroll` จาก `<html>` ไปที่แถบ (ไม่คำนวณสไตล์ทั้งหน้าทุกเฟรม), หยุดอนิเมชันวนเมื่ออยู่นอกจอ (`[data-loop]`), เพิ่มปุ่มหยุด/เล่นภาพเคลื่อนไหว `MotionToggle` มุมซ้ายล่าง (WCAG 2.2.2), เปลี่ยนหน้าแบบเลื่อนอย่างเดียว + หัวข้อ hero เริ่มที่ opacity 0.2 (ไม่ถ่วง LCP), เส้นแสงการ์ดราคาหมุนด้วย `rotate` แทน `@property`, การ์ดเอียงมี transform เฉพาะตอนชี้ (ตัวอักษรคม), วัดขนาดกล่องครั้งเดียวต่อการชี้ (ไม่สั่นที่ขอบ), QR ขนาดเท่าเดิม (กรอบมุมอยู่นอก QR), ทรงเฉียงการ์ดขั้นตอนไม่หายในโหมดลดการเคลื่อนไหว, MutationObserver ตรวจเฉพาะโหนดใหม่
+
+### 1. โครงสร้าง (ไม่เพิ่ม dependency)
+- `src/components/motion/motion-runtime.tsx` (client ตัวเดียว ติดใน layout หน้าบ้าน): `[data-reveal]` → ใส่ `data-inview` ด้วย IntersectionObserver, `[data-tilt]` / `[data-magnetic]` / `[data-spotlight]` → ตั้ง `--px` `--py` `--spot-x` `--spot-y` ตามเมาส์ (เฉพาะอุปกรณ์ที่มีเมาส์), `<html>` → `--scroll`, `data-scrolled`, `data-header-hidden`
+- `src/lib/motion.ts`: ฟังก์ชันคำนวณล้วน (`pointerRatio`, `scrollProgress`, `headerShouldHide`, `staggerStyle`, `indexStyle`)
+- `src/styles/motion.css` (reveal, เล่นตอนโหลด, แถบความคืบหน้า, header, เอฟเฟกต์เมาส์, ปุ่มแสงวิ่ง) + `src/styles/motion-art.css` (กราฟ hero, ภาพฟีเจอร์, เส้นแสงการ์ดราคา, ขั้นตอน, FAQ, กรอบ QR, โลโก้ท้ายหน้า)
+- component หน้าบ้านยังเป็น server component — ใส่แค่ data attribute / class / ตัวแปร CSS
+- `template.tsx` ใน `(marketing)` และ `(account)`: เลื่อนเข้าเมื่อเปลี่ยนหน้า
+- `src/components/motion/motion-toggle.tsx`: ปุ่มหยุด/เล่นภาพเคลื่อนไหว (หน้าบ้าน, auth, account) — ตั้ง `html[data-motion-paused]` และจำค่าใน localStorage `peenoey-motion`
+
+### 2. กติกาที่ต้องรักษา
+- ขยับเฉพาะ opacity / translate / scale / rotate / transform / clip-path / filter (มีเทสต์ตรวจ keyframes)
+- สถานะซ่อนก่อน reveal อยู่ใต้ `@media (scripting: enabled)` + กันพลาด 2.5 วินาที — ปิด JS แล้วยังเห็นเนื้อหาครบ
+- `prefers-reduced-motion: reduce` → ปิดอนิเมชันทั้งหมดในขอบเขต `.mx-scope` (หน้าบ้าน, auth, account) และแสดงเนื้อหาทันที
+- ส่วนบนสุดของหน้า (hero, หัวเพจย่อย, auth) เล่นด้วย CSS ตอนโหลด ไม่รอ JS — ไม่ถ่วง LCP
+- ภาพประกอบทั้งหมด aria-hidden ไม่มีตัวเลข/ข้อความ (กติกาข้อ 3)
+- QR ชำระเงิน: ห้ามมีอะไรทับตัว QR — ใช้กรอบมุมด้านนอก (`.mx-qr`) เท่านั้น เพราะลูกค้าแคปหน้าจอ QR ไปสแกน
+- หลังบ้าน (`/admin`) ไม่มีอนิเมชัน (CSP แบบ nonce เข้มงวด และควรนิ่ง)
+
+### 3. กับดักที่เจอ
+- **Chrome นับ `clip-path` ของตัวเป้าหมายเองใน IntersectionObserver** — ถ้าซ่อนด้วย `clip-path: inset(0 100% 0 0)` จะไม่มีวัน "เห็น" → reveal แบบ clip ซ่อนด้วย opacity แล้วค่อยเล่นคีย์เฟรมตัดหลังเห็นแล้ว
+- ใส่ reveal (`translate`) กับ transform ของ Tailwind (`rotate-2`, `lg:translate-y-6`) ในชิ้นเดียวกันได้ เพราะเป็นคนละ property — แต่ `transition` ชนกัน: ให้ reveal อยู่บน wrapper แยกจากชิ้นที่มี hover transition
+- เบราว์เซอร์ในแอป Claude หยุดวาดเฟรมเมื่อหน้าต่างไม่อยู่ด้านหน้า (0 fps) → transition/IntersectionObserver ไม่เดิน และ `focus()` ไม่ปล่อย event `focusin` (หน้าไม่มีโฟกัส) — ทดสอบ handler ด้วยการ dispatch event เอง
+- อนิเมชันวนใหม่ทุกตัวต้องเพิ่มใน selector ของ `html[data-motion-paused]` (motion.css) และครอบด้วย `[data-loop]` เพื่อหยุดเมื่ออยู่นอกจอ
+
+---
+
 ## เซสชัน: Deploy ขึ้น Vercel (production)
 **วันที่:** 12 ตุลาคม 2026  
 **สถานะ:** ออนไลน์แล้วที่ **https://webpeenoey.vercel.app** (commit `14d5929`) — build บน Vercel ผ่าน (19/19 หน้า), smoke test บน production ผ่าน: หน้า public + auth ได้ 200, หน้าที่ต้องล็อกอินเด้งไป signin (307), `X-Frame-Options: DENY` / nosniff / HSTS ครบ, canonical เป็น URL จริง, cron / watchdog / webhook ไม่มี secret ได้ 401, console เบราว์เซอร์ไม่มี error — เจ้าของล็อกอินแอดมินบน production ได้แล้ว (ฟังก์ชันต่อ Neon ผ่าน pooled URL ได้จริง), runtime log 50 รายการล่าสุดไม่มี error/5xx

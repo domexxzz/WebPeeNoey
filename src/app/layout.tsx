@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans_Thai, Prompt } from "next/font/google";
 import "./globals.css";
+import "@/styles/motion.css";
+import "@/styles/motion-art.css";
 import { Providers } from "@/components/providers";
 import { siteConfig } from "@/config/site";
 
