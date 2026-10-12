@@ -13,6 +13,8 @@ export default defineConfig({
     exclude: ["tests/integration/**", "node_modules/**"],
     // Unit test ห้ามแตะฐานข้อมูล: ตั้งค่าว่างไว้ก่อน (Prisma จะไม่โหลดทับจาก .env) เพื่อให้ rate limiter ใช้ memory store
     env: { DATABASE_URL: "" },
+    // Vitest 5 เปิด worker เท่าจำนวน CPU (16 บนเครื่อง dev) — จำกัดไว้ไม่ให้หน่วยความจำ Windows เต็มจน worker ล่ม
+    maxWorkers: 4,
   },
   resolve: {
     alias: {
