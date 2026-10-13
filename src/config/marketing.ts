@@ -254,7 +254,7 @@ export const TRADINGVIEW_CHART = {
   attributionHref: "https://www.tradingview.com/",
   config: {
     autosize: true,
-    symbol: "BINANCE:BTCUSDT",
+    symbol: "OANDA:XAUUSD",
     interval: "60",
     timezone: "Asia/Bangkok",
     theme: "dark",
