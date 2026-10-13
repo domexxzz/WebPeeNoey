@@ -39,7 +39,7 @@ describe("TradingView live chart in the hero", () => {
   });
 
   it("states that the live chart does not show our indicator's signals and is not investment advice", () => {
-    expect(HERO_CONTENT.liveChartCaption).toContain("ไม่ได้แสดงสัญญาณของ Peenoey Indicator");
+    expect(HERO_CONTENT.liveChartCaption).toContain("ไม่ได้แสดงสัญญาณของอินดิเคเตอร์ Gold HybridShot");
     expect(HERO_CONTENT.liveChartCaption).toContain("ไม่ใช่คำแนะนำการลงทุน");
   });
 

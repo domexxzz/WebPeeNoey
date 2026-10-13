@@ -19,8 +19,9 @@ export function resolveSiteUrl(env: SiteUrlEnv): string {
 }
 
 export const siteConfig = {
-  name: "Peenoey Indicator",
-  shortName: "Peenoey",
+  // ชื่อแบรนด์ตามชื่ออินดิเคเตอร์ที่สมาชิกได้รับ (Gold HybridShot Signals) — โดเมน/ช่องทางติดต่อด้านล่างยังเป็นบัญชีเดิม
+  name: "Gold HybridShot",
+  shortName: "Gold HybridShot",
   description:
     "อินดิเคเตอร์ TradingView แบบ Invite-only พร้อมกลุ่ม Telegram VIP สำหรับแจ้งเตือน และคอมมูนิตี้ Discord ชำระง่ายผ่าน PromptPay",
   domain: process.env.NEXT_PUBLIC_SITE_DOMAIN || "peenoey.com",

@@ -2,6 +2,7 @@ import type { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 import { formatDate, daysUntil } from "@/lib/format";
 import { getMembershipSummary } from "@/lib/admin/membership";
+import { siteConfig } from "@/config/site";
 import { linkTelegramChat, unlinkTelegramChat } from "./link";
 
 /** รับเฉพาะส่วนที่ใช้ของ Update จาก Telegram (ส่วนอื่นปล่อยผ่าน) */
@@ -37,7 +38,7 @@ function maskEmail(email: string): string {
 }
 
 function introText(siteUrl: string): string {
-  return ["บอทแจ้งเตือนของ Peenoey Indicator", `เชื่อมบัญชีได้ที่ ${siteUrl}/account (กดปุ่ม "เชื่อมต่อ Telegram")`, "", COMMANDS_HELP].join("\n");
+  return [`บอทแจ้งเตือนของ ${siteConfig.name}`, `เชื่อมบัญชีได้ที่ ${siteUrl}/account (กดปุ่ม "เชื่อมต่อ Telegram")`, "", COMMANDS_HELP].join("\n");
 }
 
 async function statusText(db: PrismaClient, chatId: string, siteUrl: string, now: Date): Promise<string> {

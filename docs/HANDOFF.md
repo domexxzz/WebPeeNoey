@@ -1,5 +1,17 @@
 # เอกสารส่งต่องาน (Project Handoff & Session Log)
 
+## เซสชัน: เปลี่ยนชื่อเว็บเป็น Gold HybridShot
+**วันที่:** 13 ตุลาคม 2026  
+**สถานะ:** unit 216/216 (เพิ่ม `tests/branding.test.tsx`), `tsc` ผ่าน, `next build` ผ่าน — จอ 360px: โลโก้ header/footer ไม่ล้น ไม่ชนปุ่ม
+
+- เจ้าของยืนยันว่า Gold HybridShot Signals คืออินดิเคเตอร์ที่สมาชิกได้รับ → `siteConfig.name` / `shortName` = "Gold HybridShot" (ใช้ตัวพิมพ์ตามชื่ออินดิเคเตอร์ในกราฟ) — title, OG, JSON-LD, เอกสารกฎหมายเปลี่ยนตามอัตโนมัติ
+- หัวเรื่องอีเมล, ชื่อผู้ส่งอีเมลเริ่มต้น และข้อความบอท Telegram ใช้ `siteConfig.name` แทนการเขียนชื่อตายตัว — เทสต์กันไม่ให้มี "Peenoey Indicator" ในโค้ดอีก
+- โลโก้ตัวอักษรขนาดใหญ่ (ท้ายหน้า) แยกตัวอักษรเป็น span → ช่องว่างต้องเป็น ` ` ไม่อย่างนั้นหาย
+- `NEXT_PUBLIC_SITE_NAME` (.env, .env.example, Vercel) เปลี่ยนเป็น "Gold HybridShot" — ตัวแปรนี้โค้ดไม่ได้อ่าน แค่ให้ตรงกัน
+- **ยังเป็นชื่อเดิม (เป็นบัญชี/โดเมนจริง เปลี่ยนในโค้ดอย่างเดียวไม่ได้):** อีเมล support@peenoey.com, LINE @peenoey, Telegram @peenoey_admin, โดเมน peenoey.com, URL webpeenoey.vercel.app, repo/โปรเจกต์ Vercel `webpeenoey`, คีย์ localStorage `peenoey-motion`
+
+---
+
 ## เซสชัน: ภาพหน้าจออินดิเคเตอร์จริง (ส่วน "หน้าตาอินดิเคเตอร์บนกราฟจริง")
 **วันที่:** 13 ตุลาคม 2026  
 **สถานะ:** unit 213/213 (เพิ่ม `tests/indicator-showcase.test.tsx`), `tsc` ผ่าน, `next build` ผ่าน (หน้าแรก First Load JS 115 kB) — ตรวจบน dev server: ส่วนใหม่อยู่ถัดจาก "จุดเด่น", รูปโหลดผ่าน next/image เป็น WebP 21–60 kB ตามขนาดจอ, ไม่ล้นจอ, server ไม่มี error — ยังไม่ commit / ยังไม่ deploy

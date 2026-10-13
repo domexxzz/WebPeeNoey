@@ -20,13 +20,14 @@ export function BrandMark({ size = "md" }: { size?: "md" | "xl" }) {
       />
       <span
         className={`font-display font-bold tracking-tight text-white whitespace-nowrap ${
-          isLarge ? "mx-wave text-5xl sm:text-7xl leading-none" : "text-xl"
+          isLarge ? "mx-wave text-4xl sm:text-6xl lg:text-7xl leading-none" : "text-xl"
         }`}
       >
         {isLarge
           ? Array.from(new Intl.Segmenter("th", { granularity: "grapheme" }).segment(siteConfig.shortName), (part) => part.segment).map((letter, index) => (
               <span key={`${letter}-${index}`} style={indexStyle(index)}>
-                {letter}
+                {/* ช่องว่างใน span แบบ inline-block จะหายไป ต้องใช้ช่องว่างแบบไม่ตัดบรรทัด */}
+                {letter === " " ? "\u00A0" : letter}
               </span>
             ))
           : siteConfig.shortName}

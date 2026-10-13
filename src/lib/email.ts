@@ -1,8 +1,9 @@
 import { Resend } from "resend";
+import { siteConfig } from "@/config/site";
 
 const resendApiKey = process.env.RESEND_API_KEY;
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
-const fromEmail = process.env.EMAIL_FROM || "Peenoey Trading <noreply@peenoey.com>";
+const fromEmail = process.env.EMAIL_FROM || `${siteConfig.name} <noreply@peenoey.com>`;
 
 /** escape ข้อความก่อนใส่ใน HTML อีเมล (อีเมล/ชื่อแพ็กเกจ/เหตุผลอาจมีอักขระพิเศษ) */
 export function escapeHtml(value: string): string {
@@ -22,7 +23,7 @@ export async function sendPasswordResetEmail(email: string, resetToken: string):
     const { error } = await resend.emails.send({
       from: fromEmail,
       to: email,
-      subject: "คำขอตั้งรหัสผ่านใหม่ - Peenoey Indicator",
+      subject: `คำขอตั้งรหัสผ่านใหม่ - ${siteConfig.name}`,
       html: `
         <div style="font-family: sans-serif; background-color: #0B0F17; color: #FFFFFF; padding: 40px; border-radius: 8px;">
           <h2 style="color: #F59E0B;">ตั้งรหัสผ่านใหม่</h2>
@@ -68,7 +69,7 @@ export async function sendReceiptEmail(
     const { error } = await resend.emails.send({
       from: fromEmail,
       to: email,
-      subject: `ใบเสร็จรับเงินและการอนุมัติสิทธิ์ (ออเดอร์ ${orderNumber}) - Peenoey Indicator`,
+      subject: `ใบเสร็จรับเงินและการอนุมัติสิทธิ์ (ออเดอร์ ${orderNumber}) - ${siteConfig.name}`,
       html: `
         <div style="font-family: sans-serif; background-color: #0B0F17; color: #FFFFFF; padding: 40px; border-radius: 8px;">
           <h2 style="color: #10B981;">อนุมัติคำสั่งซื้อเรียบร้อยแล้ว!</h2>
@@ -111,7 +112,7 @@ export async function sendSlipRejectedEmail(email: string, orderNumber: string, 
     const { error } = await resend.emails.send({
       from: fromEmail,
       to: email,
-      subject: `สลิปไม่ผ่านการตรวจสอบ (ออเดอร์ ${orderNumber}) - Peenoey Indicator`,
+      subject: `สลิปไม่ผ่านการตรวจสอบ (ออเดอร์ ${orderNumber}) - ${siteConfig.name}`,
       html: `
         <div style="font-family: sans-serif; background-color: #0B0F17; color: #FFFFFF; padding: 40px; border-radius: 8px;">
           <h2 style="color: #F59E0B;">สลิปไม่ผ่านการตรวจสอบ</h2>
@@ -157,7 +158,7 @@ export async function sendExpiryReminderEmail(email: string, reminder: ExpiryRem
     const { error } = await resend.emails.send({
       from: fromEmail,
       to: email,
-      subject: `สิทธิ์สมาชิกของคุณจะหมดอายุในอีก ${reminder.daysLeft} วัน - Peenoey Indicator`,
+      subject: `สิทธิ์สมาชิกของคุณจะหมดอายุในอีก ${reminder.daysLeft} วัน - ${siteConfig.name}`,
       html: `
         <div style="font-family: sans-serif; background-color: #0B0F17; color: #FFFFFF; padding: 40px; border-radius: 8px;">
           <h2 style="color: #F59E0B;">สิทธิ์ของคุณใกล้หมดอายุแล้ว</h2>
