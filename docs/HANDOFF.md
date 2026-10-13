@@ -2,7 +2,7 @@
 
 ## เซสชัน: มุมโค้งเป็นมิตร + กราฟจริงจาก TradingView
 **วันที่:** 13 ตุลาคม 2026  
-**สถานะ:** unit 208/208 (เพิ่ม `tests/live-chart.test.tsx`), `tsc` ผ่าน, `next build` ผ่าน (หน้าแรก First Load JS 110 kB) — ตรวจบน dev server: กราฟ TradingView โหลดขึ้นจริงทั้งจอแคบและจอ 1280px (BTC/USDT 1 ชม. ภาษาไทย) และคำบรรยายสลับเป็นของกราฟจริง, ไม่มี hydration error, ไม่มี error ใน console — ยังไม่ commit / ยังไม่ deploy
+**สถานะ:** unit 208/208 (เพิ่ม `tests/live-chart.test.tsx`), `tsc` ผ่าน, `next build` ผ่าน (หน้าแรก First Load JS 110 kB) — ตรวจบน dev server: กราฟ TradingView โหลดขึ้นจริงทั้งจอแคบและจอ 1280px (BTC/USDT 1 ชม. ภาษาไทย) และคำบรรยายสลับเป็นของกราฟจริง, ไม่มี hydration error, ไม่มี error ใน console — **deploy ขึ้น production แล้ว** (commit `18a9458`): บนเว็บจริงกราฟ TradingView โหลดขึ้น คำบรรยาย + ลิงก์ระบุที่มาถูกต้อง, ไม่มี error ใน console, หน้าที่ต้องล็อกอินยังเด้งไป signin, security headers ครบ — หน้าสมาชิก/แอดมินยังไม่ได้ดูหน้าจอจริงหลังล็อกอิน (ให้เจ้าของตรวจ)
 
 ### 1. มุมโค้ง + เส้นนุ่ม (เจ้าของเลือกระดับ "นุ่มพอดี")
 - token `line` (tailwind.config.ts): ขาว 60% → 16% (`line-soft` 9%, เพิ่ม `line-strong` 32% สำหรับตอนชี้)
