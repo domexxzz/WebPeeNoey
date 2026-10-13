@@ -4,6 +4,7 @@ import { buildPageMetadata, buildProductJsonLd } from "@/lib/seo";
 import { JsonLd } from "@/components/marketing/json-ld";
 import { HeroSection } from "@/components/marketing/hero-section";
 import { FeaturesSection } from "@/components/marketing/features-section";
+import { IndicatorShowcaseSection } from "@/components/marketing/indicator-showcase-section";
 import { HowItWorksSection } from "@/components/marketing/how-it-works-section";
 import { PricingSection } from "@/components/marketing/pricing-section";
 import { FaqSection } from "@/components/marketing/faq-section";
@@ -25,6 +26,7 @@ export default function HomePage() {
       <JsonLd data={buildProductJsonLd()} />
       <HeroSection />
       <FeaturesSection />
+      <IndicatorShowcaseSection />
       <HowItWorksSection />
       <PricingSection />
       <FaqSection />

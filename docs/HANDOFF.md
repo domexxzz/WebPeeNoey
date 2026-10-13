@@ -1,5 +1,17 @@
 # เอกสารส่งต่องาน (Project Handoff & Session Log)
 
+## เซสชัน: ภาพหน้าจออินดิเคเตอร์จริง (ส่วน "หน้าตาอินดิเคเตอร์บนกราฟจริง")
+**วันที่:** 13 ตุลาคม 2026  
+**สถานะ:** unit 213/213 (เพิ่ม `tests/indicator-showcase.test.tsx`), `tsc` ผ่าน, `next build` ผ่าน (หน้าแรก First Load JS 115 kB) — ตรวจบน dev server: ส่วนใหม่อยู่ถัดจาก "จุดเด่น", รูปโหลดผ่าน next/image เป็น WebP 21–60 kB ตามขนาดจอ, ไม่ล้นจอ, server ไม่มี error — ยังไม่ commit / ยังไม่ deploy
+
+- รูป: `public/images/showcase/xauusd-5m-gold-hybridshot.png` (1752×830 — เจ้าของแคปจากบัญชี TradingView ของตัวเอง: XAUUSD OANDA กรอบ 5 นาที, อินดิเคเตอร์ Gold HybridShot Signals, 13 ต.ค. 2569)
+- ข้อความทั้งหมดอยู่ที่ `INDICATOR_SHOWCASE` ใน `src/config/marketing.ts` — คำอธิบาย 4 ข้อบอกเฉพาะสิ่งที่เห็นในภาพ, หมายเหตุบอกชัดว่าตัวเลขในตาราง (Win Rate / จำนวนสัญญาณ) เป็นสถิติย้อนหลังบนกราฟนั้น ไม่ใช่ผลเทรดจริงของสมาชิก อาจไม่รวมสเปรด/ค่าธรรมเนียม ไม่รับประกันผลในอนาคต — มีเทสต์กันไม่ให้ดึงตัวเลข % มาเป็นคำโฆษณา
+- ลิงก์เลย์เอาต์ที่เจ้าของให้มา (`th.tradingview.com/chart/AfpEvvfU/`) เป็นแบบส่วนตัว คนนอกเปิดไม่ได้ ("Chart Not Found") จึงไม่ได้ใส่ในเว็บ — ถ้าจะให้คนกดไปดู ต้องเปิดแชร์เลย์เอาต์หรือใช้ลิงก์ snapshot (`tradingview.com/x/...`)
+- widget ของ TradingView ฝังอินดิเคเตอร์ Invite-only ไม่ได้ — กราฟสดใน hero จึงยังไม่มีอินดิเคเตอร์ของเรา
+- **รอเจ้าของ:** (1) ยืนยันว่า "Gold HybridShot Signals" คือตัวที่สมาชิกได้รับ (เว็บเรียกสินค้าว่า Peenoey Indicator) (2) ข้อมูล backtest ถ้าต้องการส่วน backtest แยก — ช่วงเวลา, สัญลักษณ์/กรอบเวลา, จำนวนเทรด ชนะ/แพ้, กติกา TP/SL, drawdown สูงสุด และต้นทุนที่คิด (หรือภาพ Strategy Tester ของ TradingView)
+
+---
+
 ## เซสชัน: มุมโค้งเป็นมิตร + กราฟจริงจาก TradingView
 **วันที่:** 13 ตุลาคม 2026  
 **สถานะ:** unit 208/208 (เพิ่ม `tests/live-chart.test.tsx`), `tsc` ผ่าน, `next build` ผ่าน (หน้าแรก First Load JS 110 kB) — ตรวจบน dev server: กราฟ TradingView โหลดขึ้นจริงทั้งจอแคบและจอ 1280px (BTC/USDT 1 ชม. ภาษาไทย) และคำบรรยายสลับเป็นของกราฟจริง, ไม่มี hydration error, ไม่มี error ใน console — **deploy ขึ้น production แล้ว** (commit `18a9458`): บนเว็บจริงกราฟ TradingView โหลดขึ้น คำบรรยาย + ลิงก์ระบุที่มาถูกต้อง, ไม่มี error ใน console, หน้าที่ต้องล็อกอินยังเด้งไป signin, security headers ครบ — หน้าสมาชิก/แอดมินยังไม่ได้ดูหน้าจอจริงหลังล็อกอิน (ให้เจ้าของตรวจ)
