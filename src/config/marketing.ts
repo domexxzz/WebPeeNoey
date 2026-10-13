@@ -255,7 +255,7 @@ export const TRADINGVIEW_CHART = {
   config: {
     autosize: true,
     symbol: "OANDA:XAUUSD",
-    interval: "60",
+    interval: "240",
     timezone: "Asia/Bangkok",
     theme: "dark",
     style: "1",

@@ -12,7 +12,7 @@
 - แก้: ตัวเลขขั้นตอน (01, 02, 04) ถูกตัดขอบขวา — mask ใช้ `clip-path` ตัดเฉพาะขอบล่างแทน `overflow:hidden`
 
 ### 2. กราฟจริงจาก TradingView ใน hero (`src/components/marketing/live-chart.tsx`)
-- widget ทางการ "Advanced Real-Time Chart" — ค่าตั้งอยู่ที่ `TRADINGVIEW_CHART` ใน `src/config/marketing.ts` (เปลี่ยนสัญลักษณ์ได้ ตอนนี้ทองคำ `OANDA:XAUUSD` กรอบ 1 ชม. — เดิม `BINANCE:BTCUSDT`)
+- widget ทางการ "Advanced Real-Time Chart" — ค่าตั้งอยู่ที่ `TRADINGVIEW_CHART` ใน `src/config/marketing.ts` (เปลี่ยนสัญลักษณ์ได้ ตอนนี้ทองคำ `OANDA:XAUUSD` กรอบ 4 ชม. (`interval: "240"`) — เดิม `BINANCE:BTCUSDT`)
 - โหลดสคริปต์ของ TradingView หลังหน้าโหลดเสร็จ + เห็นบนจอ + เบราว์เซอร์ว่าง (ไม่ถ่วง LCP) — ระหว่างรอ/โหลดไม่ได้ (เช่นตัวบล็อกโฆษณา) แสดงกราฟวาดและคำบรรยาย "ภาพประกอบ" ตามเดิม, หมดเวลา 15 วินาทีแล้วคงภาพวาดไว้
 - คำบรรยายกราฟจริงบอกชัดว่า "ไม่ได้แสดงสัญญาณของ Peenoey Indicator และไม่ใช่คำแนะนำการลงทุน" (กติกาข้อ 3) + ลิงก์ระบุที่มา TradingView (เงื่อนไขการฝัง widget — ห้ามลบ)
 - จอสัมผัส: ปิดการลาก/ซูมกราฟ (ไม่แย่งการเลื่อนหน้า), กรอบสัดส่วนคงที่ 4:3 / 16:10 (ไม่มี layout shift)
