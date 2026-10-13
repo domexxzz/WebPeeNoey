@@ -279,13 +279,13 @@ export const INDICATOR_SHOWCASE = {
   id: "showcase",
   eyebrow: "ภาพหน้าจอจริงจาก TradingView",
   title: "หน้าตาอินดิเคเตอร์ บนกราฟจริง",
-  description: "ตัวอย่างหน้าจอ Gold HybridShot Signals บนกราฟทองคำ — สัญญาณ จุดเป้าหมาย และจุดตัดขาดทุนแสดงบนกราฟให้เห็นทันที",
+  description: "ตัวอย่างหน้าจอ Gold Hybridshot บนกราฟทองคำ — สัญญาณ จุดเป้าหมาย และจุดตัดขาดทุนแสดงบนกราฟให้เห็นทันที",
   image: {
     src: "/images/showcase/xauusd-5m-gold-hybridshot.png",
     width: 1752,
     height: 830,
     sizes: "(min-width: 1280px) 1200px, 100vw",
-    alt: "ภาพหน้าจอกราฟทองคำ XAUUSD กรอบ 5 นาทีบน TradingView พร้อมอินดิเคเตอร์ Gold HybridShot Signals: ป้ายสัญญาณ BUY เส้นเป้าหมาย TP1 TP2 เส้นตัดขาดทุน SL เส้นแนวโน้ม และตารางสรุปมุมขวาบน",
+    alt: "ภาพหน้าจอกราฟทองคำ XAUUSD กรอบ 5 นาทีบน TradingView พร้อมอินดิเคเตอร์ Gold Hybridshot: ป้ายสัญญาณ BUY เส้นเป้าหมาย TP1 TP2 เส้นตัดขาดทุน SL เส้นแนวโน้ม และตารางสรุปมุมขวาบน",
   },
   meta: "XAUUSD (OANDA) · กรอบ 5 นาที · บันทึกภาพ 13 ต.ค. 2569",
   legend: [

@@ -4,7 +4,7 @@
 **วันที่:** 13 ตุลาคม 2026  
 **สถานะ:** unit 216/216 (เพิ่ม `tests/branding.test.tsx`), `tsc` ผ่าน, `next build` ผ่าน — จอ 360px: โลโก้ header/footer ไม่ล้น ไม่ชนปุ่ม
 
-- เจ้าของยืนยันว่า Gold HybridShot Signals คืออินดิเคเตอร์ที่สมาชิกได้รับ → `siteConfig.name` / `shortName` = "Gold Hybridshot" (ตัวพิมพ์ตามที่เจ้าของกำหนด — ชื่ออินดิเคเตอร์บน TradingView ยังเป็น "Gold HybridShot Signals" ในคำบรรยายภาพ) — title, OG, JSON-LD, เอกสารกฎหมายเปลี่ยนตามอัตโนมัติ
+- เจ้าของยืนยันว่า Gold HybridShot Signals คืออินดิเคเตอร์ที่สมาชิกได้รับ → `siteConfig.name` / `shortName` = "Gold Hybridshot" (ตัวพิมพ์ตามที่เจ้าของกำหนด — คำบรรยายภาพหน้าจอก็ใช้ "Gold Hybridshot" ตามที่เจ้าของขอ แม้ในภาพ TradingView จะแสดงชื่อสคริปต์ว่า Gold HybridShot Signals) — title, OG, JSON-LD, เอกสารกฎหมายเปลี่ยนตามอัตโนมัติ
 - หัวเรื่องอีเมล, ชื่อผู้ส่งอีเมลเริ่มต้น และข้อความบอท Telegram ใช้ `siteConfig.name` แทนการเขียนชื่อตายตัว — เทสต์กันไม่ให้มี "Peenoey Indicator" ในโค้ดอีก
 - โลโก้ตัวอักษรขนาดใหญ่ (ท้ายหน้า) แยกตัวอักษรเป็น span → ช่องว่างต้องเป็น ` ` ไม่อย่างนั้นหาย
 - `NEXT_PUBLIC_SITE_NAME` (.env, .env.example, Vercel) เปลี่ยนเป็น "Gold Hybridshot" — ตัวแปรนี้โค้ดไม่ได้อ่าน แค่ให้ตรงกัน
