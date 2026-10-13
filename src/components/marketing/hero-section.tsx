@@ -15,7 +15,7 @@ function HeroMarquee() {
         {copies.map((copy) => (
           <div key={copy} className="flex shrink-0 items-center gap-6 sm:gap-10 pr-6 sm:pr-10">
             {HERO_CONTENT.marquee.map((word, index) => (
-              <Fragment key={`${copy}-${word}`}>
+              <Fragment key={`${copy}-${index}`}>
                 <span
                   className={`font-display font-bold tracking-tight whitespace-nowrap leading-none text-6xl sm:text-8xl lg:text-[8.5rem] transition-colors duration-300 ${
                     index % 2 === 1

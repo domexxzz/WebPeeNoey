@@ -92,8 +92,8 @@ export const HERO_CONTENT = {
   visualCaption: "ภาพประกอบเพื่ออธิบายการทำงานของเครื่องมือ ไม่ใช่ผลการเทรดจริง",
   /** คำบรรยายใต้กราฟจริงจาก TradingView — บอกชัดว่าไม่ได้แสดงสัญญาณของอินดิเคเตอร์เรา และไม่ใช่คำแนะนำการลงทุน */
   liveChartCaption: "กราฟราคาจริงแบบสดจาก TradingView — แสดงหน้าจอกราฟตัวอย่าง ไม่ได้แสดงสัญญาณของอินดิเคเตอร์ Gold Hybridshot และไม่ใช่คำแนะนำการลงทุน",
-  /** แถบตัวอักษรเลื่อนใต้ Hero — ใช้เฉพาะชื่อสิ่งที่ได้รับจริง */
-  marquee: ["Gold Hybridshot", "TradingView", "Telegram VIP", "Discord Community"],
+  /** แถบตัวอักษรเลื่อนใต้ Hero — ชื่อแบรนด์ซ้ำทั้งแถบ (ตัวทึบ/ตัวโปร่งสลับกัน) 3 คำต่อรอบ ให้ยาวเกินจอกว้างเพื่อวนต่อเนื่อง */
+  marquee: ["Gold Hybridshot", "Gold Hybridshot", "Gold Hybridshot"],
 };
 
 export const FEATURES: FeatureItem[] = [

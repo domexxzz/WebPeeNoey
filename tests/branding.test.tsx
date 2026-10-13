@@ -16,7 +16,9 @@ function sourceFiles(dir: string): string[] {
 describe("Brand name: Gold Hybridshot", () => {
   it("uses the indicator's name as the site name", () => {
     expect(siteConfig.name).toBe("Gold Hybridshot");
-    expect(HERO_CONTENT.marquee).toContain("Gold Hybridshot");
+    // แถบตัวอักษรวิ่งเป็นชื่อแบรนด์ทั้งแถบ (เจ้าของขอ)
+    expect(HERO_CONTENT.marquee.length).toBeGreaterThanOrEqual(3);
+    HERO_CONTENT.marquee.forEach((word) => expect(word).toBe(siteConfig.name));
   });
 
   it("leaves no hard-coded old product name in the app source (titles, emails, bot replies come from siteConfig)", () => {
