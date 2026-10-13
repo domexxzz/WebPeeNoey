@@ -31,7 +31,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className={`${displayFont.variable} ${thaiFont.variable} font-thai min-h-screen bg-ink text-gray-200 flex flex-col md:flex-row selection:bg-signal selection:text-ink`}>
       <aside className="flex w-full shrink-0 flex-col border-b border-line md:sticky md:top-0 md:h-screen md:w-64 md:border-b-0 md:border-r">
-        <div className="flex h-16 items-center justify-between gap-3 border-b border-line px-5">
+        <div className="flex h-16 items-center justify-between gap-2 border-b border-line px-4">
           <BrandMark />
           <span className="border border-red-400/70 px-2 py-0.5 text-[11px] font-bold tracking-wider text-red-300 rounded-full">ADMIN</span>
         </div>

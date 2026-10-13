@@ -41,7 +41,8 @@ export function SiteFooter() {
         </div>
       </div>
 
-      <div className="border-t border-line px-4 sm:px-6 lg:px-10 py-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-xs text-gray-400">
+      {/* pb-20: เว้นที่ให้ปุ่มหยุดภาพเคลื่อนไหว (fixed มุมซ้ายล่าง) ไม่ทับข้อความตอนเลื่อนถึงท้ายหน้า */}
+      <div className="border-t border-line px-4 sm:px-6 lg:px-10 pt-6 pb-20 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-xs text-gray-400">
         <p>
           © {year} {siteConfig.name}
         </p>

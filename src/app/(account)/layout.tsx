@@ -16,7 +16,7 @@ const ACCOUNT_NAV = [
 ] as const;
 
 const navCell =
-  "flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm text-gray-200 transition-colors hover:bg-white/[0.07] hover:text-signal focus-visible:outline focus-visible:outline-2 focus-visible:outline-signal";
+  "flex items-center justify-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm text-gray-200 transition-colors hover:bg-white/[0.07] hover:text-signal focus-visible:outline focus-visible:outline-2 focus-visible:outline-signal";
 
 export default async function AccountLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
@@ -30,10 +30,11 @@ export default async function AccountLayout({ children }: { children: React.Reac
         <div className="flex h-16 lg:h-[72px] items-stretch">
           <div className="flex items-center gap-3 px-4 sm:px-6 lg:px-8">
             <BrandMark />
-            <span className="hidden sm:inline border border-line px-2 py-0.5 text-[11px] font-semibold tracking-wide text-signal rounded-full">PORTAL</span>
+            <span className="hidden xl:inline border border-line px-2 py-0.5 text-[11px] font-semibold tracking-wide text-signal rounded-full">PORTAL</span>
           </div>
 
-          <nav aria-label="เมนูบัญชี" className="hidden md:flex items-center gap-1">
+          {/* จอ 1024px ขึ้นไป: เมนูอยู่ในแถบบน (ชื่อแบรนด์ยาว จอที่แคบกว่านี้ใช้แถบปุ่มใต้ header แทน) */}
+          <nav aria-label="เมนูบัญชี" className="hidden lg:flex items-center gap-1">
             {ACCOUNT_NAV.map(({ href, label, icon: Icon }) => (
               <Link key={href} href={href} className={navCell}>
                 <Icon className="w-4 h-4 text-signal" aria-hidden="true" />
@@ -47,14 +48,16 @@ export default async function AccountLayout({ children }: { children: React.Reac
           {isAdmin && (
             <Link
               href="/admin"
-              className="mr-1 flex items-center gap-1.5 self-center rounded-full px-3 py-2 text-xs font-semibold text-red-300 transition-colors hover:bg-red-500/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-400"
+              title="ระบบจัดการหลังบ้าน"
+              className="mr-1 flex items-center gap-1.5 self-center whitespace-nowrap rounded-full px-3 py-2 text-xs font-semibold text-red-300 transition-colors hover:bg-red-500/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-400"
             >
               <ShieldAlert className="w-4 h-4" aria-hidden="true" />
-              <span className="hidden sm:inline">ระบบจัดการหลังบ้าน</span>
+              {/* จอแคบเหลือแค่ไอคอน แต่ข้อความยังอยู่ให้โปรแกรมอ่านหน้าจอ */}
+              <span className="sr-only xl:not-sr-only">ระบบจัดการหลังบ้าน</span>
             </Link>
           )}
 
-          <div className="hidden lg:flex flex-col justify-center px-4 text-right">
+          <div className="hidden xl:flex flex-col justify-center px-4 text-right">
             <span className="max-w-[180px] truncate text-sm font-medium text-white">{session.user.name || session.user.email}</span>
             <span className="text-xs text-gray-400">{isAdmin ? "แอดมิน" : "สมาชิก"}</span>
           </div>
@@ -64,10 +67,10 @@ export default async function AccountLayout({ children }: { children: React.Reac
           </div>
         </div>
 
-        {/* จอเล็ก: เมนูบัญชีเป็นปุ่มมุมโค้ง 3 ปุ่มใต้ header */}
-        <nav aria-label="เมนูบัญชี (มือถือ)" className="md:hidden grid grid-cols-3 gap-1 px-2 pb-2">
+        {/* จอเล็กกว่า 1024px: เมนูบัญชีเป็นปุ่มมุมโค้ง 3 ปุ่มใต้ header */}
+        <nav aria-label="เมนูบัญชี" className="lg:hidden grid grid-cols-3 gap-1 px-2 pb-2">
           {ACCOUNT_NAV.map(({ href, label, icon: Icon }) => (
-            <Link key={href} href={href} className={`${navCell} flex-col gap-1 rounded-xl px-2 py-2 text-xs`}>
+            <Link key={href} href={href} className={`${navCell} flex-col gap-1 whitespace-normal rounded-xl px-2 py-2 text-center text-xs`}>
               <Icon className="w-4 h-4 text-signal" aria-hidden="true" />
               {label}
             </Link>
@@ -79,7 +82,8 @@ export default async function AccountLayout({ children }: { children: React.Reac
       <MotionToggle />
 
       <footer className="border-t border-line text-xs text-gray-400">
-        <div className="flex flex-col gap-3 px-4 sm:px-6 lg:px-8 py-6 sm:flex-row sm:items-center sm:justify-between">
+        {/* pb-20: เว้นที่ให้ปุ่มหยุดภาพเคลื่อนไหว (fixed มุมซ้ายล่าง) ไม่ทับข้อความตอนเลื่อนถึงท้ายหน้า */}
+        <div className="flex flex-col gap-3 px-4 sm:px-6 lg:px-8 pt-6 pb-20 sm:flex-row sm:items-center sm:justify-between">
           <p>
             © {new Date().getFullYear()} {siteConfig.name}
           </p>
