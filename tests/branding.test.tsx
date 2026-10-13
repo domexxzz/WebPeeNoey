@@ -13,10 +13,10 @@ function sourceFiles(dir: string): string[] {
   });
 }
 
-describe("Brand name: Gold HybridShot", () => {
+describe("Brand name: Gold Hybridshot", () => {
   it("uses the indicator's name as the site name", () => {
-    expect(siteConfig.name).toBe("Gold HybridShot");
-    expect(HERO_CONTENT.marquee).toContain("Gold HybridShot");
+    expect(siteConfig.name).toBe("Gold Hybridshot");
+    expect(HERO_CONTENT.marquee).toContain("Gold Hybridshot");
   });
 
   it("leaves no hard-coded old product name in the app source (titles, emails, bot replies come from siteConfig)", () => {
