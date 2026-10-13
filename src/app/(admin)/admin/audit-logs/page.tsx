@@ -34,9 +34,9 @@ export default async function AdminAuditLogsPage({ searchParams }: { searchParam
       </AdminPageHeader>
 
       <ol className="space-y-3">
-        {items.length === 0 && <li className="border border-line bg-ink p-6 text-center text-sm text-gray-400">ยังไม่มีรายการ</li>}
+        {items.length === 0 && <li className="border border-line bg-ink p-6 text-center text-sm text-gray-400 rounded-2xl">ยังไม่มีรายการ</li>}
         {items.map((log) => (
-          <li key={log.id} className="border border-line bg-ink p-4">
+          <li key={log.id} className="border border-line bg-ink p-4 rounded-2xl">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
               <span className="font-medium text-white">{log.actionLabel}</span>
               <span className="text-gray-400">โดย {log.actorEmail}</span>

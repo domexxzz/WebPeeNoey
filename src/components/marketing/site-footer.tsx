@@ -18,7 +18,7 @@ export function SiteFooter() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           {FOOTER_NAV.map((group, index) => (
-            <nav key={group.title} aria-label={group.title} data-reveal="up" style={staggerStyle(index + 1, 110)} className="border border-line p-6">
+            <nav key={group.title} aria-label={group.title} data-reveal="up" style={staggerStyle(index + 1, 110)} className="border border-line p-6 rounded-2xl">
               <h2 className="font-display text-base font-bold text-white">{group.title}</h2>
               <ul className="mt-4 space-y-2.5">
                 {group.links.map((link) => (
@@ -34,7 +34,7 @@ export function SiteFooter() {
               </ul>
             </nav>
           ))}
-          <p data-reveal="up" style={staggerStyle(3, 110)} className="sm:col-span-2 flex items-start gap-3 border border-line p-6 text-xs leading-relaxed text-gray-400">
+          <p data-reveal="up" style={staggerStyle(3, 110)} className="sm:col-span-2 flex items-start gap-3 border border-line p-6 text-xs leading-relaxed text-gray-400 rounded-2xl">
             <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5 text-signal" aria-hidden="true" />
             <span>{RISK_DISCLAIMER}</span>
           </p>

@@ -21,7 +21,7 @@ export function SlipUploadForm({ orderId }: { orderId: string }) {
 
   if (state.status === "success") {
     return (
-      <p role="status" className="flex items-start gap-2 border border-signal bg-signal-muted px-4 py-3 text-sm text-gray-100">
+      <p role="status" className="flex items-start gap-2 border border-signal bg-signal-muted px-4 py-3 text-sm text-gray-100 rounded-xl">
         <CheckCircle2 className="w-5 h-5 shrink-0 text-signal" aria-hidden="true" />
         {state.message}
       </p>

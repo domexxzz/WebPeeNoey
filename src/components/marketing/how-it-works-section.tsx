@@ -3,14 +3,13 @@ import { staggerStyle } from "@/lib/motion";
 import { SectionHeading } from "./section-heading";
 
 /**
- * การ์ดซ้อนกันบนพื้นเขียว — ใบสุดท้ายตัดเฉียงให้ดูมีจังหวะ (เฉพาะจอ md ขึ้นไป)
+ * การ์ดมุมโค้งซ้อนกันบนพื้นเขียว เยื้องซ้ายขวาให้ดูมีจังหวะ (เฉพาะจอ md ขึ้นไป)
  * เลื่อนมาถึง: การ์ดสไลด์เข้าทีละใบ ตัวเลขเลื่อนขึ้นจากใต้เส้น และเส้นด้านซ้ายเติมตามการเลื่อนหน้า
  * overflow-x-clip: การ์ดที่ยังไม่เผยเลื่อนมาจากขวาจะไม่ล้นจอจนเลื่อนแนวนอนได้ (clip ไม่ทำให้หัวข้อ sticky เสีย ต่างจาก hidden)
  */
 const CARD_OFFSETS = ["md:ml-0", "md:ml-10", "md:ml-20", "md:ml-6"];
 
 export function HowItWorksSection() {
-  const lastIndex = HOW_IT_WORKS.length - 1;
   return (
     <section
       aria-labelledby={`${HOME_SECTION_IDS.howItWorks}-heading`}
@@ -37,12 +36,10 @@ export function HowItWorksSection() {
               key={item.step}
               data-reveal="right"
               style={staggerStyle(index, 130)}
-              className={`${CARD_OFFSETS[index % CARD_OFFSETS.length]} ${index === lastIndex ? "md:[clip-path:polygon(0_0,100%_0,97%_100%,3%_100%)]" : ""}`}
+              className={CARD_OFFSETS[index % CARD_OFFSETS.length]}
             >
               <div
-                className={`group bg-ink text-white px-6 sm:px-8 py-7 sm:py-8 transition-[transform,box-shadow] duration-500 ease-out hover:translate-x-2 hover:shadow-[-8px_8px_0_0_rgba(17,19,18,0.35)] ${
-                  index === lastIndex ? "md:px-12" : ""
-                }`}
+                className="group rounded-2xl bg-ink text-white px-6 sm:px-8 py-7 sm:py-8 transition-[transform,box-shadow] duration-500 ease-out hover:translate-x-2 hover:shadow-[0_24px_50px_-20px_rgba(17,19,18,0.6)]"
               >
               <div className="flex items-start gap-5 sm:gap-8">
                 <span aria-hidden="true" className="mx-digit-mask font-display text-4xl sm:text-5xl font-bold leading-none text-signal tabular-nums">

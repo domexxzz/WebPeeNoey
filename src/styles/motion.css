@@ -97,9 +97,10 @@
   }
 }
 
+/* ตัดเฉพาะขอบล่าง (ซ่อนตัวเลขที่ยังเลื่อนอยู่ใต้เส้น) — overflow:hidden ตัดส่วนที่ล้นข้างของตัวเลขบางตัว (เช่น 1, 2, 4) */
 .mx-digit-mask {
   display: inline-block;
-  overflow: hidden;
+  clip-path: inset(-50% -30% 0 -30%);
   vertical-align: bottom;
 }
 
@@ -218,6 +219,7 @@ html[data-scrolled] [data-site-header] {
   position: absolute;
   inset: 0;
   z-index: -1;
+  border-radius: inherit;
   pointer-events: none;
   opacity: 0;
   background: radial-gradient(

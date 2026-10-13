@@ -18,15 +18,15 @@ const SUBSCRIPTION_LABELS: Record<SubscriptionStatus, { label: string; className
 
 export function SubscriptionBadge({ status }: { status: SubscriptionStatus }) {
   const { label, className } = SUBSCRIPTION_LABELS[status];
-  return <span className={`inline-flex items-center whitespace-nowrap border px-2.5 py-1 text-xs font-semibold ${className}`}>{label}</span>;
+  return <span className={`inline-flex items-center whitespace-nowrap border px-2.5 py-1 text-xs font-semibold rounded-full ${className}`}>{label}</span>;
 }
 
 export function AdminPageHeader({ title, description, children }: { title: string; description?: string; children?: React.ReactNode }) {
   return (
     <header className="flex flex-col items-start gap-5 border-b border-line pb-6 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <p className="inline-flex items-center gap-2 border border-red-400/60 px-2.5 py-0.5 text-[11px] font-bold tracking-wider text-red-300">
-          <span aria-hidden="true" className="w-1.5 h-1.5 bg-red-400" />
+        <p className="inline-flex items-center gap-2 border border-red-400/60 px-2.5 py-0.5 text-[11px] font-bold tracking-wider text-red-300 rounded-full">
+          <span aria-hidden="true" className="w-1.5 h-1.5 bg-red-400 rounded-full" />
           ADMIN
         </p>
         <h1 className="mt-4 font-display text-3xl sm:text-4xl font-bold tracking-tight text-white">{title}</h1>
@@ -39,7 +39,7 @@ export function AdminPageHeader({ title, description, children }: { title: strin
 
 export function AdminCard({ title, children, className = "" }: { title?: string; children: React.ReactNode; className?: string }) {
   return (
-    <section className={`border border-line bg-ink ${className}`}>
+    <section className={`border border-line bg-ink rounded-2xl overflow-hidden ${className}`}>
       {title && <h2 className="border-b border-line px-5 py-3.5 font-display text-base font-bold text-white">{title}</h2>}
       <div className="space-y-4 p-5">{children}</div>
     </section>
@@ -48,7 +48,7 @@ export function AdminCard({ title, children, className = "" }: { title?: string;
 
 export function DefinitionList({ items }: { items: { label: string; value: React.ReactNode }[] }) {
   return (
-    <dl className="grid gap-px border border-line-soft bg-line-soft text-sm sm:grid-cols-2">
+    <dl className="grid gap-px border border-line-soft bg-line-soft text-sm sm:grid-cols-2 rounded-2xl overflow-hidden">
       {items.map((item) => (
         <div key={item.label} className="bg-ink px-3.5 py-2.5">
           <dt className="text-xs text-gray-400">{item.label}</dt>
@@ -60,7 +60,7 @@ export function DefinitionList({ items }: { items: { label: string; value: React
 }
 
 const pageLink =
-  "border border-line px-3.5 py-1.5 text-gray-200 transition-colors hover:bg-signal hover:text-ink hover:border-signal focus-visible:outline focus-visible:outline-2 focus-visible:outline-signal";
+  "border border-line px-3.5 py-1.5 text-gray-200 transition-colors hover:bg-signal hover:text-ink hover:border-signal focus-visible:outline focus-visible:outline-2 focus-visible:outline-signal rounded-xl";
 
 export function Pagination({ page, pageSize, total, href }: { page: number; pageSize: number; total: number; href: (page: number) => string }) {
   const pages = Math.max(1, Math.ceil(total / pageSize));
@@ -87,5 +87,5 @@ export function Pagination({ page, pageSize, total, href }: { page: number; page
 }
 
 export const inputClass =
-  "w-full border border-line bg-ink-raised px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:border-signal focus:outline-none";
+  "w-full border border-line bg-ink-raised px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:border-signal focus:outline-none rounded-xl";
 export const labelClass = "block text-xs font-medium text-gray-300 mb-1";

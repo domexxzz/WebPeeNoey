@@ -40,14 +40,14 @@ export default async function CheckoutPlanPage({ params, searchParams }: PagePro
       />
 
       {error && (
-        <p role="alert" className="flex items-start gap-2 border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+        <p role="alert" className="flex items-start gap-2 border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200 rounded-xl">
           <AlertTriangle className="w-5 h-5 shrink-0" aria-hidden="true" />
           {error}
         </p>
       )}
 
       <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
-        <section aria-labelledby="plan-heading" className="border border-line bg-ink p-6">
+        <section aria-labelledby="plan-heading" className="border border-line bg-ink p-6 rounded-2xl">
           <h2 id="plan-heading" className="font-display text-xl font-bold text-white">{plan.name}</h2>
           <p className="mt-1 text-sm text-gray-400">อายุการใช้งาน {plan.durationDays} วัน — ต่ออายุแบบทบวันจากวันหมดอายุเดิม</p>
           <ul className="mt-5 space-y-2.5">
@@ -60,7 +60,7 @@ export default async function CheckoutPlanPage({ params, searchParams }: PagePro
           </ul>
         </section>
 
-        <section aria-labelledby="price-heading" className="border border-signal bg-ink-raised p-6 flex flex-col">
+        <section aria-labelledby="price-heading" className="border border-signal bg-ink-raised p-6 flex flex-col rounded-2xl">
           <h2 id="price-heading" className="text-sm font-medium text-signal">{PRICE_REASON_LABELS[quote.reason]}</h2>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="font-display text-5xl font-bold tracking-tight text-white tabular-nums">{formatTHB(quote.basePrice)}</span>
@@ -93,7 +93,7 @@ export default async function CheckoutPlanPage({ params, searchParams }: PagePro
               </p>
             </form>
           ) : (
-            <p role="status" className="mt-6 flex items-start gap-2 border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+            <p role="status" className="mt-6 flex items-start gap-2 border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100 rounded-xl">
               <AlertTriangle className="w-5 h-5 shrink-0 text-amber-400" aria-hidden="true" />
               ขณะนี้ระบบปิดรับชำระเงินชั่วคราว กรุณากลับมาใหม่ภายหลัง หรือติดต่อทีมงาน
             </p>

@@ -50,9 +50,11 @@ const config: Config = {
           hover: "#93F293",
           muted: "rgba(110, 234, 110, 0.14)",
         },
+        // เส้นขอบแบบนุ่ม (เดิมขาว 60% แข็งเกินไป) — strong ใช้ตอนชี้/เน้น
         line: {
-          DEFAULT: "rgba(255, 255, 255, 0.6)",
-          soft: "rgba(255, 255, 255, 0.14)",
+          DEFAULT: "rgba(255, 255, 255, 0.16)",
+          soft: "rgba(255, 255, 255, 0.09)",
+          strong: "rgba(255, 255, 255, 0.32)",
         },
       },
       fontFamily: {

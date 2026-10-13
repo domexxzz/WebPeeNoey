@@ -27,7 +27,7 @@ export default function GuidePage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 grid gap-12 lg:grid-cols-[240px_1fr]">
         <nav aria-label="สารบัญคู่มือ">
-          <ol className="lg:sticky lg:top-24 grid gap-1 sm:grid-cols-2 lg:grid-cols-1 border border-line bg-ink p-3 text-sm">
+          <ol className="lg:sticky lg:top-24 grid gap-1 sm:grid-cols-2 lg:grid-cols-1 border border-line bg-ink p-3 text-sm rounded-2xl">
             {GUIDE_SECTIONS.map((section, index) => (
               <li key={section.id}>
                 <a href={`#${section.id}`} className="flex gap-3 px-3 py-2 text-gray-400 hover:bg-white/5 hover:text-signal transition-colors">
@@ -60,7 +60,7 @@ export default function GuidePage() {
                     <li key={step} className="flex gap-3 text-sm sm:text-base text-gray-300 leading-relaxed">
                       <span
                         aria-hidden="true"
-                        className="mt-0.5 w-6 h-6 shrink-0 bg-white/5 border border-line text-xs flex items-center justify-center text-gray-400"
+                        className="mt-0.5 w-6 h-6 shrink-0 bg-white/5 border border-line text-xs flex items-center justify-center text-gray-400 rounded-full"
                       >
                         {stepIndex + 1}
                       </span>
@@ -71,7 +71,7 @@ export default function GuidePage() {
               )}
 
               {section.tips?.map((tip) => (
-                <p key={tip} className="mt-5 flex items-start gap-2.5 border border-line bg-signal-muted px-4 py-3 text-sm text-gray-100">
+                <p key={tip} className="mt-5 flex items-start gap-2.5 border border-line bg-signal-muted px-4 py-3 text-sm text-gray-100 rounded-xl">
                   <Lightbulb className="w-4 h-4 mt-0.5 shrink-0 text-signal" aria-hidden="true" />
                   {tip}
                 </p>
@@ -110,7 +110,7 @@ export default function GuidePage() {
             </dl>
             <Link
               href={`/#${HOME_SECTION_IDS.contact}`}
-              className="mt-8 inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-ink bg-signal hover:bg-signal-hover"
+              className="mt-8 inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-ink bg-signal hover:bg-signal-hover rounded-xl"
             >
               ยังแก้ไม่ได้? ติดต่อทีมงาน
               <ArrowRight className="w-4 h-4" aria-hidden="true" />

@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { ArrowRight } from "lucide-react";
 
 const primaryButton =
-  "inline-flex items-center gap-1.5 px-4 py-2.5 text-xs sm:text-sm font-semibold whitespace-nowrap text-ink bg-signal hover:bg-signal-hover transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal";
+  "inline-flex items-center gap-1.5 px-4 py-2.5 text-xs sm:text-sm font-semibold whitespace-nowrap text-ink bg-signal hover:bg-signal-hover transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal rounded-xl";
 
 export function HeaderAuth() {
   const { data: session, status } = useSession();

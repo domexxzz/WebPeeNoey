@@ -19,7 +19,7 @@ export function SectionHeading({ id, eyebrow, title, description, align = "left"
     <div className={`flex flex-col max-w-3xl ${alignment}`}>
       <p
         data-reveal="clip"
-        className={`inline-flex items-center gap-2 border px-3 py-1 text-xs font-semibold tracking-wide ${
+        className={`inline-flex items-center gap-2 border px-3 py-1 text-xs font-semibold tracking-wide rounded-full ${
           onSignal ? "border-ink/70 text-ink" : "border-line text-signal"
         }`}
       >

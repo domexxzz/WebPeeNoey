@@ -12,5 +12,5 @@ const TONE_CLASSES: Record<BadgeTone, string> = {
 
 export function OrderStatusBadge({ phase }: { phase: OrderPhase }) {
   const { label, tone } = ORDER_PHASE_LABELS[phase];
-  return <span className={`inline-flex items-center whitespace-nowrap border px-2.5 py-1 text-xs font-semibold ${TONE_CLASSES[tone]}`}>{label}</span>;
+  return <span className={`inline-flex items-center whitespace-nowrap border px-2.5 py-1 text-xs font-semibold rounded-full ${TONE_CLASSES[tone]}`}>{label}</span>;
 }

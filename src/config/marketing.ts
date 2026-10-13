@@ -88,8 +88,10 @@ export const HERO_CONTENT = {
     "ต่ออายุแบบทบวัน วันที่เหลืออยู่ไม่หาย",
     "ไม่มีการตัดเงินอัตโนมัติ ต่ออายุเมื่อคุณพร้อม",
   ],
-  /** คำบรรยายใต้ภาพกราฟ — ภาพเป็นภาพประกอบ ไม่ใช่ผลการเทรด (CLAUDE.md ข้อ 3) */
+  /** คำบรรยายใต้ภาพกราฟวาด (แสดงระหว่างโหลดกราฟจริง หรือเมื่อโหลดไม่ได้) — ไม่ใช่ผลการเทรด (CLAUDE.md ข้อ 3) */
   visualCaption: "ภาพประกอบเพื่ออธิบายการทำงานของเครื่องมือ ไม่ใช่ผลการเทรดจริง",
+  /** คำบรรยายใต้กราฟจริงจาก TradingView — บอกชัดว่าไม่ได้แสดงสัญญาณของอินดิเคเตอร์เรา และไม่ใช่คำแนะนำการลงทุน */
+  liveChartCaption: "กราฟราคาจริงแบบสดจาก TradingView — แสดงหน้าจอกราฟตัวอย่าง ไม่ได้แสดงสัญญาณของ Peenoey Indicator และไม่ใช่คำแนะนำการลงทุน",
   /** แถบตัวอักษรเลื่อนใต้ Hero — ใช้เฉพาะชื่อสิ่งที่ได้รับจริง */
   marquee: ["Peenoey Indicator", "TradingView", "Telegram VIP", "Discord Community"],
 };
@@ -242,3 +244,29 @@ export const IMAGE_SLOTS = {
 
 export const RISK_DISCLAIMER =
   "การลงทุนมีความเสี่ยง อินดิเคเตอร์และการแจ้งเตือนเป็นเครื่องมือช่วยวิเคราะห์เท่านั้น ไม่ใช่คำแนะนำการลงทุน ผลลัพธ์ในอดีตไม่ได้รับประกันผลลัพธ์ในอนาคต ผู้ใช้ควรศึกษาข้อมูลและประเมินความเสี่ยงก่อนตัดสินใจทุกครั้ง";
+
+/**
+ * กราฟจริงจาก TradingView (widget ทางการ "Advanced Real-Time Chart" ที่อนุญาตให้ฝังในเว็บ — ต้องคงลิงก์ระบุที่มาไว้)
+ * เปลี่ยนสัญลักษณ์/กรอบเวลาได้ที่นี่ — https://www.tradingview.com/widget-docs/widgets/charts/advanced-chart/
+ */
+export const TRADINGVIEW_CHART = {
+  scriptSrc: "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js",
+  attributionHref: "https://www.tradingview.com/",
+  config: {
+    autosize: true,
+    symbol: "BINANCE:BTCUSDT",
+    interval: "60",
+    timezone: "Asia/Bangkok",
+    theme: "dark",
+    style: "1",
+    locale: "th_TH",
+    backgroundColor: "rgba(12, 14, 13, 1)",
+    gridColor: "rgba(255, 255, 255, 0.05)",
+    hide_side_toolbar: true,
+    hide_volume: false,
+    allow_symbol_change: true,
+    save_image: false,
+    calendar: false,
+    support_host: "https://www.tradingview.com",
+  },
+} as const;

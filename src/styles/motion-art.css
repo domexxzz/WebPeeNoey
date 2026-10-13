@@ -175,6 +175,7 @@ html[data-motion] [data-reveal]:not([data-inview]) .cd-anim * {
   content: "";
   position: absolute;
   inset: 0;
+  border-radius: inherit;
   background: inherit;
   animation: hc-ping 2.2s ease-out infinite;
 }
@@ -320,6 +321,8 @@ html[data-motion] [data-reveal]:not([data-inview]) .cd-anim * {
   position: absolute;
   inset: -3px;
   padding: 3px;
+  /* ตามมุมโค้งของการ์ด (rounded-2xl = 1rem) + ความหนาเส้นแสง */
+  border-radius: calc(1rem + 3px);
   overflow: hidden;
   pointer-events: none;
   -webkit-mask:

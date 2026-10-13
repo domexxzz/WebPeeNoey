@@ -12,16 +12,27 @@ const CHART_BOTTOM = 300;
 const CANDLE_COUNT = 30;
 const STEP = (WIDTH - 72) / CANDLE_COUNT;
 
-/** ราคาสมมติแบบกำหนดตายตัว (ไม่สุ่ม) — แนวโน้มขึ้นเล็กน้อยพร้อมการแกว่ง */
-const CLOSES = Array.from({ length: CANDLE_COUNT + 1 }, (_, index) => 0.25 + index * 0.017 + Math.sin(index * 0.9) * 0.07 + Math.sin(index * 2.3) * 0.035);
+/**
+ * ปัดทศนิยมทุกพิกัด — กราฟนี้ render ทั้งฝั่ง server (Node) และ client (ใน LiveChart)
+ * Math.sin ของสองฝั่งต่างกันที่ทศนิยมตำแหน่งที่ 14 ถ้าไม่ปัดจะเกิด hydration mismatch
+ */
+const round = (value: number) => Math.round(value * 100) / 100;
 
-const toY = (value: number) => CHART_BOTTOM - value * (CHART_BOTTOM - CHART_TOP);
+/** ราคาสมมติแบบกำหนดตายตัว (ไม่สุ่ม) — แนวโน้มขึ้นเล็กน้อยพร้อมการแกว่ง */
+const CLOSES = Array.from({ length: CANDLE_COUNT + 1 }, (_, index) =>
+  round((0.25 + index * 0.017 + Math.sin(index * 0.9) * 0.07 + Math.sin(index * 2.3) * 0.035) * 10_000) / 10_000,
+);
+
+const toY = (value: number) => round(CHART_BOTTOM - value * (CHART_BOTTOM - CHART_TOP));
 
 const CANDLES = CLOSES.slice(1).map((close, index) => {
   const open = CLOSES[index];
-  const wick = 0.03 + Math.abs(Math.sin(index * 1.7)) * 0.04;
-  return { x: 40 + index * STEP, open, close, high: Math.max(open, close) + wick, low: Math.min(open, close) - wick };
+  const wick = round((0.03 + Math.abs(Math.sin(index * 1.7)) * 0.04) * 10_000) / 10_000;
+  return { x: round(40 + index * STEP), open, close, high: Math.max(open, close) + wick, low: Math.min(open, close) - wick };
 });
+
+/** ความสูงแท่งปริมาณ (ปัดทศนิยมเหมือนพิกัดอื่น) */
+const VOLUMES = CANDLES.map((_, index) => round(14 + Math.abs(Math.sin(index * 1.3)) * 40));
 
 /** เส้นค่าเฉลี่ย 4 แท่ง — แทนเส้นอินดิเคเตอร์ */
 const SMOOTHED = CANDLES.map((_, index) => {
@@ -46,14 +57,14 @@ export function HeroChart({ className = "", animated = false }: { className?: st
   const cls = (name: string) => (animated ? name : undefined);
   return (
     <svg aria-hidden="true" focusable="false" viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className={`${animated ? "hc-anim " : ""}${className}`.trim()}>
-      <rect x="0.5" y="0.5" width={WIDTH - 1} height={HEIGHT - 1} fill="#0C0E0D" stroke="rgba(255,255,255,0.6)" />
+      <rect x="0.5" y="0.5" width={WIDTH - 1} height={HEIGHT - 1} rx="16" fill="#0C0E0D" stroke="rgba(255,255,255,0.16)" />
       {/* แถบหัวหน้าต่าง */}
       <line x1="0" x2={WIDTH} y1="40" y2="40" stroke="rgba(255,255,255,0.14)" />
       {[18, 32, 46].map((x) => (
-        <rect key={x} x={x} y="15" width="9" height="9" fill="none" stroke="rgba(255,255,255,0.45)" />
+        <circle key={x} cx={x + 4.5} cy="19.5" r="4.5" fill="none" stroke="rgba(255,255,255,0.45)" />
       ))}
-      <rect x="70" y="16" width="120" height="7" fill="rgba(255,255,255,0.12)" />
-      <rect className={cls("hc-pill")} x={WIDTH - 110} y="14" width="88" height="12" fill="#6EEA6E" />
+      <rect x="70" y="16" width="120" height="7" rx="3.5" fill="rgba(255,255,255,0.12)" />
+      <rect className={cls("hc-pill")} x={WIDTH - 110} y="14" width="88" height="12" rx="6" fill="#6EEA6E" />
 
       {[0.2, 0.4, 0.6, 0.8].map((ratio) => (
         <line key={ratio} x1="24" x2={WIDTH - 24} y1={CHART_TOP + ratio * (CHART_BOTTOM - CHART_TOP)} y2={CHART_TOP + ratio * (CHART_BOTTOM - CHART_TOP)} stroke="rgba(255,255,255,0.06)" strokeDasharray="3 6" />
@@ -95,7 +106,7 @@ export function HeroChart({ className = "", animated = false }: { className?: st
       {/* แท่งปริมาณ */}
       <line x1="24" x2={WIDTH - 24} y1="318" y2="318" stroke="rgba(255,255,255,0.14)" />
       {CANDLES.map((candle, index) => (
-        <rect key={`v-${candle.x}`} className={cls("hc-vol")} style={animated ? indexStyle(index) : undefined} x={candle.x} y={378 - (14 + Math.abs(Math.sin(index * 1.3)) * 40)} width="10" height={14 + Math.abs(Math.sin(index * 1.3)) * 40} fill="rgba(255,255,255,0.16)" />
+        <rect key={`v-${candle.x}`} className={cls("hc-vol")} style={animated ? indexStyle(index) : undefined} x={candle.x} y={round(378 - VOLUMES[index])} width="10" height={VOLUMES[index]} fill="rgba(255,255,255,0.16)" />
       ))}
     </svg>
   );

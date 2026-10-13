@@ -40,7 +40,7 @@ export function MotionToggle() {
       aria-pressed={paused}
       aria-label={label}
       title={label}
-      className="mx-toggle fixed bottom-4 left-4 z-[60] flex w-10 h-10 items-center justify-center border border-line bg-ink/90 text-gray-200 backdrop-blur transition-colors hover:border-signal hover:text-signal focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal motion-reduce:hidden"
+      className="mx-toggle fixed bottom-4 left-4 z-[60] flex w-10 h-10 items-center justify-center border border-line bg-ink/90 text-gray-200 backdrop-blur transition-colors hover:border-signal hover:text-signal focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal motion-reduce:hidden rounded-xl"
     >
       <Icon className="w-4 h-4" aria-hidden="true" />
     </button>

@@ -36,7 +36,7 @@ function StatCard({ label, icon, value, valueClass = "text-white", children }: {
 }
 
 const outlineLink =
-  "inline-flex items-center gap-2 border border-line px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:border-signal hover:bg-signal hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-signal";
+  "inline-flex items-center gap-2 border border-line px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:border-signal hover:bg-signal hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-signal rounded-xl";
 
 export default async function AdminDashboardPage() {
   const admin = await requireAdminPage();
@@ -46,12 +46,12 @@ export default async function AdminDashboardPage() {
   return (
     <div className="space-y-8">
       <AdminPageHeader title="ภาพรวมระบบและการเงิน" description={`ยินดีต้อนรับ ผู้ดูแลระบบ ${admin.email}`}>
-        <div className="flex flex-wrap items-stretch border border-line">
+        <div className="flex flex-wrap items-stretch border border-line rounded-xl overflow-hidden">
           <div className="flex items-center gap-3 px-4 py-2.5">
             <span className="text-xs text-gray-400">ระบบรับชำระเงิน</span>
             {payments.open ? (
               <span className="inline-flex items-center gap-1.5 text-sm font-bold text-signal">
-                <span aria-hidden="true" className="w-2 h-2 bg-signal" /> เปิดอยู่
+                <span aria-hidden="true" className="w-2 h-2 bg-signal rounded-full" /> เปิดอยู่
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-300">
@@ -71,7 +71,7 @@ export default async function AdminDashboardPage() {
       {stats.pendingDeprovision > 0 && (
         <Link
           href="/admin/status"
-          className="flex items-center gap-3 border border-red-400/60 bg-red-500/10 p-4 text-sm text-red-100 transition-colors hover:bg-red-500/15"
+          className="flex items-center gap-3 border border-red-400/60 bg-red-500/10 p-4 text-sm text-red-100 transition-colors hover:bg-red-500/15 rounded-2xl"
         >
           <UserX className="w-5 h-5 shrink-0 text-red-300" aria-hidden="true" />
           <span>
@@ -81,7 +81,7 @@ export default async function AdminDashboardPage() {
         </Link>
       )}
 
-      <div className="grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-4 rounded-2xl overflow-hidden">
         <StatCard label="ยอดขายสะสมสุทธิ" icon={<DollarSign className="w-4 h-4 text-signal" aria-hidden="true" />} value={`${formatBaht(revenue.net)} ฿`}>
           <span className="mt-2 block text-xs text-gray-400">
             รับเข้า {formatBaht(revenue.gross)} ฿ จาก {revenue.paidOrders} ออเดอร์
@@ -114,7 +114,7 @@ export default async function AdminDashboardPage() {
         </StatCard>
       </div>
 
-      <div className="grid gap-px border border-line bg-line md:grid-cols-2">
+      <div className="grid gap-px border border-line bg-line md:grid-cols-2 rounded-2xl overflow-hidden">
         <div className="bg-ink p-6">
           <h2 className="flex items-center gap-2 font-display text-lg font-bold text-white">
             <ClipboardCheck className="w-5 h-5 text-signal" aria-hidden="true" />

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowRight, BellRing, Check, Send } from "lucide-react";
 import { HERO_CONTENT, HOME_SECTION_IDS } from "@/config/marketing";
 import { loadDelayStyle as loadDelay } from "@/lib/motion";
-import { HeroChart } from "./hero-chart";
+import { LiveChart } from "./live-chart";
 import { Phrases } from "./phrases";
 
 /** แถบชื่อขนาดใหญ่เลื่อนวนแนวนอน (ตกแต่ง) — ชี้แล้วหยุด, คำโปร่งเติมสีเขียว, หยุดนิ่งเมื่อผู้ใช้ตั้งค่าลดการเคลื่อนไหว */
@@ -25,7 +25,7 @@ function HeroMarquee() {
                 >
                   {word}
                 </span>
-                <span className="inline-block w-4 h-4 sm:w-6 sm:h-6 shrink-0 rotate-45 bg-signal transition-transform duration-700 hover:rotate-[225deg]" />
+                <span className="inline-block w-4 h-4 sm:w-6 sm:h-6 shrink-0 rotate-45 rounded-[5px] bg-signal transition-transform duration-700 hover:rotate-[225deg]" />
               </Fragment>
             ))}
           </div>
@@ -45,8 +45,8 @@ export function HeroSection() {
       <div className="grid lg:grid-cols-[minmax(0,1.12fr)_minmax(0,1fr)]">
         <div className="flex flex-col justify-between gap-12 px-4 sm:px-6 lg:px-10 py-12 sm:py-16 lg:py-20 lg:border-r lg:border-line">
           <div>
-            <p className="mx-load inline-flex items-center gap-2 border border-line px-3 py-1.5 text-xs font-semibold tracking-wide text-signal">
-              <span aria-hidden="true" className="mx-ping w-1.5 h-1.5 bg-signal" />
+            <p className="mx-load inline-flex items-center gap-2 border border-line px-3 py-1.5 text-xs font-semibold tracking-wide text-signal rounded-full">
+              <span aria-hidden="true" className="mx-ping w-1.5 h-1.5 bg-signal rounded-full" />
               {HERO_CONTENT.eyebrow}
             </p>
 
@@ -66,7 +66,7 @@ export function HeroSection() {
             </p>
           </div>
 
-          <ul className="grid gap-px bg-line border border-line sm:grid-cols-3">
+          <ul className="grid gap-px bg-line border border-line sm:grid-cols-3 rounded-2xl overflow-hidden">
             {HERO_CONTENT.highlights.map((item, index) => (
               <li
                 key={item}
@@ -82,58 +82,45 @@ export function HeroSection() {
 
         <figure data-loop="" className="relative isolate flex flex-col justify-center gap-4 bg-ink-raised px-4 sm:px-8 lg:px-12 py-12 sm:py-16 lg:py-20">
           <span aria-hidden="true" className="mx-grid" />
-          <div className="mx-load-zoom" style={loadDelay(250)}>
-            <div data-tilt="" className="relative">
-              <HeroChart animated className="w-full h-auto" />
-              <span
-                aria-hidden="true"
-                data-depth=""
-                className="absolute -left-3 -top-4 sm:-left-6 sm:-top-6 [--depth:22]"
-              >
-                <span className="mx-float flex w-12 h-12 sm:w-16 sm:h-16 items-center justify-center border border-line bg-ink shadow-[6px_6px_0_0_rgba(110,234,110,0.35)]">
-                  <BellRing className="mx-ring w-5 h-5 sm:w-6 sm:h-6 text-signal" />
+          <LiveChart
+            decorations={
+              <>
+                {/* กล่องตกแต่งลอยรอบกราฟ (ไม่เอียงตามเมาส์แล้ว — กราฟเป็น iframe ที่รับเมาส์เอง) */}
+                <span aria-hidden="true" className="pointer-events-none absolute -left-3 -top-4 sm:-left-6 sm:-top-6">
+                  <span className="mx-float flex w-12 h-12 sm:w-16 sm:h-16 items-center justify-center rounded-xl border border-line bg-ink shadow-[0_16px_40px_-12px_rgba(110,234,110,0.45)]">
+                    <BellRing className="mx-ring w-5 h-5 sm:w-6 sm:h-6 text-signal" />
+                  </span>
                 </span>
-              </span>
-              <span
-                aria-hidden="true"
-                data-depth=""
-                className="absolute -right-3 -bottom-4 sm:-right-6 sm:-bottom-6 [--depth:-18]"
-              >
-                <span className="mx-float-slow flex w-12 h-12 sm:w-16 sm:h-16 items-center justify-center bg-signal shadow-[-6px_6px_0_0_rgba(255,255,255,0.25)]">
-                  <Send className="mx-whoosh w-5 h-5 sm:w-6 sm:h-6 text-ink" />
+                <span aria-hidden="true" className="pointer-events-none absolute -right-3 -bottom-4 sm:-right-6 sm:-bottom-6">
+                  <span className="mx-float-slow flex w-12 h-12 sm:w-16 sm:h-16 items-center justify-center rounded-xl bg-signal shadow-[0_16px_40px_-12px_rgba(110,234,110,0.6)]">
+                    <Send className="mx-whoosh w-5 h-5 sm:w-6 sm:h-6 text-ink" />
+                  </span>
                 </span>
-              </span>
-            </div>
-          </div>
-          <figcaption className="mx-load text-xs text-gray-400 sm:pl-2" style={loadDelay(1200)}>
-            {HERO_CONTENT.visualCaption}
-          </figcaption>
+              </>
+            }
+          />
         </figure>
       </div>
 
       <HeroMarquee />
 
       <div className="px-4 sm:px-6 lg:px-10 py-8 sm:py-10">
-        <div className="mx-load flex flex-col md:flex-row md:items-stretch border border-line md:w-fit" style={loadDelay(1050)}>
-          <p className="flex items-center px-5 py-4 text-sm sm:text-base text-gray-100 md:border-r md:border-line">
-            สมัคร จ่าย แนบสลิป แล้วรับสิทธิ์ — ทำได้เองทั้งหมดผ่านหน้าเว็บ
-          </p>
+        <div className="mx-load flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center" style={loadDelay(1050)}>
           <Link
             href={`/#${HOME_SECTION_IDS.pricing}`}
             data-magnetic=""
-            className="mx-shine mx-shine-auto group flex items-center justify-center gap-2 bg-signal px-7 py-4 text-sm font-semibold text-ink hover:bg-signal-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal"
+            className="mx-shine mx-shine-auto group inline-flex items-center justify-center gap-2 rounded-xl bg-signal px-7 py-4 text-sm font-semibold text-ink shadow-[0_14px_36px_-14px_rgba(110,234,110,0.7)] hover:bg-signal-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal"
           >
             ดูแพ็กเกจและราคา
             <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" />
           </Link>
           <Link
             href={`/#${HOME_SECTION_IDS.howItWorks}`}
-            className="group flex items-center justify-center px-7 py-4 text-sm font-medium text-gray-100 border-t border-line md:border-t-0 md:border-l transition-colors hover:bg-white/[0.04] hover:text-signal focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-signal"
+            className="inline-flex items-center justify-center rounded-xl border border-line px-7 py-4 text-sm font-medium text-gray-100 transition-colors hover:border-signal hover:text-signal focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal"
           >
-            <span className="relative after:absolute after:inset-x-0 after:-bottom-1 after:h-px after:origin-left after:scale-x-0 after:bg-signal after:transition-transform after:duration-500 group-hover:after:scale-x-100">
-              ดูขั้นตอนการใช้งาน
-            </span>
+            ดูขั้นตอนการใช้งาน
           </Link>
+          <p className="text-sm text-gray-400 sm:ml-3">สมัคร จ่าย แนบสลิป แล้วรับสิทธิ์ — ทำได้เองทั้งหมดผ่านหน้าเว็บ</p>
         </div>
       </div>
     </section>

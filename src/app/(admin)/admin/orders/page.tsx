@@ -48,7 +48,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
             key={key}
             href={tabHref(key, q)}
             aria-current={key === tab ? "page" : undefined}
-            className={`border px-3.5 py-1.5 text-xs font-medium transition-colors ${
+            className={`border px-3.5 py-1.5 text-xs font-medium transition-colors rounded-xl ${
               key === tab ? "border-signal bg-signal text-ink" : "border-line text-gray-300 hover:bg-white/5"
             }`}
           >
@@ -57,7 +57,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
         ))}
       </nav>
 
-      <div className="overflow-x-auto border border-line bg-ink">
+      <div className="overflow-x-auto border border-line bg-ink rounded-2xl">
         <table className="w-full min-w-[720px] text-sm">
           <thead className="text-left text-xs text-gray-400">
             <tr className="border-b border-line">

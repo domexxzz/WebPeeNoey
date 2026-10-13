@@ -15,7 +15,7 @@ export function LegalPage({ document }: { document: LegalDocument }) {
       </header>
 
       {legalConfig.isDraft && (
-        <div role="note" className="mt-8 max-w-3xl flex items-start gap-3 border border-signal bg-signal-muted px-5 py-4 text-sm text-gray-100">
+        <div role="note" className="mt-8 max-w-3xl flex items-start gap-3 border border-signal bg-signal-muted px-5 py-4 text-sm text-gray-100 rounded-xl">
           <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" aria-hidden="true" />
           <p>ฉบับร่าง — เอกสารนี้อยู่ระหว่างการตรวจทานโดยผู้ให้บริการและที่ปรึกษากฎหมาย เนื้อหาอาจมีการแก้ไขก่อนเปิดให้บริการจริง</p>
         </div>

@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="w-full flex justify-center">
-      <div className="w-full max-w-md border border-line bg-ink p-6 sm:p-8">
+      <div className="w-full max-w-md border border-line bg-ink p-6 sm:p-8 rounded-2xl">
         <div className="mb-6">
           <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-white">ลืมรหัสผ่าน</h1>
           <p className="text-sm text-gray-400 mt-1">
@@ -49,7 +49,7 @@ export default function ForgotPasswordPage() {
         </div>
 
         {error && (
-          <div role="alert" className="mb-6 p-3.5 bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-start gap-2.5">
+          <div role="alert" className="mb-6 p-3.5 bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-start gap-2.5 rounded-xl">
             <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
@@ -57,7 +57,7 @@ export default function ForgotPasswordPage() {
 
         {submitted ? (
           <div className="text-center space-y-4 py-4">
-            <div className="w-14 h-14 bg-signal-muted border border-signal text-signal flex items-center justify-center mx-auto">
+            <div className="w-14 h-14 bg-signal-muted border border-signal text-signal flex items-center justify-center mx-auto rounded-xl">
               <CheckCircle2 className="w-7 h-7" />
             </div>
             <div>
@@ -90,7 +90,7 @@ export default function ForgotPasswordPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
-                  className="w-full bg-ink-raised border border-line py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-signal transition-colors"
+                  className="w-full bg-ink-raised border border-line py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-signal transition-colors rounded-xl"
                 />
               </div>
             </div>
@@ -98,7 +98,7 @@ export default function ForgotPasswordPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 py-3 px-4 font-medium text-ink bg-signal hover:bg-signal-hover transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full mt-2 py-3 px-4 font-medium text-ink bg-signal hover:bg-signal-hover transition-all flex items-center justify-center gap-2 disabled:opacity-50 rounded-xl"
             >
               {loading ? (
                 <span className="inline-block animate-pulse">กำลังตรวจสอบ...</span>

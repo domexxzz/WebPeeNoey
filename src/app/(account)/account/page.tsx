@@ -53,8 +53,8 @@ export default async function AccountDashboardPage() {
     <div className="space-y-10">
       <header className="flex flex-col gap-6 border-b border-line pb-8 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="inline-flex items-center gap-2 border border-line px-3 py-1 text-xs font-semibold tracking-wide text-signal">
-            <span aria-hidden="true" className="w-1.5 h-1.5 bg-signal" />
+          <p className="inline-flex items-center gap-2 border border-line px-3 py-1 text-xs font-semibold tracking-wide text-signal rounded-full">
+            <span aria-hidden="true" className="w-1.5 h-1.5 bg-signal rounded-full" />
             แดชบอร์ดสมาชิก
           </p>
           <h1 className="mt-5 font-display text-3xl sm:text-5xl font-bold tracking-tight leading-[1.05] text-white">
@@ -64,7 +64,7 @@ export default async function AccountDashboardPage() {
         </div>
         <Link
           href="/#pricing"
-          className="inline-flex shrink-0 items-center justify-center gap-2 bg-signal px-6 py-3.5 text-sm font-semibold text-ink transition-colors hover:bg-signal-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal"
+          className="inline-flex shrink-0 items-center justify-center gap-2 bg-signal px-6 py-3.5 text-sm font-semibold text-ink transition-colors hover:bg-signal-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal rounded-xl"
         >
           {isActive ? "ต่ออายุแพ็กเกจ (ทบวัน)" : "สมัครสมาชิก"}
           <ArrowRight className="w-4 h-4" aria-hidden="true" />
@@ -72,19 +72,19 @@ export default async function AccountDashboardPage() {
       </header>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <section id="membership" aria-labelledby="membership-heading" className="scroll-mt-28 border border-line lg:col-span-2">
+        <section id="membership" aria-labelledby="membership-heading" className="scroll-mt-28 border border-line lg:col-span-2 rounded-2xl overflow-hidden">
           <div className="flex items-center justify-between gap-4 border-b border-line px-5 sm:px-6 py-4">
             <h2 id="membership-heading" className="flex items-center gap-2.5 font-display text-lg font-bold text-white">
               <KeyRound className="w-5 h-5 text-signal" aria-hidden="true" />
               สถานะสมาชิก
             </h2>
             {isActive ? (
-              <span className="inline-flex items-center gap-2 bg-signal px-3 py-1 text-xs font-bold text-ink">
-                <span aria-hidden="true" className="w-1.5 h-1.5 bg-ink motion-safe:animate-pulse" />
+              <span className="inline-flex items-center gap-2 bg-signal px-3 py-1 text-xs font-bold text-ink rounded-full">
+                <span aria-hidden="true" className="w-1.5 h-1.5 bg-ink motion-safe:animate-pulse rounded-full" />
                 ใช้งานอยู่
               </span>
             ) : (
-              <span className="inline-flex items-center border border-line px-3 py-1 text-xs font-semibold text-gray-300">ยังไม่มีสิทธิ์ที่ใช้งานอยู่</span>
+              <span className="inline-flex items-center border border-line px-3 py-1 text-xs font-semibold text-gray-300 rounded-full">ยังไม่มีสิทธิ์ที่ใช้งานอยู่</span>
             )}
           </div>
 
@@ -102,12 +102,12 @@ export default async function AccountDashboardPage() {
                 </div>
               )}
 
-              <div className="grid gap-px bg-line sm:grid-cols-2">
+              <div className="grid gap-px bg-line sm:grid-cols-2 rounded-2xl overflow-hidden">
                 <div className="bg-ink px-5 sm:px-6 py-6">
                   <p className="text-xs text-gray-400">แพ็กเกจที่ใช้งาน</p>
                   <p className="mt-2 font-display text-2xl font-bold tracking-tight text-white">{currentSub.plan.name}</p>
                   {currentSub.isPriceLocked && (
-                    <p className="mt-3 inline-flex items-center gap-1.5 border border-signal px-2 py-1 text-xs font-medium text-signal">
+                    <p className="mt-3 inline-flex items-center gap-1.5 border border-signal px-2 py-1 text-xs font-medium text-signal rounded-full">
                       <Lock className="w-3.5 h-3.5" aria-hidden="true" /> ล็อกราคาโปรโมชันตลอดอายุ
                     </p>
                   )}
@@ -123,7 +123,7 @@ export default async function AccountDashboardPage() {
                 </div>
               </div>
 
-              <ul className="grid gap-px bg-line border-t border-line sm:grid-cols-3">
+              <ul className="grid gap-px bg-line border-t border-line sm:grid-cols-3 rounded-2xl overflow-hidden">
                 {channels.map((channel) => (
                   <li key={channel.label} className="flex items-center justify-between gap-3 bg-ink px-5 py-4 text-sm">
                     <span className="text-gray-200">{channel.label}</span>
@@ -160,7 +160,7 @@ export default async function AccountDashboardPage() {
           )}
         </section>
 
-        <section aria-labelledby="profile-heading" className="border border-line">
+        <section aria-labelledby="profile-heading" className="border border-line rounded-2xl overflow-hidden">
           <h2 id="profile-heading" className="border-b border-line px-5 sm:px-6 py-4 font-display text-lg font-bold text-white">
             ข้อมูลบัญชี
           </h2>
@@ -187,7 +187,7 @@ export default async function AccountDashboardPage() {
         linkedAtLabel={user?.telegramLinkedAt ? formatDate(user.telegramLinkedAt) : null}
       />
 
-      <section aria-labelledby="recent-orders-heading" className="border border-line">
+      <section aria-labelledby="recent-orders-heading" className="border border-line rounded-2xl overflow-hidden">
         <div className="flex items-center justify-between gap-4 border-b border-line px-5 sm:px-6 py-4">
           <h2 id="recent-orders-heading" className="font-display text-lg font-bold text-white">
             คำสั่งซื้อล่าสุด

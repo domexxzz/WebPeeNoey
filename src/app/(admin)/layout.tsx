@@ -33,15 +33,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <aside className="flex w-full shrink-0 flex-col border-b border-line md:sticky md:top-0 md:h-screen md:w-64 md:border-b-0 md:border-r">
         <div className="flex h-16 items-center justify-between gap-3 border-b border-line px-5">
           <BrandMark />
-          <span className="border border-red-400/70 px-2 py-0.5 text-[11px] font-bold tracking-wider text-red-300">ADMIN</span>
+          <span className="border border-red-400/70 px-2 py-0.5 text-[11px] font-bold tracking-wider text-red-300 rounded-full">ADMIN</span>
         </div>
 
-        <nav aria-label="เมนูผู้ดูแลระบบ" className="flex overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:flex-1 md:flex-col md:overflow-visible">
+        <nav aria-label="เมนูผู้ดูแลระบบ" className="flex gap-1 overflow-x-auto p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:flex-1 md:flex-col md:overflow-visible md:p-3">
           {ADMIN_NAV.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
-              className="flex shrink-0 items-center gap-3 whitespace-nowrap border-r border-line px-4 py-3.5 text-sm text-gray-200 transition-colors hover:bg-white/[0.04] hover:text-signal focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-signal md:border-b md:border-r-0 md:px-5"
+              className="flex shrink-0 items-center gap-3 whitespace-nowrap rounded-xl px-4 py-3 text-sm text-gray-200 transition-colors hover:bg-white/[0.06] hover:text-signal focus-visible:outline focus-visible:outline-2 focus-visible:outline-signal"
             >
               <Icon className="w-4 h-4 text-signal" aria-hidden="true" />
               {label}
@@ -66,7 +66,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex min-h-14 flex-wrap items-center justify-between gap-x-6 gap-y-1 border-b border-line px-4 sm:px-6 lg:px-8 py-3 text-xs">
           <p className="flex items-center gap-2 text-gray-300">
-            <span aria-hidden="true" className="w-2 h-2 bg-red-400" />
+            <span aria-hidden="true" className="w-2 h-2 bg-red-400 rounded-full" />
             โซนผู้ดูแลระบบ — ทุกการเปลี่ยนแปลงถูกบันทึกใน Audit Log
           </p>
           <p className="text-gray-400">

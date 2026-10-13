@@ -12,7 +12,7 @@ export async function PromptPayQr({ payload, label }: { payload: string; label: 
       <div
         role="img"
         aria-label={label}
-        className="w-full overflow-hidden bg-white p-2 [&>svg]:h-auto [&>svg]:w-full"
+        className="w-full overflow-hidden rounded-xl bg-white p-2 [&>svg]:h-auto [&>svg]:w-full"
         dangerouslySetInnerHTML={{ __html: svg }}
       />
     </div>

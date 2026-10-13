@@ -29,7 +29,7 @@ export default async function AdminSettingsPage() {
 
       <p
         role="status"
-        className={`border px-4 py-3 text-sm ${
+        className={`border px-4 py-3 text-sm rounded-xl ${
           availability.open ? "border-signal bg-signal-muted text-gray-100" : "border-amber-500/30 bg-amber-500/10 text-amber-100"
         }`}
       >

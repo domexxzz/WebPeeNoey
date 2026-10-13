@@ -31,7 +31,7 @@ export default async function AdminMembersPage({ searchParams }: { searchParams:
         </form>
       </AdminPageHeader>
 
-      <div className="overflow-x-auto border border-line bg-ink">
+      <div className="overflow-x-auto border border-line bg-ink rounded-2xl">
         <table className="w-full min-w-[680px] text-sm">
           <thead className="text-left text-xs text-gray-400">
             <tr className="border-b border-line">

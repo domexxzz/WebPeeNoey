@@ -65,7 +65,7 @@ export default function SignUpPage() {
   return (
     <div className="w-full flex justify-center">
 
-      <div className="w-full max-w-md border border-line bg-ink p-6 sm:p-8">
+      <div className="w-full max-w-md border border-line bg-ink p-6 sm:p-8 rounded-2xl">
         <div className="mb-6">
           <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-white">สมัครสมาชิกใหม่</h1>
           <p className="text-sm text-gray-400 mt-1">
@@ -74,7 +74,7 @@ export default function SignUpPage() {
         </div>
 
         {error && (
-          <div role="alert" className="mb-6 p-3.5 bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-start gap-2.5">
+          <div role="alert" className="mb-6 p-3.5 bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-start gap-2.5 rounded-xl">
             <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
@@ -94,7 +94,7 @@ export default function SignUpPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="สมชาย ใจดี"
-                className="w-full bg-ink-raised border border-line py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-signal transition-colors"
+                className="w-full bg-ink-raised border border-line py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-signal transition-colors rounded-xl"
               />
             </div>
           </div>
@@ -112,7 +112,7 @@ export default function SignUpPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@example.com"
-                className="w-full bg-ink-raised border border-line py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-signal transition-colors"
+                className="w-full bg-ink-raised border border-line py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-signal transition-colors rounded-xl"
               />
             </div>
           </div>
@@ -131,7 +131,7 @@ export default function SignUpPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-ink-raised border border-line py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-signal transition-colors"
+                className="w-full bg-ink-raised border border-line py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-signal transition-colors rounded-xl"
               />
             </div>
           </div>
@@ -152,7 +152,7 @@ export default function SignUpPage() {
                 onChange={(e) => setTradingViewUsername(e.target.value)}
                 maxLength={50}
                 placeholder="ชื่อบัญชีใน TradingView (ไม่ใส่ก็ได้)"
-                className="w-full bg-ink-raised border border-line py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-signal transition-colors"
+                className="w-full bg-ink-raised border border-line py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-signal transition-colors rounded-xl"
               />
             </div>
           </div>
@@ -160,7 +160,7 @@ export default function SignUpPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-3 py-3 px-4 font-medium text-ink bg-signal hover:bg-signal-hover transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full mt-3 py-3 px-4 font-medium text-ink bg-signal hover:bg-signal-hover transition-all flex items-center justify-center gap-2 disabled:opacity-50 rounded-xl"
           >
             {loading ? (
               <span className="inline-block animate-pulse">กำลังสร้างบัญชี...</span>

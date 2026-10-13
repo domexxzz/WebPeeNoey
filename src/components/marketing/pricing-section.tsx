@@ -25,7 +25,7 @@ function PlanCard({ plan, index }: { plan: PlanConfig; index: number }) {
       <div
         data-tilt=""
         data-spotlight=""
-        className={`relative flex w-full flex-col border p-6 sm:p-7 ${
+        className={`relative flex w-full flex-col border p-6 sm:p-7 rounded-2xl ${
           featured
             ? "border-signal bg-signal text-ink [--spot-color:rgba(255,255,255,0.4)]"
             : "border-line bg-ink text-white hover:border-signal"
@@ -72,7 +72,7 @@ function PlanCard({ plan, index }: { plan: PlanConfig; index: number }) {
         className={`mx-shine group/cta mt-8 flex items-center justify-center gap-2 px-4 py-3.5 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
           featured
             ? "bg-ink text-signal hover:bg-ink-raised focus-visible:outline-ink"
-            : "border border-line text-white hover:bg-signal hover:text-ink hover:border-signal focus-visible:outline-signal"
+            : "border border-line text-white hover:bg-signal hover:text-ink hover:border-signal focus-visible:outline-signal rounded-xl"
         }`}
       >
         เลือกแพ็กเกจนี้
@@ -95,7 +95,7 @@ export function PricingSection() {
             title="เลือกระยะเวลา ที่เหมาะกับคุณ"
             description="ชำระครั้งเดียวต่อรอบผ่าน PromptPay ไม่มีการตัดเงินอัตโนมัติ"
           />
-          <div data-reveal="left" style={staggerStyle(3, 110)} className="flex max-w-md border border-line">
+          <div data-reveal="left" style={staggerStyle(3, 110)} className="flex max-w-md border border-line rounded-2xl overflow-hidden">
             <span aria-hidden="true" className="w-2 shrink-0 bg-signal" />
             <div className="px-5 py-4">
               <p className="font-display font-bold text-white">{PROMO_SETTINGS.promoTitle}</p>
@@ -110,7 +110,7 @@ export function PricingSection() {
           ))}
         </ul>
 
-        <div data-reveal="up" className="mt-14 grid gap-px bg-line border border-line md:grid-cols-[1.6fr_1fr]">
+        <div data-reveal="up" className="mt-14 grid gap-px bg-line border border-line md:grid-cols-[1.6fr_1fr] rounded-2xl overflow-hidden">
           <p className="bg-ink px-5 py-4 text-xs sm:text-sm text-gray-400 leading-relaxed">{RISK_DISCLAIMER}</p>
           <p className="flex items-start gap-2 bg-ink px-5 py-4 text-xs sm:text-sm text-gray-300 leading-relaxed">
             <Info className="w-4 h-4 mt-0.5 shrink-0 text-signal" aria-hidden="true" />

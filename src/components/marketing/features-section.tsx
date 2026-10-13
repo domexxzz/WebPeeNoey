@@ -55,11 +55,11 @@ export function FeaturesSection() {
             <li key={feature.id} data-reveal="art" className="group grid gap-10 border-t border-line py-12 sm:py-16 md:grid-cols-2 md:items-center lg:gap-16">
               <div className={`mx-art relative mx-4 sm:mx-10 lg:mx-16 ${ART_FROM[index % ART_FROM.length]}`}>
                 <div
-                  className={`border border-line bg-ink-raised transition-[transform,box-shadow] duration-700 ease-out group-hover:rotate-0 group-hover:-translate-y-1 group-hover:shadow-[10px_10px_0_0_#6EEA6E] ${TILTS[index % TILTS.length]}`}
+                  className={`border border-line bg-ink-raised transition-[transform,box-shadow] duration-700 ease-out group-hover:rotate-0 group-hover:-translate-y-1 group-hover:shadow-[0_28px_60px_-24px_rgba(110,234,110,0.55)] rounded-2xl overflow-hidden ${TILTS[index % TILTS.length]}`}
                 >
                   <FeatureArt featureId={feature.id} />
                 </div>
-                <span className="absolute -left-4 -top-5 sm:-left-8 sm:-top-6 flex w-14 h-14 items-center justify-center border border-line bg-ink transition-[transform,background-color] duration-500 group-hover:-rotate-12 group-hover:bg-signal">
+                <span className="absolute -left-4 -top-5 sm:-left-8 sm:-top-6 flex w-14 h-14 items-center justify-center border border-line bg-ink transition-[transform,background-color] duration-500 group-hover:-rotate-12 group-hover:bg-signal rounded-xl">
                   <Icon className="w-6 h-6 text-signal transition-colors group-hover:text-ink" aria-hidden="true" />
                 </span>
               </div>
@@ -77,7 +77,7 @@ export function FeaturesSection() {
         })}
       </ul>
 
-      <ul className="grid gap-px bg-line border-t border-line sm:grid-cols-3">
+      <ul className="mx-4 sm:mx-6 lg:mx-10 mb-16 sm:mb-20 grid gap-px bg-line border border-line sm:grid-cols-3 rounded-2xl overflow-hidden">
         {rest.map((feature, index) => {
           const Icon = FEATURE_ICONS[feature.icon];
           return (

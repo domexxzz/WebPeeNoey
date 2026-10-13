@@ -51,7 +51,7 @@ export default async function AdminMemberDetailPage({ params }: { params: Promis
         ) : (
           <ul className="space-y-4">
             {member.subscriptions.map((subscription) => (
-              <li key={subscription.id} className="border border-line p-4 space-y-3">
+              <li key={subscription.id} className="border border-line p-4 space-y-3 rounded-2xl">
                 <div className="flex flex-wrap items-center gap-3 text-sm text-gray-300">
                   <SubscriptionBadge status={subscription.status} />
                   <span>{subscription.plan.name}</span>

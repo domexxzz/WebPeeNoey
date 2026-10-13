@@ -12,7 +12,7 @@ const INITIAL_STATE: AdminActionState = { status: "idle" };
 const TONES = {
   primary: "bg-signal hover:bg-signal-hover text-ink",
   danger: "bg-red-500 hover:bg-red-400 text-white",
-  neutral: "border border-line text-white hover:bg-white/[0.06]",
+  neutral: "border border-line text-white hover:bg-white/[0.06] rounded-xl",
 } as const;
 
 function SubmitButton({ label, pendingLabel, tone }: { label: string; pendingLabel: string; tone: keyof typeof TONES }) {

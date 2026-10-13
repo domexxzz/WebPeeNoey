@@ -45,7 +45,7 @@ function SignInContent() {
   };
 
   return (
-    <div className="w-full max-w-md border border-line bg-ink p-6 sm:p-8">
+    <div className="w-full max-w-md border border-line bg-ink p-6 sm:p-8 rounded-2xl">
       {/* Brand Header */}
       <div className="mb-8">
         <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-white">เข้าสู่ระบบสมาชิก</h1>
@@ -55,7 +55,7 @@ function SignInContent() {
       </div>
 
       {error && (
-        <div role="alert" className="mb-6 p-3.5 bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-start gap-2.5">
+        <div role="alert" className="mb-6 p-3.5 bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-start gap-2.5 rounded-xl">
           <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
@@ -75,7 +75,7 @@ function SignInContent() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="name@example.com"
-              className="w-full bg-ink-raised border border-line py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-signal transition-colors"
+              className="w-full bg-ink-raised border border-line py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-signal transition-colors rounded-xl"
             />
           </div>
         </div>
@@ -101,7 +101,7 @@ function SignInContent() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full bg-ink-raised border border-line py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-signal transition-colors"
+              className="w-full bg-ink-raised border border-line py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-signal transition-colors rounded-xl"
             />
           </div>
         </div>
@@ -109,7 +109,7 @@ function SignInContent() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full mt-2 py-3 px-4 font-medium text-ink bg-signal hover:bg-signal-hover transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+          className="w-full mt-2 py-3 px-4 font-medium text-ink bg-signal hover:bg-signal-hover transition-all flex items-center justify-center gap-2 disabled:opacity-50 rounded-xl"
         >
           {loading ? (
             <span className="inline-block animate-pulse">กำลังเข้าสู่ระบบ...</span>

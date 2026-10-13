@@ -22,7 +22,7 @@ const formatDateTime = (date: Date) =>
   new Intl.DateTimeFormat("th-TH", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Bangkok" }).format(date);
 
 function Panel({ children }: { children: React.ReactNode }) {
-  return <section className="border border-line bg-ink p-6 space-y-4">{children}</section>;
+  return <section className="border border-line bg-ink p-6 space-y-4 rounded-2xl">{children}</section>;
 }
 
 function PaymentPanel({ order, serverNow }: { order: OrderView; serverNow: string }) {
@@ -47,11 +47,11 @@ function PaymentPanel({ order, serverNow }: { order: OrderView; serverNow: strin
       </div>
       {order.promptpayPayload && <PromptPayQr payload={order.promptpayPayload} label={`PromptPay QR ยอด ${formatBaht(order.amount)} บาท`} />}
       <dl className="grid grid-cols-2 gap-3 text-sm">
-        <div className="border border-line-soft bg-ink-raised p-4">
+        <div className="border border-line-soft bg-ink-raised p-4 rounded-2xl">
           <dt className="text-xs text-gray-400">ยอดที่ต้องโอน</dt>
           <dd className="mt-1 font-display text-2xl font-bold text-signal">{formatBaht(order.amount)} ฿</dd>
         </div>
-        <div className="border border-line-soft bg-ink-raised p-4">
+        <div className="border border-line-soft bg-ink-raised p-4 rounded-2xl">
           <dt className="text-xs text-gray-400">ชื่อบัญชีผู้รับ</dt>
           <dd className="mt-1 font-medium text-white break-words">{order.promptpayAccountName || "—"}</dd>
         </div>

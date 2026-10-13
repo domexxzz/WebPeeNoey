@@ -16,7 +16,7 @@ const ACCOUNT_NAV = [
 ] as const;
 
 const navCell =
-  "flex items-center justify-center gap-2 px-4 xl:px-6 text-sm text-gray-200 transition-colors hover:bg-white/[0.04] hover:text-signal focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-signal";
+  "flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm text-gray-200 transition-colors hover:bg-white/[0.07] hover:text-signal focus-visible:outline focus-visible:outline-2 focus-visible:outline-signal";
 
 export default async function AccountLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
@@ -28,14 +28,14 @@ export default async function AccountLayout({ children }: { children: React.Reac
     <div className={`${displayFont.variable} ${thaiFont.variable} font-thai min-h-screen bg-ink text-white flex flex-col selection:bg-signal selection:text-ink`}>
       <header className="sticky top-0 z-40 border-b border-line bg-ink/95 backdrop-blur supports-[backdrop-filter]:bg-ink/85">
         <div className="flex h-16 lg:h-[72px] items-stretch">
-          <div className="flex items-center gap-3 px-4 sm:px-6 lg:px-8 border-r border-line">
+          <div className="flex items-center gap-3 px-4 sm:px-6 lg:px-8">
             <BrandMark />
-            <span className="hidden sm:inline border border-line px-2 py-0.5 text-[11px] font-semibold tracking-wide text-signal">PORTAL</span>
+            <span className="hidden sm:inline border border-line px-2 py-0.5 text-[11px] font-semibold tracking-wide text-signal rounded-full">PORTAL</span>
           </div>
 
-          <nav aria-label="เมนูบัญชี" className="hidden md:flex items-stretch">
+          <nav aria-label="เมนูบัญชี" className="hidden md:flex items-center gap-1">
             {ACCOUNT_NAV.map(({ href, label, icon: Icon }) => (
-              <Link key={href} href={href} className={`${navCell} border-r border-line`}>
+              <Link key={href} href={href} className={navCell}>
                 <Icon className="w-4 h-4 text-signal" aria-hidden="true" />
                 {label}
               </Link>
@@ -47,27 +47,27 @@ export default async function AccountLayout({ children }: { children: React.Reac
           {isAdmin && (
             <Link
               href="/admin"
-              className="flex items-center gap-1.5 border-l border-line px-4 text-xs font-semibold text-red-300 transition-colors hover:bg-red-500/10 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-red-400"
+              className="mr-1 flex items-center gap-1.5 self-center rounded-full px-3 py-2 text-xs font-semibold text-red-300 transition-colors hover:bg-red-500/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-400"
             >
               <ShieldAlert className="w-4 h-4" aria-hidden="true" />
               <span className="hidden sm:inline">ระบบจัดการหลังบ้าน</span>
             </Link>
           )}
 
-          <div className="hidden lg:flex flex-col justify-center border-l border-line px-5 text-right">
+          <div className="hidden lg:flex flex-col justify-center px-4 text-right">
             <span className="max-w-[180px] truncate text-sm font-medium text-white">{session.user.name || session.user.email}</span>
             <span className="text-xs text-gray-400">{isAdmin ? "แอดมิน" : "สมาชิก"}</span>
           </div>
 
-          <div className="flex items-center border-l border-line px-3 sm:px-4">
+          <div className="flex items-center px-3 sm:px-4">
             <AccountSignOutButton />
           </div>
         </div>
 
-        {/* จอเล็ก: เมนูบัญชีเป็นแถบช่องกรอบใต้ header */}
-        <nav aria-label="เมนูบัญชี (มือถือ)" className="md:hidden grid grid-cols-3 border-t border-line">
-          {ACCOUNT_NAV.map(({ href, label, icon: Icon }, index) => (
-            <Link key={href} href={href} className={`${navCell} flex-col gap-1 py-2.5 px-2 text-xs ${index > 0 ? "border-l border-line" : ""}`}>
+        {/* จอเล็ก: เมนูบัญชีเป็นปุ่มมุมโค้ง 3 ปุ่มใต้ header */}
+        <nav aria-label="เมนูบัญชี (มือถือ)" className="md:hidden grid grid-cols-3 gap-1 px-2 pb-2">
+          {ACCOUNT_NAV.map(({ href, label, icon: Icon }) => (
+            <Link key={href} href={href} className={`${navCell} flex-col gap-1 rounded-xl px-2 py-2 text-xs`}>
               <Icon className="w-4 h-4 text-signal" aria-hidden="true" />
               {label}
             </Link>

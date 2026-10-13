@@ -123,9 +123,10 @@ describe("animated markup", () => {
     expect(renderToStaticMarkup(<HeroChart />)).not.toContain("hc-anim");
   });
 
-  it("marks hero decoration as aria-hidden and wires the pointer effects and off-screen pausing", () => {
+  it("wires the hero pointer effects and off-screen pausing, without tilting the interactive live chart", () => {
     const html = renderToStaticMarkup(<HeroSection />);
-    expect(html).toContain("data-tilt");
+    expect(html).not.toContain("data-tilt");
+    expect(html).toContain("tradingview-widget-container");
     expect(html).toContain("data-magnetic");
     expect(html).toContain("data-spotlight");
     expect(html).toContain("data-loop");
