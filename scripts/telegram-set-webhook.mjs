@@ -1,6 +1,7 @@
 /**
  * ลงทะเบียน webhook ของบอทสมาชิก (รัน: npm run telegram:webhook [-- --info | --delete])
  * ใช้ค่าจาก .env หรือตัวแปรสภาพแวดล้อม: TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET, NEXT_PUBLIC_APP_URL (ต้องเป็น https)
+ * และตั้งชื่อ/คำอธิบายโปรไฟล์บอทใน Telegram เป็นชื่อแบรนด์ (NEXT_PUBLIC_SITE_NAME — ค่าเดียวกับ siteConfig.name)
  * ไม่พิมพ์ token หรือ secret ออกหน้าจอ (CLAUDE.md ข้อ 4)
  */
 import { existsSync, readFileSync } from "node:fs";
@@ -25,14 +26,20 @@ const env = readEnv();
 const token = env.TELEGRAM_BOT_TOKEN;
 if (!token) fail("ไม่พบ TELEGRAM_BOT_TOKEN");
 
-async function call(method, payload = {}) {
+/** optional = ตั้งค่าเสริม (เช่นชื่อบอท ที่ Telegram จำกัดความถี่การเปลี่ยน) — ล้มแล้วเตือน ไม่หยุดสคริปต์ */
+async function call(method, payload = {}, { optional = false } = {}) {
   const response = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(payload),
   });
   const body = await response.json().catch(() => ({}));
-  if (!response.ok || !body.ok) fail(`${method} ไม่สำเร็จ: HTTP ${response.status} ${body.description ?? ""}`);
+  if (!response.ok || !body.ok) {
+    const message = `${method} ไม่สำเร็จ: HTTP ${response.status} ${body.description ?? ""}`;
+    if (!optional) fail(message);
+    console.warn(`[telegram:webhook] (ข้ามได้) ${message}`);
+    return null;
+  }
   return body.result;
 }
 
@@ -58,6 +65,16 @@ if (mode === "--delete") {
       { command: "stop", description: "ยกเลิกการเชื่อมต่อ" },
     ],
   });
+  // ชื่อที่ผู้ใช้เห็นในแชต + ข้อความก่อนกด Start (Bot API: ชื่อ ≤ 64, คำอธิบายสั้น ≤ 120, คำอธิบาย ≤ 512 ตัวอักษร)
+  const brand = (env.NEXT_PUBLIC_SITE_NAME || "Gold Hybridshot").trim();
+  const named = await call("setMyName", { name: brand.slice(0, 64) }, { optional: true });
+  await call("setMyShortDescription", { short_description: `บอทแจ้งเตือนสมาชิก ${brand}`.slice(0, 120) }, { optional: true });
+  await call(
+    "setMyDescription",
+    { description: `บอทแจ้งเตือนสมาชิก ${brand} — เชื่อมบัญชีได้ที่ ${appUrl}/account (ปุ่ม "เชื่อมต่อ Telegram") แล้วรับแจ้งเตือนก่อนสิทธิ์หมดอายุ ดูสถานะได้ด้วย /status`.slice(0, 512) },
+    { optional: true },
+  );
+  if (named) console.log(`[telegram:webhook] ตั้งชื่อบอทเป็น "${brand}" แล้ว`);
   console.log(`[telegram:webhook] ลงทะเบียน webhook แล้ว → ${appUrl}/api/telegram/webhook`);
 }
 
