@@ -26,9 +26,12 @@ describe("Brand name: Gold Hybridshot", () => {
     expect(offenders).toEqual([]);
   });
 
-  it("keeps the space between words in the large animated wordmark", () => {
+  it("renders the large wordmark as whole words with a real space between them, so a narrow footer column wraps instead of overflowing", () => {
     const html = renderToStaticMarkup(<BrandMark size="xl" />);
-    expect(html).toContain(" ");
+    const visible = html.replace(/<[^>]+>/g, "");
+    expect(visible).toBe(siteConfig.shortName);
+    expect(html.match(/inline-block whitespace-nowrap/g)).toHaveLength(siteConfig.shortName.split(" ").length);
+    expect(html).not.toContain(" ");
     expect(html).toContain(`aria-label="${siteConfig.name} หน้าแรก"`);
   });
 });

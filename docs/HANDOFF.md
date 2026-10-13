@@ -6,7 +6,7 @@
 
 - เจ้าของยืนยันว่า Gold HybridShot Signals คืออินดิเคเตอร์ที่สมาชิกได้รับ → `siteConfig.name` / `shortName` = "Gold Hybridshot" (ตัวพิมพ์ตามที่เจ้าของกำหนด — คำบรรยายภาพหน้าจอก็ใช้ "Gold Hybridshot" ตามที่เจ้าของขอ แม้ในภาพ TradingView จะแสดงชื่อสคริปต์ว่า Gold HybridShot Signals) — title, OG, JSON-LD, เอกสารกฎหมายเปลี่ยนตามอัตโนมัติ
 - หัวเรื่องอีเมล, ชื่อผู้ส่งอีเมลเริ่มต้น และข้อความบอท Telegram ใช้ `siteConfig.name` แทนการเขียนชื่อตายตัว — เทสต์กันไม่ให้มี "Peenoey Indicator" ในโค้ดอีก
-- โลโก้ตัวอักษรขนาดใหญ่ (ท้ายหน้า) แยกตัวอักษรเป็น span → ช่องว่างต้องเป็น ` ` ไม่อย่างนั้นหาย
+- โลโก้ตัวอักษรขนาดใหญ่ (ท้ายหน้า) แยกเป็นคำ (`inline-block whitespace-nowrap`) คั่นด้วยช่องว่างจริง → คอลัมน์แคบ (จอ 1024–1536px) ตัดเป็น "Gold" / "Hybridshot" สองบรรทัด ไม่ล้นไปทับกล่องเมนู (เดิมใช้ ` ` ห้ามตัดบรรทัด จึงล้นทับ — เจอบนเว็บจริงหลังเปลี่ยนชื่อ) — ตรวจที่ 360/768/1024/1280/1536px แล้ว
 - `NEXT_PUBLIC_SITE_NAME` (.env, .env.example, Vercel) เปลี่ยนเป็น "Gold Hybridshot" — ตัวแปรนี้โค้ดไม่ได้อ่าน แค่ให้ตรงกัน
 - **ยังเป็นชื่อเดิม (เป็นบัญชี/โดเมนจริง เปลี่ยนในโค้ดอย่างเดียวไม่ได้):** อีเมล support@peenoey.com, LINE @peenoey, Telegram @peenoey_admin, โดเมน peenoey.com, URL webpeenoey.vercel.app, repo/โปรเจกต์ Vercel `webpeenoey`, คีย์ localStorage `peenoey-motion`
 

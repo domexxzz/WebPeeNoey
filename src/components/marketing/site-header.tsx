@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
 import { MAIN_NAV } from "@/config/marketing";
@@ -5,7 +6,36 @@ import { indexStyle } from "@/lib/motion";
 import { HeaderAuth } from "./header-auth";
 import { MobileNav } from "./mobile-nav";
 
-/** โลโก้ตัวอักษร (wordmark) + จุดสีเขียวสัญญาณ — ขนาดใหญ่ (ท้ายหน้า) ตัวอักษรเป็นคลื่นเมื่อชี้ */
+const graphemes = (text: string) => Array.from(new Intl.Segmenter("th", { granularity: "grapheme" }).segment(text), (part) => part.segment);
+
+/**
+ * ตัวอักษรของโลโก้ขนาดใหญ่ — แยกทีละคำ (ตัดบรรทัดได้ระหว่างคำเมื่อพื้นที่แคบ) และทีละตัวอักษร (คลื่นเมื่อชี้)
+ * ลำดับ --i ต่อเนื่องข้ามคำ คลื่นจึงไหลจากซ้ายไปขวาทั้งชื่อ
+ */
+function WaveWordmark({ text }: { text: string }) {
+  let letterIndex = 0;
+  return (
+    <>
+      {text.split(" ").map((word, wordIndex) => (
+        <Fragment key={`${word}-${wordIndex}`}>
+          {wordIndex > 0 && " "}
+          <span className="inline-block whitespace-nowrap">
+            {graphemes(word).map((letter) => {
+              const index = letterIndex++;
+              return (
+                <span key={`${letter}-${index}`} style={indexStyle(index)}>
+                  {letter}
+                </span>
+              );
+            })}
+          </span>
+        </Fragment>
+      ))}
+    </>
+  );
+}
+
+/** โลโก้ตัวอักษร (wordmark) + จุดสีเขียวสัญญาณ — ขนาดใหญ่ (ท้ายหน้า) ตัวอักษรเป็นคลื่นเมื่อชี้ และตัดบรรทัดระหว่างคำเมื่อคอลัมน์แคบ */
 export function BrandMark({ size = "md" }: { size?: "md" | "xl" }) {
   const isLarge = size === "xl";
   return (
@@ -16,22 +46,15 @@ export function BrandMark({ size = "md" }: { size?: "md" | "xl" }) {
     >
       <span
         aria-hidden="true"
-        className={`rounded-[30%] bg-signal transition-transform duration-500 group-hover:rotate-[135deg] ${isLarge ? "w-5 h-5 sm:w-7 sm:h-7" : "w-2.5 h-2.5"}`}
+        className={`shrink-0 rounded-[30%] bg-signal transition-transform duration-500 group-hover:rotate-[135deg] ${isLarge ? "w-5 h-5 sm:w-7 sm:h-7" : "w-2.5 h-2.5"}`}
       />
-      <span
-        className={`font-display font-bold tracking-tight text-white whitespace-nowrap ${
-          isLarge ? "mx-wave text-4xl sm:text-6xl lg:text-7xl leading-none" : "text-xl"
-        }`}
-      >
-        {isLarge
-          ? Array.from(new Intl.Segmenter("th", { granularity: "grapheme" }).segment(siteConfig.shortName), (part) => part.segment).map((letter, index) => (
-              <span key={`${letter}-${index}`} style={indexStyle(index)}>
-                {/* ช่องว่างใน span แบบ inline-block จะหายไป ต้องใช้ช่องว่างแบบไม่ตัดบรรทัด */}
-                {letter === " " ? "\u00A0" : letter}
-              </span>
-            ))
-          : siteConfig.shortName}
-      </span>
+      {isLarge ? (
+        <span className="mx-wave min-w-0 font-display text-4xl font-bold leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-5xl xl:text-6xl 2xl:text-7xl">
+          <WaveWordmark text={siteConfig.shortName} />
+        </span>
+      ) : (
+        <span className="font-display text-xl font-bold tracking-tight text-white whitespace-nowrap">{siteConfig.shortName}</span>
+      )}
     </Link>
   );
 }
