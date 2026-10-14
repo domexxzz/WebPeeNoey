@@ -2,9 +2,11 @@ import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Mail, MessageCircle, Send, type LucideIcon } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { HOME_SECTION_IDS } from "@/config/marketing";
+import { COMMUNITY } from "@/config/community";
 import { staggerStyle } from "@/lib/motion";
 import { HeroChart } from "./hero-chart";
 import { Phrases } from "./phrases";
+import { CommunityBand } from "./community-band";
 
 interface ContactChannel {
   label: string;
@@ -91,6 +93,8 @@ export function ContactSection() {
             );
           })}
         </ul>
+
+        <CommunityBand inviteUrl={COMMUNITY.discord.inviteUrl} />
       </div>
     </section>
   );

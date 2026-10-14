@@ -10,6 +10,8 @@ import { OrderStatusBadge } from "@/components/checkout/order-status-badge";
 import { PAYMENT_RULES } from "@/config/payment";
 import { telegramDeepLink } from "@/lib/telegram/link";
 import { TelegramConnect } from "@/components/account/telegram-connect";
+import { DiscordJoinLink } from "@/components/account/discord-join-link";
+import { COMMUNITY } from "@/config/community";
 import { getBrokerIbAvailability } from "@/lib/broker-ib/availability";
 
 export default async function AccountDashboardPage() {
@@ -52,7 +54,7 @@ export default async function AccountDashboardPage() {
   const channels = currentSub
     ? [
         { label: "TradingView", granted: currentSub.tradingViewGranted, pending: "รอทีมงานเปิดสิทธิ์" },
-        { label: "Discord VIP", granted: currentSub.discordRoleGranted, pending: "รอยืนยันยศ" },
+        { label: "Discord VIP", granted: currentSub.discordRoleGranted, pending: "รอยืนยันยศ", inviteUrl: COMMUNITY.discord.inviteUrl },
       ]
     : [];
 
@@ -143,6 +145,8 @@ export default async function AccountDashboardPage() {
                       <span className="flex items-center gap-1 text-xs font-semibold text-gold-ink">
                         <Check className="w-3.5 h-3.5" aria-hidden="true" /> เปิดสิทธิ์แล้ว
                       </span>
+                    ) : "inviteUrl" in channel && channel.inviteUrl ? (
+                      <DiscordJoinLink inviteUrl={channel.inviteUrl} />
                     ) : (
                       <span className="flex items-center gap-1 text-xs font-medium text-orange-700">
                         <Clock className="w-3.5 h-3.5" aria-hidden="true" /> {channel.pending}
