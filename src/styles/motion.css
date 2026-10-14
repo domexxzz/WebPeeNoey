@@ -292,7 +292,8 @@ html[data-motion-paused] :is(
     .hc-pill,
     .fa-dot,
     .fa-ping,
-    .mx-beam-spin
+    .mx-beam-spin,
+    .pc-seal-ring
   ),
 html[data-motion-paused] :is(.mx-ping, .mx-grid, .mx-shimmer, .mx-shine-auto, .mx-qr)::before,
 html[data-motion-paused] :is(.mx-ping, .mx-grid, .mx-shimmer, .mx-shine-auto, .mx-qr)::after {

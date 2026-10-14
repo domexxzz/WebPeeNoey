@@ -6,6 +6,7 @@
  */
 
 import { PAYMENT_RULES } from "./payment";
+import { SITE_PLANS } from "./plans";
 
 export interface NavLink {
   label: string;
@@ -296,4 +297,21 @@ export const INDICATOR_SHOWCASE = {
   ],
   disclaimer:
     "ภาพหน้าจอจริงจาก TradingView ณ วันที่บันทึก ตัวเลขในตารางมุมขวาบน (เช่น Win Rate และจำนวนสัญญาณ) เป็นสถิติย้อนหลังที่อินดิเคเตอร์คำนวณเองบนกราฟนี้ ไม่ใช่ผลการเทรดจริงของสมาชิก อาจไม่รวมต้นทุนจริงเช่นสเปรดและค่าธรรมเนียม และไม่รับประกันผลในอนาคต — การลงทุนมีความเสี่ยง",
+} as const;
+
+/**
+ * บัตรสมาชิกกระดาษ 3 มิติในส่วนราคา — ด้านหลังดึงสิทธิ์จากแพ็กเกจเริ่มต้นจริง (ทุกแพ็กเกจได้สิทธิ์ชุดนี้)
+ * ห้ามใส่ตัวเลขผลงาน/สถิติบนบัตร
+ */
+export const MEMBER_CARD = {
+  label: "บัตรสมาชิก",
+  kicker: "MEMBER PASS",
+  tagline: "TradingView Invite-only Indicator",
+  channels: ["Indicator", "Telegram VIP", "Discord"],
+  perksTitle: "สิทธิ์ของสมาชิกทุกแพ็กเกจ",
+  perks: SITE_PLANS[0].features.slice(0, 4),
+  footnote: "ชำระผ่าน PromptPay · ไม่ตัดเงินอัตโนมัติ",
+  flipToBack: "พลิกดูสิทธิ์สมาชิก",
+  flipToFront: "ดูด้านหน้าบัตร",
+  hint: "หรือจับบัตรลากหมุนได้",
 } as const;

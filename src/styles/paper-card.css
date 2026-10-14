@@ -1,0 +1,252 @@
+/*
+ * บัตรสมาชิกกระดาษ 3 มิติ (src/components/marketing/member-card.tsx)
+ * ตัวขับ (member-card-motion.ts) ตั้งค่าบนบัตร: transform, --shade (เงาขอบตอนหันข้าง), --sheen (แถบแสงสะท้อน),
+ * --lx/--ly (แสงตามเมาส์) และบนเวที: --px/--py (ฉากหลังขยับตามความลึก ผ่าน [data-depth] ใน motion.css)
+ */
+
+.pc-stage {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  width: min(100%, 360px);
+  padding: 28px 0 12px;
+}
+
+/* ตัวหนังสือยักษ์ด้านหลัง — มองทะลุกระดาษโปร่งแสงได้จาง ๆ */
+.pc-word {
+  position: absolute;
+  inset-inline: -160px;
+  top: 50%;
+  z-index: -1;
+  margin-top: -0.55em;
+  font-size: 11rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  text-align: center;
+  white-space: nowrap;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(138, 95, 0, 0.32);
+  pointer-events: none;
+}
+
+.pc-halo {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  margin: auto;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212, 165, 55, 0.42), rgba(212, 165, 55, 0) 66%);
+  pointer-events: none;
+}
+
+.pc-float {
+  perspective: 1100px;
+}
+
+.pc-card {
+  position: relative;
+  width: 268px;
+  aspect-ratio: 5 / 7;
+  transform-style: preserve-3d;
+  /* ปัดขึ้นลง = เลื่อนหน้า, จีบนิ้ว = ซูม (ผู้ใช้สายตาเลือนราง), ปัดซ้ายขวา = หมุนบัตร */
+  touch-action: pan-y pinch-zoom;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  will-change: transform;
+}
+
+.pc-card[data-dragging] {
+  cursor: grabbing;
+}
+
+@media (min-width: 640px) {
+  .pc-card {
+    width: 280px;
+  }
+}
+
+.pc-face {
+  position: absolute;
+  inset: 0;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  padding: 18px;
+  overflow: hidden;
+  border-radius: 18px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  /* กระดาษโปร่งแสงเล็กน้อย + รอยพับจาง ๆ กลางแผ่น */
+  background: linear-gradient(100deg, rgba(255, 253, 248, 0.84) 0%, rgba(251, 245, 232, 0.8) 49%, rgba(255, 250, 240, 0.84) 51%, rgba(246, 237, 219, 0.84) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    0 0 0 1px rgba(138, 95, 0, 0.18),
+    0 34px 50px -30px rgba(31, 26, 18, 0.5);
+}
+
+.pc-face-back {
+  transform: rotateY(180deg);
+  background: linear-gradient(80deg, rgba(250, 243, 228, 0.86) 0%, rgba(255, 252, 245, 0.84) 49%, rgba(248, 240, 224, 0.86) 51%, rgba(255, 251, 243, 0.84) 100%);
+}
+
+@media (min-width: 640px) {
+  .pc-face {
+    padding: 22px;
+  }
+}
+
+/* เนื้อกระดาษ (noise) */
+.pc-face::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.2;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.12 0 0 0 0 0.1 0 0 0 0 0.07 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+/*
+ * ชั้นแสงเงาบนกระดาษ — ขยับด้วย opacity / translate เท่านั้น (คอมโพสิเตอร์ทำ ไม่วาดหน้าบัตรใหม่ทุกเฟรม)
+ * backface-visibility ซ้ำที่ชั้นลูก: กัน WebKit รุ่นเก่าที่ชั้นแยก (will-change) โผล่ทะลุด้านที่หันหนี
+ */
+.pc-shade,
+.pc-sheen,
+.pc-light {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* เงาที่ขอบเมื่อหันข้าง — ให้ความรู้สึกว่าแผ่นกระดาษโค้ง */
+.pc-shade {
+  inset: 0;
+  opacity: calc(var(--shade, 0) * 0.6);
+  background: linear-gradient(90deg, rgba(31, 26, 18, 0.32), transparent 42%, transparent 58%, rgba(31, 26, 18, 0.22));
+  will-change: opacity;
+}
+
+/* แถบแสงสะท้อน: กว้าง 3 เท่าของบัตร แสงอยู่กลางแถบ เลื่อนผ่านหน้าบัตรตามมุมหมุน (--sheen-x) */
+.pc-sheen {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 300%;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 233, 184, 0.6) 50%, transparent 60%);
+  translate: var(--sheen-x, -33.333%) 0;
+  will-change: translate;
+}
+
+/* วงแสงใต้เมาส์ (--lx/--ly = มุมบนซ้ายของวง, ด้านหลังใช้ค่ากลับซ้ายขวา) — ขนาดต้องตรงกับ LIGHT_SIZE ใน member-card-motion.ts */
+.pc-light {
+  top: 0;
+  left: 0;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0) 65%);
+  translate: var(--lx, 0) var(--ly, 0);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  will-change: translate, opacity;
+}
+
+.pc-face-back .pc-light {
+  translate: var(--lx-back, 0) var(--ly, 0);
+}
+
+.pc-card[data-lit] .pc-light {
+  opacity: 1;
+}
+
+/* แผ่นฟอยล์ทองมุมบัตร (ตกแต่ง) */
+.pc-foil {
+  width: 30px;
+  height: 22px;
+  border-radius: 5px;
+  background:
+    linear-gradient(90deg, transparent 45%, rgba(138, 95, 0, 0.35) 45% 55%, transparent 55%),
+    linear-gradient(0deg, transparent 45%, rgba(138, 95, 0, 0.35) 45% 55%, transparent 55%),
+    linear-gradient(135deg, #f3dc98, #d4a537 55%, #b6881f);
+  box-shadow: inset 0 0 0 1px rgba(138, 95, 0, 0.35);
+}
+
+.pc-perforation {
+  height: 1px;
+  background-image: linear-gradient(90deg, rgba(31, 26, 18, 0.28) 50%, transparent 0);
+  background-size: 8px 1px;
+}
+
+/* ตราประทับ: วงตัวอักษรหมุนช้า ๆ รอบโมโนแกรมทอง */
+.pc-seal {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  margin: 24px auto 0;
+}
+
+.pc-seal-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: #8a5f00;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  animation: pc-spin 26s linear infinite;
+}
+
+.pc-seal-core {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #1f1a12;
+  background: radial-gradient(circle at 35% 30%, #f3dc98, #d4a537 58%, #b6881f);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 8px 16px -8px rgba(138, 95, 0, 0.7);
+}
+
+@keyframes pc-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+/* เบราว์เซอร์ที่ไม่รู้จัก overflow: clip (iOS 15 ลงไป) — ตัวหนังสือยักษ์จะทำให้จอเลื่อนข้าง จึงไม่แสดง */
+@supports not (overflow-x: clip) {
+  .pc-word {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pc-seal-ring,
+  .pc-float {
+    animation: none !important;
+  }
+
+  /* ลดการเคลื่อนไหว: แตะ = พลิกทันที (ไม่มีการลากหมุน) */
+  .pc-card {
+    cursor: pointer;
+    will-change: auto;
+  }
+
+  .pc-light {
+    display: none;
+  }
+}

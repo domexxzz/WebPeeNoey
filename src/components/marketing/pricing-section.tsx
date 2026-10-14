@@ -3,6 +3,7 @@ import { ArrowRight, Check, Info } from "lucide-react";
 import { PROMO_SETTINGS, SITE_PLANS, formatTHB, type PlanConfig } from "@/config/plans";
 import { HOME_SECTION_IDS, RISK_DISCLAIMER } from "@/config/marketing";
 import { staggerStyle } from "@/lib/motion";
+import { MemberCard } from "./member-card";
 import { SectionHeading } from "./section-heading";
 
 export function getPlanCtaHref(plan: PlanConfig): string {
@@ -86,21 +87,26 @@ function PlanCard({ plan, index }: { plan: PlanConfig; index: number }) {
 
 export function PricingSection() {
   return (
-    <section aria-labelledby={`${HOME_SECTION_IDS.pricing}-heading`} id={HOME_SECTION_IDS.pricing} className="scroll-mt-20 border-b border-line">
+    <section aria-labelledby={`${HOME_SECTION_IDS.pricing}-heading`} id={HOME_SECTION_IDS.pricing} className="scroll-mt-20 overflow-x-clip border-b border-line">
       <div className="px-4 sm:px-6 lg:px-10 py-20 sm:py-28">
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-          <SectionHeading
-            id={`${HOME_SECTION_IDS.pricing}-heading`}
-            eyebrow="แพ็กเกจและราคา"
-            title="เลือกระยะเวลา ที่เหมาะกับคุณ"
-            description="ชำระครั้งเดียวต่อรอบผ่าน PromptPay ไม่มีการตัดเงินอัตโนมัติ"
-          />
-          <div data-reveal="left" style={staggerStyle(3, 110)} className="flex max-w-md border border-line rounded-2xl overflow-hidden">
-            <span aria-hidden="true" className="w-2 shrink-0 bg-gold" />
-            <div className="px-5 py-4">
-              <p className="font-display font-bold text-fg">{PROMO_SETTINGS.promoTitle}</p>
-              <p className="mt-1 text-sm text-fg-muted leading-relaxed">{PROMO_SETTINGS.promoSubtitle}</p>
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-16">
+          <div className="flex flex-col gap-8">
+            <SectionHeading
+              id={`${HOME_SECTION_IDS.pricing}-heading`}
+              eyebrow="แพ็กเกจและราคา"
+              title="เลือกระยะเวลา ที่เหมาะกับคุณ"
+              description="ชำระครั้งเดียวต่อรอบผ่าน PromptPay ไม่มีการตัดเงินอัตโนมัติ"
+            />
+            <div data-reveal="left" style={staggerStyle(3, 110)} className="flex max-w-md border border-line rounded-2xl overflow-hidden">
+              <span aria-hidden="true" className="w-2 shrink-0 bg-gold" />
+              <div className="px-5 py-4">
+                <p className="font-display font-bold text-fg">{PROMO_SETTINGS.promoTitle}</p>
+                <p className="mt-1 text-sm text-fg-muted leading-relaxed">{PROMO_SETTINGS.promoSubtitle}</p>
+              </div>
             </div>
+          </div>
+          <div data-reveal="up" style={staggerStyle(2, 110)} className="flex justify-center lg:pr-6">
+            <MemberCard />
           </div>
         </div>
 
