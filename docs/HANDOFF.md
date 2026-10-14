@@ -2,7 +2,8 @@
 
 ## เซสชัน: เปลี่ยนธีมเป็นครีม-ทอง (สว่าง)
 **วันที่:** 13 ตุลาคม 2026  
-**สถานะ:** unit 219/219, `tsc` ผ่าน, `next build` ผ่าน — ตรวจหน้าจอบน dev server (หน้าแรกทุกส่วน, auth) และ layout account/admin ที่ render ด้วย session จำลอง, จอ 360px ไม่ล้น — ยังไม่ commit / ยังไม่ deploy (รอเจ้าของดูภาพ)
+**สถานะ:** unit 219/219, `tsc` ผ่าน, `next build` ผ่าน — ตรวจหน้าจอบน dev server (หน้าแรกทุกส่วน, auth) และ layout account/admin ที่ render ด้วย session จำลอง, จอ 360px ไม่ล้น — commit `d9ab8e2` และ deploy ขึ้น https://webpeenoey.vercel.app แล้ว (14 ต.ค. 2026): smoke test ผ่าน (header ความปลอดภัย, หน้าสมาชิก/แอดมินพาไปหน้าเข้าสู่ระบบ, cron/webhook ไม่มีสิทธิ์ได้ 401), เว็บจริงพื้นครีม ตัวหนังสือเข้ม, จอ 375/1280px ไม่ล้น, bundle จริงตั้งกราฟ TradingView เป็น light / 4 ชม. / พื้นขาว
+- หมายเหตุ smoke: `/auth/signin` ขึ้น MISSING "เข้าสู่ระบบ" เพราะหน้านี้ render ฝั่ง client (ใช้ `useSearchParams` ใน Suspense) ข้อความจึงไม่อยู่ใน HTML จากเซิร์ฟเวอร์ — เปิดในเบราว์เซอร์แล้วเห็นหัวข้อ "เข้าสู่ระบบสมาชิก" ปกติ ไม่ใช่ปัญหาจากรอบนี้
 
 - เจ้าของเลือก "ครีม-ทอง" จาก 3 ทาง (ดำ-ทอง / กรมท่า-ทอง / ครีม-ทอง)
 - token ใหม่ตามหน้าที่ (tailwind.config.ts): `page` #FAF6EE, `surface` #FFFFFF / `surface-sunken` #F3EDE0, `fg` #1F1A12 / `fg-muted` #5C5344 / `fg-subtle` #6B604E, `gold` #D4A537 (พื้นปุ่ม ตัวหนังสือบนทองใช้ fg) / `gold-ink` #8A5F00 (ตัวหนังสือ ลิงก์ วงโฟกัส), `line` เข้มโปร่ง — ค่าความต่างสีคำนวณจริงตาม WCAG: ทุกระดับตัวหนังสือ ≥ 4.5:1 บน page/surface/sunken, fg บนทอง 7.6:1
