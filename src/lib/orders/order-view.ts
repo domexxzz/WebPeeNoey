@@ -72,7 +72,8 @@ export async function getOrderForUser(
   db: PrismaClient,
   { userId, orderId, now = new Date() }: { userId: string; orderId: string; now?: Date },
 ): Promise<OrderView | null> {
-  const order = await db.order.findFirst({ where: { id: orderId, userId }, include: ORDER_INCLUDE });
+  // คำขอสิทธิ์ผ่าน IB ไม่มีหน้าชำระเงิน — ดูที่ /account/broker-ib
+  const order = await db.order.findFirst({ where: { id: orderId, userId, kind: "PAID" }, include: ORDER_INCLUDE });
   if (!order) return null;
   const phase = computeOrderPhase(order, now);
   const status = await persistExpiry(db, order.id, phase, order.status);
@@ -86,7 +87,7 @@ export async function listOrdersForUser(
   // อัปเดตออเดอร์หมดอายุของผู้ใช้ครั้งเดียว แทนการเขียนทีละแถวตอนแสดงรายการ
   await expireStaleOrders(db, { userId, now });
   const [orders, availability] = await Promise.all([
-    db.order.findMany({ where: { userId }, include: ORDER_INCLUDE, orderBy: { createdAt: "desc" }, take }),
+    db.order.findMany({ where: { userId, kind: "PAID" }, include: ORDER_INCLUDE, orderBy: { createdAt: "desc" }, take }),
     getPaymentAvailability(db),
   ]);
   return orders.map((order) => toView(order, order.status, computeOrderPhase(order, now), availability));

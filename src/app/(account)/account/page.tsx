@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Check, Clock, KeyRound, Lock, Send, AlertTriangle } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Check, Clock, Handshake, KeyRound, Lock, Send, AlertTriangle } from "lucide-react";
 import { getMembershipSummary } from "@/lib/admin/membership";
 import { daysUntil, formatBaht, formatDate } from "@/lib/format";
 import { computeOrderPhase } from "@/lib/orders/phase";
@@ -10,6 +10,7 @@ import { OrderStatusBadge } from "@/components/checkout/order-status-badge";
 import { PAYMENT_RULES } from "@/config/payment";
 import { telegramDeepLink } from "@/lib/telegram/link";
 import { TelegramConnect } from "@/components/account/telegram-connect";
+import { getBrokerIbAvailability } from "@/lib/broker-ib/availability";
 
 export default async function AccountDashboardPage() {
   const session = await getServerSession(authOptions);
@@ -22,6 +23,8 @@ export default async function AccountDashboardPage() {
         where: { id: userId },
         include: {
           orders: {
+            // คำขอสิทธิ์ผ่าน IB แสดงที่หน้า /account/broker-ib — ที่นี่เป็นคำสั่งซื้อที่ชำระเงินเท่านั้น
+            where: { kind: "PAID" },
             orderBy: { createdAt: "desc" },
             take: 3,
             include: { plan: true },
@@ -40,6 +43,10 @@ export default async function AccountDashboardPage() {
   const daysLeft = endsAt ? daysUntil(endsAt, now) : null;
   const expiringSoon = isActive && daysLeft !== null && daysLeft <= PAYMENT_RULES.expiryReminderDays;
   const telegramEnabled = telegramDeepLink(process.env.TELEGRAM_BOT_USERNAME, "check") !== null;
+  const viaBroker = currentSub?.plan.kind === "BROKER_IB";
+  // สิทธิ์ผ่าน IB ต่ออายุด้วยการยื่นคำขอใหม่ (ทีมงานตรวจบัญชีอีกครั้ง) — ไม่ใช่หน้าชำระเงิน
+  const renewHref = viaBroker ? "/account/broker-ib" : currentSub ? `/checkout/${currentSub.plan.slug}` : "/#pricing";
+  const brokerOffer = await getBrokerIbAvailability(prisma);
 
   const supportTelegram = process.env.NEXT_PUBLIC_SUPPORT_TELEGRAM;
   const channels = currentSub
@@ -96,7 +103,7 @@ export default async function AccountDashboardPage() {
                     <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0 text-gold-ink" aria-hidden="true" />
                     สิทธิ์ของคุณจะหมดในอีก {daysLeft} วัน — ต่ออายุตอนนี้ วันใช้งานจะทบต่อทันที
                   </span>
-                  <Link href={`/checkout/${currentSub.plan.slug}`} className="shrink-0 font-semibold text-gold-ink hover:text-gold-ink">
+                  <Link href={renewHref} className="shrink-0 font-semibold text-gold-ink hover:text-gold-ink">
                     ต่ออายุ →
                   </Link>
                 </div>
@@ -106,6 +113,11 @@ export default async function AccountDashboardPage() {
                 <div className="bg-surface px-5 sm:px-6 py-6">
                   <p className="text-xs text-fg-subtle">แพ็กเกจที่ใช้งาน</p>
                   <p className="mt-2 font-display text-2xl font-bold tracking-tight text-fg">{currentSub.plan.name}</p>
+                  {viaBroker && (
+                    <p className="mt-3 inline-flex items-center gap-1.5 border border-gold px-2 py-1 text-xs font-medium text-gold-ink rounded-full">
+                      <Handshake className="w-3.5 h-3.5" aria-hidden="true" /> สิทธิ์ผ่านโบรกเกอร์ (IB)
+                    </p>
+                  )}
                   {currentSub.isPriceLocked && (
                     <p className="mt-3 inline-flex items-center gap-1.5 border border-gold px-2 py-1 text-xs font-medium text-gold-ink rounded-full">
                       <Lock className="w-3.5 h-3.5" aria-hidden="true" /> ล็อกราคาโปรโมชันตลอดอายุ
@@ -180,6 +192,23 @@ export default async function AccountDashboardPage() {
           </dl>
         </section>
       </div>
+
+      {(brokerOffer.open || viaBroker) && (
+        <section aria-labelledby="broker-ib-heading" className="flex flex-col gap-4 border border-line bg-surface p-6 rounded-2xl sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 id="broker-ib-heading" className="flex items-center gap-2 font-display text-lg font-bold text-fg">
+              <Handshake className="w-5 h-5 text-gold-ink" aria-hidden="true" />
+              ใช้ฟรีผ่านโบรกเกอร์พาร์ทเนอร์
+            </h2>
+            <p className="mt-1 text-sm text-fg-muted">
+              {viaBroker ? "ยื่นต่อสิทธิ์ผ่าน IB ได้ในช่วง 7 วันก่อนหมดอายุ" : "เปิดบัญชีเทรดผ่านลิงก์ของเราและฝากเงินครบขั้นต่ำ แล้วยื่นเลขบัญชีเพื่อรับสิทธิ์ 30 วัน"}
+            </p>
+          </div>
+          <Link href="/account/broker-ib" className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-gold-ink hover:text-gold-ink">
+            ไปหน้าสิทธิ์ผ่านโบรกเกอร์ <ArrowRight className="w-4 h-4" aria-hidden="true" />
+          </Link>
+        </section>
+      )}
 
       <TelegramConnect
         enabled={telegramEnabled}

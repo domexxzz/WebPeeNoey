@@ -7,6 +7,8 @@ import { FeaturesSection } from "@/components/marketing/features-section";
 import { IndicatorShowcaseSection } from "@/components/marketing/indicator-showcase-section";
 import { HowItWorksSection } from "@/components/marketing/how-it-works-section";
 import { PricingSection } from "@/components/marketing/pricing-section";
+import { BrokerIbSection } from "@/components/marketing/broker-ib-section";
+import { getCachedBrokerIbOffer } from "@/lib/broker-ib/public-offer";
 import { FaqSection } from "@/components/marketing/faq-section";
 import { ContactSection } from "@/components/marketing/contact-section";
 
@@ -20,7 +22,9 @@ export const metadata: Metadata = {
   title: { absolute: `${siteConfig.name} — อินดิเคเตอร์ TradingView พร้อมกลุ่มแจ้งเตือนและคอมมูนิตี้` },
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  // ทางเลือกใช้งานฟรีผ่าน IB แสดงเฉพาะเมื่อแอดมินเปิดรับคำขอ (แคชไว้ + รีเฟรชทันทีเมื่อแก้การตั้งค่า)
+  const brokerOffer = await getCachedBrokerIbOffer();
   return (
     <>
       <JsonLd data={buildProductJsonLd()} />
@@ -29,6 +33,7 @@ export default function HomePage() {
       <IndicatorShowcaseSection />
       <HowItWorksSection />
       <PricingSection />
+      {brokerOffer.open && <BrokerIbSection brokers={brokerOffer.brokers} minDepositUsd={brokerOffer.minDepositUsd} />}
       <FaqSection />
       <ContactSection />
     </>

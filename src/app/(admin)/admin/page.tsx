@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { Users, ClipboardCheck, ArrowRight, PowerOff, Activity, DollarSign, Clock, UserX } from "lucide-react";
+import { Users, ClipboardCheck, ArrowRight, PowerOff, Activity, DollarSign, Clock, UserX, Handshake } from "lucide-react";
 import { requireAdminPage } from "@/lib/admin/page-guard";
 import { getDashboardStats } from "@/lib/admin/dashboard";
+import { countPendingBrokerClaims } from "@/lib/broker-ib/admin-query";
 import { prisma } from "@/lib/prisma";
 import { formatBaht } from "@/lib/format";
 import { PAYMENT_RULES } from "@/config/payment";
@@ -40,7 +41,7 @@ const outlineLink =
 
 export default async function AdminDashboardPage() {
   const admin = await requireAdminPage();
-  const stats = await getDashboardStats(prisma);
+  const [stats, pendingBrokerClaims] = await Promise.all([getDashboardStats(prisma), countPendingBrokerClaims(prisma)]);
   const { revenue, members, payments } = stats;
 
   return (
@@ -76,6 +77,19 @@ export default async function AdminDashboardPage() {
           <UserX className="w-5 h-5 shrink-0 text-red-700" aria-hidden="true" />
           <span>
             มี <strong className="text-fg">{stats.pendingDeprovision}</strong> ช่วงสิทธิ์ที่หมดอายุ/ถูกปิดแล้ว แต่ยังบันทึกว่าเปิดสิทธิ์ใน TradingView / Discord / Telegram — ต้องถอดสิทธิ์ด้วยมือ
+          </span>
+          <ArrowRight className="w-4 h-4 ml-auto shrink-0" aria-hidden="true" />
+        </Link>
+      )}
+
+      {pendingBrokerClaims > 0 && (
+        <Link
+          href="/admin/broker-claims"
+          className="flex items-center gap-3 border border-gold bg-gold-muted p-4 text-sm text-fg transition-colors hover:bg-gold/25 rounded-2xl"
+        >
+          <Handshake className="w-5 h-5 shrink-0 text-gold-ink" aria-hidden="true" />
+          <span>
+            มีคำขอสิทธิ์ผ่าน IB รอตรวจ <strong>{pendingBrokerClaims}</strong> รายการ — ตรวจบัญชีใน Partner Portal ของโบรกเกอร์
           </span>
           <ArrowRight className="w-4 h-4 ml-auto shrink-0" aria-hidden="true" />
         </Link>

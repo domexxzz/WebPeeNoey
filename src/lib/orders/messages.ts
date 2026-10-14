@@ -47,6 +47,7 @@ export const ORDER_PHASE_LABELS: Record<OrderPhase, { label: string; tone: Badge
   AWAITING_PAYMENT: { label: "รอชำระเงิน", tone: "amber" },
   SLIP_GRACE: { label: "รอแนบสลิป", tone: "amber" },
   SLIP_SUBMITTED: { label: "รอตรวจสอบสลิป", tone: "blue" },
+  CLAIM_SUBMITTED: { label: "รอตรวจสอบบัญชีโบรกเกอร์", tone: "blue" },
   REJECTED: { label: "สลิปไม่ผ่าน", tone: "red" },
   APPROVED: { label: "อนุมัติแล้ว", tone: "emerald" },
   EXPIRED: { label: "หมดอายุ", tone: "gray" },

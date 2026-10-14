@@ -2,7 +2,7 @@ import type { Prisma, PrismaClient } from "@prisma/client";
 import { PAYMENT_RULES } from "@/config/payment";
 import { buildPromptPayPayload } from "@/lib/payments/promptpay";
 import { applySatangDiscount, pickSatangDiscount, quotePlanPrice, type PriceQuote } from "@/lib/payments/pricing";
-import { generateOrderNumber } from "@/lib/security";
+import { generateOrderNumber, type OrderNumberPrefix } from "@/lib/security";
 import { getPaymentAvailability } from "./availability";
 
 type Tx = Prisma.TransactionClient;
@@ -79,7 +79,8 @@ export interface CheckoutQuote {
 
 /** ราคาที่ผู้ใช้คนนี้จะได้ (ใช้แสดงในหน้า Checkout ก่อนสร้างออเดอร์) — คืน null ถ้าไม่มีแพ็กเกจ */
 export async function quoteForUser(db: PrismaClient, { userId, planSlug }: { userId: string; planSlug: string }): Promise<CheckoutQuote | null> {
-  const plan = await db.plan.findFirst({ where: { slug: planSlug, isActive: true } });
+  // สิทธิ์ผ่าน IB (ราคา 0) ห้ามเข้า Checkout — ไม่งั้นจะได้ออเดอร์ PromptPay 0 บาท
+  const plan = await db.plan.findFirst({ where: { slug: planSlug, isActive: true, kind: "PAID" } });
   if (!plan) return null;
   return {
     plan: {
@@ -94,9 +95,9 @@ export async function quoteForUser(db: PrismaClient, { userId, planSlug }: { use
   };
 }
 
-async function uniqueOrderNumber(tx: Tx, now: Date): Promise<string> {
+export async function uniqueOrderNumber(tx: Tx, now: Date, prefix: OrderNumberPrefix = "ORD"): Promise<string> {
   for (let attempt = 0; attempt < ORDER_NUMBER_ATTEMPTS; attempt++) {
-    const candidate = generateOrderNumber(now);
+    const candidate = generateOrderNumber(now, prefix);
     if (!(await tx.order.findUnique({ where: { orderNumber: candidate }, select: { id: true } }))) return candidate;
   }
   throw new Error("Could not generate a unique order number");
@@ -112,7 +113,7 @@ export async function createOrder(db: PrismaClient, input: CreateOrderInput): Pr
   const availability = await getPaymentAvailability(db);
   if (!availability.open) return { ok: false, code: "PAYMENTS_CLOSED" };
 
-  const plan = await db.plan.findFirst({ where: { slug: input.planSlug, isActive: true } });
+  const plan = await db.plan.findFirst({ where: { slug: input.planSlug, isActive: true, kind: "PAID" } });
   if (!plan) return { ok: false, code: "PLAN_NOT_FOUND" };
 
   return db.$transaction(
@@ -128,7 +129,7 @@ export async function createOrder(db: PrismaClient, input: CreateOrderInput): Pr
       if (reusable) return { ok: true, orderId: reusable.id, reused: true };
 
       const openCount = await tx.order.count({
-        where: { userId: input.userId, status: { in: ["PENDING_PAYMENT", "SLIP_SUBMITTED"] } },
+        where: { userId: input.userId, kind: "PAID", status: { in: ["PENDING_PAYMENT", "SLIP_SUBMITTED"] } },
       });
       if (openCount >= PAYMENT_RULES.maxOpenOrdersPerUser) return { ok: false, code: "TOO_MANY_OPEN_ORDERS" };
 

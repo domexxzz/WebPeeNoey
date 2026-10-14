@@ -22,6 +22,7 @@ import { siteConfig } from "@/config/site";
 import { FEATURE_DETAILS } from "@/content/features";
 import { GUIDE_SECTIONS, TROUBLESHOOTING } from "@/content/guide";
 import { LEGAL_DOCUMENTS } from "@/content/legal";
+import { getCachedBrokerIbOffer } from "@/lib/broker-ib/public-offer";
 
 // ค่าเริ่มต้นเป็นผู้เยี่ยมชม เพราะบาง describe render หน้าตั้งแต่ตอนเก็บรายการเทสต์ (ก่อน beforeEach)
 // next/font ถูกแปลงโดย compiler ของ Next.js — ในเทสต์จำลองให้คืนชื่อ class/ตัวแปรแทน
@@ -29,6 +30,11 @@ vi.mock("next/font/google", () => {
   const font = (options: { variable?: string }) => ({ className: "font-mock", variable: options.variable?.replace(/^--/, "") ?? "font-mock", style: { fontFamily: "mock" } });
   return { Familjen_Grotesk: font, Anuphan: font };
 });
+// หน้าแรกอ่านข้อเสนอสิทธิ์ผ่าน IB จากแคช (ฐานข้อมูล) — ค่าเริ่มต้นปิด เหมือนระบบจริงก่อนแอดมินเปิด
+vi.mock("@/lib/broker-ib/public-offer", () => ({
+  BROKER_IB_OFFER_TAG: "broker-ib-offer",
+  getCachedBrokerIbOffer: vi.fn(async () => ({ open: false, reason: "DISABLED" })),
+}));
 vi.mock("next-auth/react", () => ({
   useSession: vi.fn(() => ({ data: null, status: "unauthenticated", update: vi.fn() })),
 }));
@@ -52,8 +58,24 @@ beforeEach(() => {
   mockSession({ status: "unauthenticated" });
 });
 
+// HomePage เป็น async server component — รอผลก่อน render
+const homeHtml = render(await HomePage());
+
 describe("Phase 2: Home page", () => {
-  const html = render(<HomePage />);
+  const html = homeHtml;
+
+  it("hides the free broker IB option until the admin opens it, and shows it with partner links when open", async () => {
+    expect(html).not.toContain('id="broker-ib"');
+    vi.mocked(getCachedBrokerIbOffer).mockResolvedValueOnce({
+      open: true,
+      minDepositUsd: 100,
+      brokers: [{ broker: "XM", label: "XM", link: "https://clicks.pipaffiliates.com/c?c=1" }],
+    });
+    const open = render(await HomePage());
+    expect(open).toContain('id="broker-ib"');
+    expect(open).toContain('href="https://clicks.pipaffiliates.com/c?c=1"');
+    expect(open).toContain('rel="sponsored noopener noreferrer"');
+  });
 
   it("renders every home section that the navigation points to", () => {
     Object.values(HOME_SECTION_IDS).forEach((id) => expect(html).toContain(`id="${id}"`));

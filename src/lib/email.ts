@@ -202,3 +202,83 @@ export async function sendExpiryReminderEmail(email: string, reminder: ExpiryRem
     return false;
   }
 }
+
+/** แจ้งสมาชิกว่าคำขอสิทธิ์ผ่าน IB โบรกเกอร์ได้รับอนุมัติ */
+export async function sendBrokerClaimApprovedEmail(
+  email: string,
+  claim: { orderNumber: string; periodEnd: Date; isRenewal: boolean },
+): Promise<boolean> {
+  if (!resend) {
+    if (process.env.NODE_ENV === "production") {
+      console.error("[Email] RESEND_API_KEY ไม่ได้ตั้งค่า — ไม่ได้ส่งอีเมลอนุมัติสิทธิ์ผ่าน IB", { orderNumber: claim.orderNumber });
+      return false;
+    }
+    console.info(`[Email Simulation] IB claim approved for ${email}: ${claim.orderNumber} until ${claim.periodEnd.toISOString()}`);
+    return true;
+  }
+  const endsAt = claim.periodEnd.toLocaleDateString("th-TH", { timeZone: "Asia/Bangkok", year: "numeric", month: "long", day: "numeric" });
+  try {
+    const { error } = await resend.emails.send({
+      from: fromEmail,
+      to: email,
+      subject: `${claim.isRenewal ? "ต่ออายุ" : "อนุมัติ"}สิทธิ์ใช้งานผ่านโบรกเกอร์แล้ว (คำขอ ${claim.orderNumber}) - ${siteConfig.name}`,
+      html: emailLayout(
+        claim.isRenewal ? "ต่ออายุสิทธิ์ผ่านโบรกเกอร์เรียบร้อย" : "อนุมัติสิทธิ์ผ่านโบรกเกอร์เรียบร้อย",
+        `
+          <p>ทีมงานตรวจสอบบัญชีเทรดของคุณใน Partner Portal แล้ว (คำขอ <strong>${escapeHtml(claim.orderNumber)}</strong>)</p>
+          <p>สิทธิ์ใช้งานถึงวันที่ <strong>${escapeHtml(endsAt)}</strong> — ทีมงานจะเปิดสิทธิ์ในแต่ละช่องทางให้ตามข้อมูลในหน้าสมาชิก</p>
+          <p>ต่ออายุได้ในช่วง 7 วันก่อนหมดอายุ ที่หน้า "สิทธิ์ผ่านโบรกเกอร์" ในแดชบอร์ดสมาชิก (ทีมงานจะตรวจบัญชีอีกครั้ง)</p>
+          ${emailButton(`${appUrl()}/account/broker-ib`, "ดูสถานะสิทธิ์")}
+        `,
+      ),
+    });
+    if (error) {
+      console.error("[Email Error] Failed to send IB claim approved email via Resend:", error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("[Email Exception] Unexpected error sending IB claim approved email:", err);
+    return false;
+  }
+}
+
+/** แจ้งสมาชิกว่าคำขอสิทธิ์ผ่าน IB ไม่ผ่านการตรวจสอบ พร้อมเหตุผล */
+export async function sendBrokerClaimRejectedEmail(
+  email: string,
+  claim: { orderNumber: string; reason: string; pageUrl: string },
+): Promise<boolean> {
+  if (!resend) {
+    if (process.env.NODE_ENV === "production") {
+      console.error("[Email] RESEND_API_KEY ไม่ได้ตั้งค่า — ไม่ได้ส่งอีเมลแจ้งคำขอ IB ไม่ผ่าน", { orderNumber: claim.orderNumber });
+      return false;
+    }
+    console.info(`[Email Simulation] IB claim rejected for ${email}: ${claim.orderNumber}, reason: ${claim.reason}`);
+    return true;
+  }
+  try {
+    const { error } = await resend.emails.send({
+      from: fromEmail,
+      to: email,
+      subject: `คำขอสิทธิ์ผ่านโบรกเกอร์ไม่ผ่านการตรวจสอบ (คำขอ ${claim.orderNumber}) - ${siteConfig.name}`,
+      html: emailLayout(
+        "คำขอสิทธิ์ผ่านโบรกเกอร์ไม่ผ่านการตรวจสอบ",
+        `
+          <p>คำขอ <strong>${escapeHtml(claim.orderNumber)}</strong> ยังไม่ได้รับการอนุมัติ</p>
+          <p><strong>เหตุผล:</strong> ${escapeHtml(claim.reason)}</p>
+          <p>แก้ไขตามเหตุผลแล้วยื่นคำขอใหม่ได้ที่หน้าสิทธิ์ผ่านโบรกเกอร์ หรือติดต่อทีมงาน</p>
+          ${emailButton(claim.pageUrl, "ไปหน้าสิทธิ์ผ่านโบรกเกอร์")}
+        `,
+        WARNING_ORANGE,
+      ),
+    });
+    if (error) {
+      console.error("[Email Error] Failed to send IB claim rejected email via Resend:", error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("[Email Exception] Unexpected error sending IB claim rejected email:", err);
+    return false;
+  }
+}

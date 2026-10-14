@@ -6,6 +6,8 @@ import { getPaymentAvailability } from "@/lib/orders/availability";
 import { ActionForm } from "@/components/admin/action-form";
 import { AdminCard, AdminPageHeader, inputClass, labelClass } from "@/components/admin/admin-ui";
 import { updateSettingsAction } from "../actions";
+import { updateBrokerIbSettingsAction } from "../broker-ib-actions";
+import { computeBrokerIbAvailability, type BrokerIbAvailability } from "@/lib/broker-ib/availability";
 
 export const metadata: Metadata = { title: "ตั้งค่าระบบ", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -16,12 +18,30 @@ const AVAILABILITY_TEXT = {
   NOT_CONFIGURED: "เปิดไว้แต่บัญชี PromptPay ไม่ครบ — ระบบจึงยังไม่รับเงิน",
 } as const;
 
+const IB_STATUS_TEXT = {
+  DISABLED: "ปิดรับคำขอ — ไม่แสดงบนหน้าเว็บ",
+  MAINTENANCE: "ปิดปรับปรุงระบบ — ไม่แสดงบนหน้าเว็บ",
+  NOT_CONFIGURED: "เปิดไว้แต่ข้อมูลไม่ครบ — ยังไม่แสดงบนหน้าเว็บ",
+} as const;
+
+function ibStatusText(availability: BrokerIbAvailability): string {
+  if (!availability.open) return IB_STATUS_TEXT[availability.reason];
+  return `เปิดรับคำขอ — ${availability.brokers.map((offer) => offer.label).join(", ")} · ฝากขั้นต่ำ $${availability.minDepositUsd}`;
+}
+
 export default async function AdminSettingsPage() {
   await requireAdminPage();
-  const [setting, availability] = await Promise.all([
+  const [setting, availability, pendingClaims] = await Promise.all([
     prisma.systemSetting.findUnique({ where: { id: SYSTEM_SETTING_ID } }),
     getPaymentAvailability(prisma),
+    prisma.order.count({ where: { kind: "BROKER_IB", status: "CLAIM_SUBMITTED" } }),
   ]);
+  const ibMinDeposit = setting?.ibMinDepositUsd?.toNumber() ?? null;
+  const ibAvailability = computeBrokerIbAvailability(
+    setting
+      ? { ibClaimsEnabled: setting.ibClaimsEnabled, maintenanceMode: setting.maintenanceMode, ibXmLink: setting.ibXmLink, ibExnessLink: setting.ibExnessLink, ibMinDepositUsd: ibMinDeposit }
+      : null,
+  );
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -56,6 +76,36 @@ export default async function AdminSettingsPage() {
           <label className="flex items-start gap-2 text-sm text-fg-muted">
             <input type="checkbox" name="maintenanceMode" defaultChecked={setting?.maintenanceMode ?? false} className="mt-1 accent-[#B8860B]" />
             โหมดปิดปรับปรุง (ปิดรับคำสั่งซื้อใหม่)
+          </label>
+        </ActionForm>
+      </AdminCard>
+
+      <AdminCard title="สิทธิ์ฟรีผ่านโบรกเกอร์ (IB)">
+        <p role="status" className={`mb-4 border px-4 py-3 text-sm rounded-xl ${ibAvailability.open ? "border-gold bg-gold-muted text-fg" : "border-line bg-surface-sunken text-fg-muted"}`}>
+          สถานะ: {ibStatusText(ibAvailability)}
+          {pendingClaims > 0 && <span className="block text-xs">มีคำขอรอตรวจ {pendingClaims} รายการ — ยังตรวจได้แม้ปิดรับคำขอใหม่</span>}
+        </p>
+        <ActionForm action={updateBrokerIbSettingsAction} submitLabel="บันทึกการตั้งค่า IB" pendingLabel="กำลังบันทึก...">
+          <div>
+            <label className={labelClass} htmlFor="ibXmLink">ลิงก์พาร์ทเนอร์ XM (https://...)</label>
+            <input id="ibXmLink" name="ibXmLink" type="url" defaultValue={setting?.ibXmLink ?? ""} maxLength={500} autoComplete="off" className={inputClass} />
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="ibExnessLink">ลิงก์พาร์ทเนอร์ Exness (https://...)</label>
+            <input id="ibExnessLink" name="ibExnessLink" type="url" defaultValue={setting?.ibExnessLink ?? ""} maxLength={500} autoComplete="off" className={inputClass} />
+          </div>
+          <div>
+            <label className={labelClass} htmlFor="ibMinDepositUsd">ยอดฝากครั้งแรกขั้นต่ำ (USD)</label>
+            <input id="ibMinDepositUsd" name="ibMinDepositUsd" inputMode="decimal" defaultValue={ibMinDeposit ?? ""} autoComplete="off" className={inputClass} />
+          </div>
+          <label className="flex items-start gap-2 text-sm text-fg-muted">
+            <input type="checkbox" name="ibClaimsEnabled" defaultChecked={setting?.ibClaimsEnabled ?? false} className="mt-1 accent-[#B8860B]" />
+            <span>
+              เปิดรับคำขอสิทธิ์ผ่าน IB
+              <span className="block text-xs text-fg-subtle">
+                เปิดแล้วหน้าเว็บจะแสดงลิงก์และขั้นตอน — ก่อนเปิดควรตรวจข้อกฎหมายเรื่องการแนะนำโบรกเกอร์ต่างประเทศให้ลูกค้าในไทย
+              </span>
+            </span>
           </label>
         </ActionForm>
       </AdminCard>

@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@prisma/client";
+import type { PrismaClient, AccessKind } from "@prisma/client";
 import { PAYMENT_RULES } from "@/config/payment";
 import { expireStaleOrders } from "@/lib/orders/create-order";
 import { writeAudit } from "@/lib/admin/audit";
@@ -127,6 +127,8 @@ export interface ReminderTarget {
   telegramChatId: string | null;
   planName: string;
   planSlug: string;
+  /** BROKER_IB = สิทธิ์ฟรีผ่าน IB — ต่ออายุด้วยการยื่นคำขอใหม่ ไม่ใช่หน้าชำระเงิน */
+  planKind?: AccessKind;
   endsAt: Date;
 }
 
@@ -177,7 +179,7 @@ export async function sendExpiryReminders(
       id: true,
       userId: true,
       currentPeriodEnd: true,
-      plan: { select: { name: true, slug: true } },
+      plan: { select: { name: true, slug: true, kind: true } },
       user: { select: { email: true, telegramChatId: true } },
     },
   });
@@ -202,6 +204,7 @@ export async function sendExpiryReminders(
         telegramChatId: candidate.user.telegramChatId,
         planName: candidate.plan.name,
         planSlug: candidate.plan.slug,
+        planKind: candidate.plan.kind,
         endsAt: candidate.currentPeriodEnd,
       });
     } catch (error) {

@@ -23,6 +23,8 @@ export async function searchMembers(
   { q, page = 1, now = new Date() }: { q?: string; page?: number; now?: Date },
 ): Promise<{ items: MemberListItem[]; total: number; page: number; pageSize: number }> {
   const query = q?.trim();
+  // เลขบัญชีเทรดที่ผูกไว้ (สิทธิ์ผ่าน IB) — ค้นเฉพาะเมื่อมีตัวเลข (กันคำค้นอย่าง "-" กลายเป็นค่าว่างแล้วได้ทุกคน)
+  const accountDigits = query?.replace(/\D/g, "") ?? "";
   const where: Prisma.UserWhereInput = query
     ? {
         OR: [
@@ -30,6 +32,7 @@ export async function searchMembers(
           { name: { contains: query, mode: "insensitive" } },
           { tradingViewUsername: { contains: query, mode: "insensitive" } },
           { discordUserId: { contains: query } },
+          ...(accountDigits ? [{ brokerAccounts: { some: { accountNumber: { contains: accountDigits } } } }] : []),
         ],
       }
     : {};
@@ -68,7 +71,7 @@ export async function getMemberDetail(db: PrismaClient, { userId, now = new Date
       orders: {
         orderBy: { createdAt: "desc" },
         take: 50,
-        select: { id: true, orderNumber: true, status: true, amount: true, createdAt: true, plan: { select: { name: true } } },
+        select: { id: true, orderNumber: true, status: true, kind: true, amount: true, createdAt: true, plan: { select: { name: true } } },
       },
       subscriptions: {
         orderBy: { currentPeriodStart: "desc" },
@@ -85,9 +88,13 @@ export async function getMemberDetail(db: PrismaClient, { userId, now = new Date
           telegramGranted: true,
           revokedAt: true,
           revocationReason: true,
-          plan: { select: { name: true } },
-          order: { select: { orderNumber: true } },
+          plan: { select: { name: true, kind: true } },
+          order: { select: { id: true, orderNumber: true } },
         },
+      },
+      brokerAccounts: {
+        orderBy: { updatedAt: "desc" },
+        select: { id: true, broker: true, platform: true, accountNumber: true, registeredEmail: true, status: true, firstVerifiedAt: true, lastVerifiedAt: true },
       },
     },
   });

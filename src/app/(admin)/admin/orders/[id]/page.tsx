@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { requireAdminPage } from "@/lib/admin/page-guard";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, ExternalLink, ShieldAlert } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { formatBaht, formatDateTime, formatFileSize } from "@/lib/format";
@@ -129,6 +129,8 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
   await requireAdminPage();
   const order = await getAdminOrderDetail(prisma, id);
   if (!order) notFound();
+  // คำขอสิทธิ์ผ่าน IB มีหน้าตรวจของตัวเอง (ไม่มีสลิป/คืนเงิน)
+  if (order.kind === "BROKER_IB") redirect(`/admin/broker-claims/${id}`);
 
   return (
     <div className="space-y-6">

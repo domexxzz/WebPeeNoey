@@ -1,6 +1,8 @@
 import type { ApproveResult, RefundResult, RejectResult } from "./order-review";
 import type { RevokeResult } from "./members";
 import type { SettingsResult } from "./settings";
+import type { BrokerIbSettingsResult } from "@/lib/broker-ib/settings";
+import type { ApproveBrokerClaimResult, RejectBrokerClaimResult, ReleaseBrokerAccountResult, RevokeBrokerAccessResult } from "@/lib/broker-ib/review";
 
 type FailureCode<T> = T extends { ok: false; code: infer C } ? C : never;
 
@@ -10,13 +12,18 @@ export type AdminErrorCode =
   | FailureCode<RefundResult>
   | FailureCode<RevokeResult>
   | FailureCode<SettingsResult>
+  | FailureCode<BrokerIbSettingsResult>
+  | FailureCode<ApproveBrokerClaimResult>
+  | FailureCode<RejectBrokerClaimResult>
+  | FailureCode<RevokeBrokerAccessResult>
+  | FailureCode<ReleaseBrokerAccountResult>
   | "FORBIDDEN"
   | "CONFIRM_REQUIRED"
   | "UNEXPECTED";
 
 export const ADMIN_ERROR_MESSAGES: Record<AdminErrorCode, string> = {
   ORDER_NOT_FOUND: "ไม่พบคำสั่งซื้อนี้",
-  NOT_PENDING_REVIEW: "คำสั่งซื้อนี้ไม่ได้อยู่ในสถานะรอตรวจสลิปแล้ว (อาจมีแอดมินคนอื่นดำเนินการไปแล้ว) — รีเฟรชหน้าเพื่อดูสถานะล่าสุด",
+  NOT_PENDING_REVIEW: "รายการนี้ไม่ได้อยู่ในสถานะรอตรวจแล้ว (อาจมีแอดมินคนอื่นดำเนินการไปแล้ว) — รีเฟรชหน้าเพื่อดูสถานะล่าสุด",
   REFERENCE_REQUIRED: "กรุณากรอกเลขอ้างอิงธุรกรรมจากสลิป",
   INVALID_REFERENCE: "เลขอ้างอิงต้องเป็นตัวอักษรภาษาอังกฤษหรือตัวเลข 4–64 ตัว",
   DUPLICATE_REFERENCE: "เลขอ้างอิงนี้เคยใช้อนุมัติคำสั่งซื้ออื่นแล้ว — สลิปนี้อาจถูกนำมาใช้ซ้ำ ห้ามอนุมัติ",
@@ -27,6 +34,15 @@ export const ADMIN_ERROR_MESSAGES: Record<AdminErrorCode, string> = {
   MEMBER_NOT_FOUND: "ไม่พบสมาชิกนี้",
   INVALID_PROMPTPAY: "เลข PromptPay ไม่ถูกต้อง (เบอร์มือถือ 10 หลัก, เลขประจำตัว 13 หลัก หรือ e-Wallet 15 หลัก) — ต้องกรอกก่อนเปิดรับเงิน",
   ACCOUNT_NAME_REQUIRED: "กรุณากรอกชื่อบัญชีผู้รับก่อนเปิดรับเงิน",
+  INVALID_IB_LINK: "ลิงก์พาร์ทเนอร์ต้องขึ้นต้นด้วย https:// และไม่มีชื่อผู้ใช้/รหัสผ่านในลิงก์ (ยาวไม่เกิน 500 ตัวอักษร)",
+  INVALID_MIN_DEPOSIT: "ยอดฝากขั้นต่ำต้องเป็นตัวเลข 1–100,000 USD ทศนิยมไม่เกิน 2 ตำแหน่ง",
+  CHECKS_REQUIRED: "ติ๊กยืนยันผลตรวจใน Partner Portal ให้ครบทุกข้อก่อนอนุมัติ",
+  ACCOUNT_RELEASED: "บัญชีเทรดนี้ถูกปลดการผูกแล้ว — อนุมัติไม่ได้ (ให้สมาชิกยื่นใหม่)",
+  NOT_IN_RENEWAL_WINDOW: "สมาชิกยังมีสิทธิ์เหลือมากกว่า 7 วัน — อนุมัติไม่ได้ตอนนี้ (ปฏิเสธพร้อมเหตุผล หรือรอให้ถึงช่วงต่ออายุ)",
+  NOTHING_TO_REVOKE: "สมาชิกไม่มีสิทธิ์ผ่าน IB หรือคำขอที่รอตรวจให้ปิดแล้ว",
+  BROKER_ACCOUNT_NOT_FOUND: "ไม่พบบัญชีเทรดนี้",
+  ALREADY_RELEASED: "บัญชีเทรดนี้ถูกปลดการผูกไปแล้ว",
+  IB_NOT_CONFIGURED: "เปิดรับคำขอได้เมื่อกรอกลิงก์พาร์ทเนอร์อย่างน้อย 1 โบรกเกอร์และยอดฝากขั้นต่ำแล้ว",
   FORBIDDEN: "บัญชีนี้ไม่มีสิทธิ์แอดมิน",
   CONFIRM_REQUIRED: "กรุณาติ๊กยืนยันก่อนดำเนินการ",
   UNEXPECTED: "เกิดข้อผิดพลาดที่ไม่คาดคิด ระบบบันทึกไว้แล้ว — ลองใหม่อีกครั้ง",

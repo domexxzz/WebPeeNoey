@@ -95,6 +95,20 @@ describe("Phase 5: expiry reminder delivery", () => {
     expect(sendTelegram).toHaveBeenCalledWith("777", expect.stringContaining("https://example.test/checkout/monthly"));
   });
 
+  it("sends members on a free broker IB grant to the IB renewal page, not to checkout", async () => {
+    const sendEmail = vi.fn(async () => true);
+    const sendTelegram = vi.fn(async (_chatId: string, _text: string) => ({ ok: true as const }));
+    const send = createReminderSender({ siteUrl: "https://example.test", now, sendEmail, sendTelegram });
+
+    await send({ ...target, planSlug: "broker-ib", planKind: "BROKER_IB", telegramChatId: "777" });
+
+    expect(sendEmail).toHaveBeenCalledWith("c@example.com", expect.objectContaining({ renewUrl: "https://example.test/account/broker-ib" }));
+    const text = vi.mocked(sendTelegram).mock.calls[0][1];
+    expect(text).toContain("https://example.test/account/broker-ib");
+    expect(text).toContain("IB");
+    expect(text).not.toContain("/checkout/");
+  });
+
   it("skips Telegram for members without a linked chat and reports channel failures", async () => {
     const sendTelegram = vi.fn();
     const send = createReminderSender({ siteUrl: "https://example.test", now, sendEmail: vi.fn(async () => false), sendTelegram });

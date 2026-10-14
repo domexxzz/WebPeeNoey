@@ -41,7 +41,7 @@ export interface RevenueSummary {
 /** ยอดขายสุทธิ = รับเข้า − คืนเงิน (คำนวณด้วย Decimal ในฐานข้อมูล ไม่โหลดทุกออเดอร์มาบวกเอง) */
 export async function getRevenueSummary(db: PrismaClient): Promise<RevenueSummary> {
   const [sold, refunds] = await Promise.all([
-    db.order.aggregate({ where: { status: { in: ["APPROVED", "REFUNDED"] } }, _sum: { amount: true }, _count: { _all: true } }),
+    db.order.aggregate({ where: { kind: "PAID", status: { in: ["APPROVED", "REFUNDED"] } }, _sum: { amount: true }, _count: { _all: true } }),
     db.refund.aggregate({ _sum: { amount: true } }),
   ]);
   const gross = sold._sum.amount ?? new Prisma.Decimal(0);

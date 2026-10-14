@@ -12,6 +12,11 @@ export const AUDIT_ACTIONS = {
   SETTINGS_UPDATE: "แก้ไขการตั้งค่าระบบ",
   SUBSCRIPTION_EXPIRE: "สิทธิ์หมดอายุ (อัตโนมัติ)",
   PROVISIONING_CARRY_OVER: "ย้ายสถานะเปิดสิทธิ์ไปช่วงถัดไป (อัตโนมัติ)",
+  IB_SETTINGS_UPDATE: "แก้ไขการตั้งค่าสิทธิ์ผ่าน IB",
+  BROKER_CLAIM_APPROVE: "อนุมัติสิทธิ์ผ่าน IB",
+  BROKER_CLAIM_REJECT: "ปฏิเสธคำขอสิทธิ์ผ่าน IB",
+  BROKER_IB_REVOKE: "ปิดสิทธิ์ผ่าน IB",
+  BROKER_ACCOUNT_RELEASE: "ปลดการผูกบัญชีโบรกเกอร์",
 } as const;
 
 /** ชื่อที่แสดงแทนผู้กระทำเมื่อเป็นงานอัตโนมัติ (actorId = null) */
@@ -23,7 +28,7 @@ interface AuditEntry {
   /** null = งานอัตโนมัติของระบบ (Cron) */
   actor: ActorContext | null;
   action: AuditAction;
-  targetType: "Order" | "Subscription" | "User" | "System";
+  targetType: "Order" | "Subscription" | "User" | "System" | "BrokerAccount";
   targetId: string;
   details: Prisma.InputJsonValue;
 }

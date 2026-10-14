@@ -6,7 +6,15 @@ import { PAYMENT_RULES } from "@/config/payment";
  * - AWAITING_PAYMENT: แสดง QR ให้สแกนจ่าย
  * - SLIP_GRACE: หมดเวลาชำระแล้ว แต่ยังแนบสลิปได้ (เผื่อโอนในนาทีสุดท้าย)
  */
-export type OrderPhase = "AWAITING_PAYMENT" | "SLIP_GRACE" | "EXPIRED" | "SLIP_SUBMITTED" | "REJECTED" | "APPROVED" | "REFUNDED";
+export type OrderPhase =
+  | "AWAITING_PAYMENT"
+  | "SLIP_GRACE"
+  | "EXPIRED"
+  | "SLIP_SUBMITTED"
+  | "CLAIM_SUBMITTED"
+  | "REJECTED"
+  | "APPROVED"
+  | "REFUNDED";
 
 const GRACE_MS = PAYMENT_RULES.slipUploadGraceMinutes * 60 * 1000;
 

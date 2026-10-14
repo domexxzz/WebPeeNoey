@@ -1,4 +1,4 @@
-import { Prisma, type OrderStatus, type PrismaClient } from "@prisma/client";
+import { Prisma, type AccessKind, type OrderStatus, type PrismaClient } from "@prisma/client";
 import { validateSlipFile } from "@/lib/payments/slip";
 import { computeSlipHash } from "@/lib/security";
 import { acceptsSlip, computeOrderPhase } from "./phase";
@@ -40,10 +40,11 @@ export async function submitSlip(db: PrismaClient, input: SubmitSlipInput): Prom
   try {
     return await db.$transaction(
       async (tx): Promise<SubmitSlipResult> => {
-        const [order] = await tx.$queryRaw<{ id: string; userId: string; status: OrderStatus; expiresAt: Date }[]>`
-          SELECT id, "userId", status, "expiresAt" FROM "Order" WHERE id = ${input.orderId} FOR UPDATE
+        const [order] = await tx.$queryRaw<{ id: string; userId: string; status: OrderStatus; expiresAt: Date; kind: AccessKind }[]>`
+          SELECT id, "userId", status, "expiresAt", kind FROM "Order" WHERE id = ${input.orderId} FOR UPDATE
         `;
-        if (!order || order.userId !== input.userId) return { ok: false, code: "ORDER_NOT_FOUND" };
+        // คำขอสิทธิ์ผ่าน IB ไม่มีการชำระเงิน — ห้ามแนบสลิป (ออเดอร์ IB ที่ถูกปฏิเสธก็ห้าม)
+        if (!order || order.userId !== input.userId || order.kind !== "PAID") return { ok: false, code: "ORDER_NOT_FOUND" };
 
         const phase = computeOrderPhase(order, now);
         if (!acceptsSlip(phase)) {

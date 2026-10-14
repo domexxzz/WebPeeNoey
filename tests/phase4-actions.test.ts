@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getServerSession } from "next-auth";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { getAdminActor } from "@/lib/admin/guard";
 import { approveOrder, refundOrder, rejectOrder } from "@/lib/admin/order-review";
 import { revokeMemberAccess, setProvisioning } from "@/lib/admin/members";
@@ -20,7 +20,7 @@ import {
 vi.mock("next-auth", () => ({ getServerSession: vi.fn() }));
 vi.mock("@/lib/auth", () => ({ authOptions: {} }));
 vi.mock("@/lib/prisma", () => ({ prisma: {} }));
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("next/cache", () => ({ revalidatePath: vi.fn(), revalidateTag: vi.fn(), unstable_cache: (fn: unknown) => fn }));
 vi.mock("next/headers", () => ({ headers: vi.fn(() => new Headers({ "x-forwarded-for": "203.0.113.9" })) }));
 vi.mock("@/lib/admin/guard", () => ({ getAdminActor: vi.fn() }));
 vi.mock("@/lib/admin/order-review", () => ({ approveOrder: vi.fn(), rejectOrder: vi.fn(), refundOrder: vi.fn() }));
@@ -164,6 +164,16 @@ describe("Phase 4: settings, revoke and provisioning actions", () => {
     vi.mocked(setProvisioning).mockResolvedValue({ ok: true, orderId: "o9", userId: "u9" });
     await setProvisioningAction(idle, form({ channel: "discord", subscriptionId: "s1", granted: "true", revalidate: "https://evil.example" }));
     expect(setProvisioning).toHaveBeenCalledWith(expect.anything(), { subscriptionId: "s1", channel: "discord", granted: true, actor });
-    expect(vi.mocked(revalidatePath).mock.calls.map(([path]) => path)).toEqual(["/admin/orders/o9", "/admin/members/u9"]);
+    expect(vi.mocked(revalidatePath).mock.calls.map(([path]) => path)).toEqual(["/admin/orders/o9", "/admin/broker-claims/o9", "/admin/members/u9"]);
+  });
+});
+
+describe("Phase 4: settings refresh the public broker IB offer", () => {
+  it("maintenance mode hides the IB offer on the public pages immediately", async () => {
+    vi.mocked(updatePaymentSettings).mockResolvedValue({ ok: true });
+    await updateSettingsAction(idle, form({ maintenanceMode: "on" }));
+    expect(revalidateTag).toHaveBeenCalledWith("broker-ib-offer");
+    expect(revalidatePath).toHaveBeenCalledWith("/");
+    expect(revalidatePath).toHaveBeenCalledWith("/broker-ib");
   });
 });

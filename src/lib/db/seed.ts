@@ -1,5 +1,6 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
 import { SITE_PLANS } from "@/config/plans";
+import { BROKER_IB_PLAN } from "@/config/broker-ib";
 import { hashPassword } from "@/lib/security";
 import { SYSTEM_SETTING_ID } from "./constants";
 
@@ -56,6 +57,21 @@ async function seedPlans(prisma: PrismaClient): Promise<number> {
   return records.length;
 }
 
+/** แพ็กเกจสิทธิ์ฟรีผ่าน IB (ราคา 0) — แยกจาก buildPlanRecords เพราะห้ามขายผ่าน Checkout (migration ก็สร้างแถวนี้ให้ production) */
+async function seedBrokerIbPlan(prisma: PrismaClient): Promise<void> {
+  const record = {
+    slug: BROKER_IB_PLAN.slug,
+    name: BROKER_IB_PLAN.name,
+    durationDays: BROKER_IB_PLAN.durationDays,
+    price: 0,
+    features: [...BROKER_IB_PLAN.features],
+    sortOrder: BROKER_IB_PLAN.sortOrder,
+    isActive: true,
+    kind: "BROKER_IB" as const,
+  };
+  await prisma.plan.upsert({ where: { slug: record.slug }, create: { id: BROKER_IB_PLAN.id, ...record }, update: record });
+}
+
 async function seedSystemSetting(prisma: PrismaClient): Promise<void> {
   // สร้างแถวเริ่มต้นเท่านั้น ไม่เขียนทับค่าที่แอดมินตั้งไว้แล้ว — และปิดรับชำระเงินเสมอเมื่อสร้างใหม่
   await prisma.systemSetting.upsert({
@@ -92,6 +108,7 @@ async function seedAdmin(prisma: PrismaClient, { adminEmail, adminPassword }: Se
 export async function seedDatabase(prisma: PrismaClient, options: SeedOptions): Promise<SeedResult> {
   validateSeedOptions(options);
   const planCount = await seedPlans(prisma);
+  await seedBrokerIbPlan(prisma);
   await seedSystemSetting(prisma);
   const adminCreated = await seedAdmin(prisma, options);
   return { planCount, adminCreated };

@@ -36,14 +36,17 @@ export function hashToken(token: string): string {
   return crypto.createHash("sha256").update(token).digest("hex");
 }
 
+/** ORD = ออเดอร์ชำระเงิน, IB = คำขอสิทธิ์ผ่านโบรกเกอร์ */
+export type OrderNumberPrefix = "ORD" | "IB";
+
 /**
  * สุ่มรหัส Order Number เช่น ORD-20261010-A89F3C (วันที่ตามเวลาไทย + สุ่ม 6 หลัก)
  * ผู้เรียกต้องลองใหม่เมื่อชน unique constraint (โอกาสต่ำมาก)
  */
-export function generateOrderNumber(now: Date = new Date()): string {
+export function generateOrderNumber(now: Date = new Date(), prefix: OrderNumberPrefix = "ORD"): string {
   const dateStr = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok", year: "numeric", month: "2-digit", day: "2-digit" })
     .format(now)
     .replace(/-/g, "");
   const randomSuffix = crypto.randomBytes(3).toString("hex").toUpperCase();
-  return `ORD-${dateStr}-${randomSuffix}`;
+  return `${prefix}-${dateStr}-${randomSuffix}`;
 }

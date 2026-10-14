@@ -15,6 +15,7 @@ enum Role {
 enum OrderStatus {
   PENDING_PAYMENT    // สร้างออเดอร์ รอชำระเงิน
   SLIP_SUBMITTED     // แนบสลิปแล้ว กำลังรอแอดมินตรวจสอบ
+  CLAIM_SUBMITTED    // คำขอสิทธิ์ผ่าน IB โบรกเกอร์ รอแอดมินตรวจใน Partner Portal (ไม่ใช่สลิป — เส้นทางสลิปไม่แตะสถานะนี้)
   APPROVED           // อนุมัติสำเร็จ ได้รับสิทธิ์เรียบร้อย
   REJECTED           // ปฏิเสธ (เช่น สลิปไม่ตรง / สลิปปลอม)
   EXPIRED            // ออเดอร์หมดเวลา (ไม่ได้โอนภายในเวลา)
@@ -26,6 +27,28 @@ enum SubscriptionStatus {
   EXPIRING_SOON      // แจ้งเตือนแล้ว (เหลือ <= 3 วัน)
   EXPIRED            // สิทธิ์หมดอายุแล้ว
   REVOKED            // ถูกปิดสิทธิ์ก่อนกำหนดโดยแอดมิน
+}
+
+/// แพ็กเกจ/ออเดอร์แบบชำระเงิน หรือสิทธิ์ฟรีผ่าน IB โบรกเกอร์ (ราคา 0 — ห้ามเข้าเส้นทาง PromptPay)
+enum AccessKind {
+  PAID
+  BROKER_IB
+}
+
+enum Broker {
+  XM
+  EXNESS
+}
+
+enum TradingPlatform {
+  MT4
+  MT5
+}
+
+enum BrokerAccountStatus {
+  PENDING            // ยื่นครั้งแรก รอตรวจ
+  VERIFIED           // แอดมินยืนยันใน Partner Portal แล้วอย่างน้อย 1 ครั้ง
+  RELEASED           // ปลดการผูกแล้ว — สมาชิกคนใดก็ยื่นบัญชีนี้ใหม่ได้ (แถวเดิมถูกนำกลับมาใช้)
 }
 
 enum PaymentMethod {
@@ -56,6 +79,7 @@ model User {
   subscriptions         Subscription[]
   auditLogs             AuditLog[]     @relation("AdminAuditLogs")
   telegramLinkTokens    TelegramLinkToken[]
+  brokerAccounts        BrokerAccount[]
   
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
@@ -122,6 +146,7 @@ model Plan {
   features            String[]       // ลิสต์รายการฟีเจอร์ในแพ็กเกจ
   isActive            Boolean        @default(true)
   sortOrder           Int            @default(0)
+  kind                AccessKind     @default(PAID) // BROKER_IB = สิทธิ์ฟรีผ่าน IB (ไม่ขายผ่าน Checkout)
   
   orders              Order[]
   subscriptions       Subscription[]
@@ -161,6 +186,13 @@ model Order {
 
   // เวลาที่แจ้งแอดมินเรื่องสลิปสำเร็จ — null = ยังไม่ได้แจ้ง (Cron ส่งซ้ำได้)
   adminNotifiedAt     DateTime?
+
+  // คำขอสิทธิ์ผ่าน IB: amount = 0, ไม่มี Payment, expiresAt ไม่ถูกใช้ (มีผลเฉพาะ PENDING_PAYMENT)
+  kind                AccessKind     @default(PAID)
+  brokerAccountId     String?
+  /// ยอดฝากขั้นต่ำ ณ เวลายื่น — แอดมินตรวจเทียบค่านี้แม้ตั้งค่าเปลี่ยนภายหลัง
+  ibMinDepositUsd     Decimal?       @db.Decimal(10, 2)
+  brokerAccount       BrokerAccount? @relation(fields: [brokerAccountId], references: [id], onDelete: Restrict)
   
   user                User           @relation(fields: [userId], references: [id], onDelete: Restrict)
   plan                Plan           @relation(fields: [planId], references: [id], onDelete: Restrict)
@@ -175,6 +207,34 @@ model Order {
   @@index([userId, status])
   @@index([slipHash])
   @@index([orderNumber])
+  @@index([kind, status])
+  @@index([brokerAccountId])
+}
+
+/// บัญชีเทรดที่ผูกกับสมาชิก — unique (broker, accountNumber): เลขบัญชีเดียวผูกได้ครั้งละ 1 สมาชิก ไม่ว่าจะระบุ MT4 หรือ MT5 (เทียบ slipHash)
+/// ห้ามลบแถว (Order อ้างอิง) — ปลดด้วยสถานะ RELEASED แล้วสมาชิกคนใหม่ใช้แถวเดิมต่อ
+model BrokerAccount {
+  id                   String              @id @default(cuid())
+  userId               String
+  broker               Broker
+  platform             TradingPlatform
+  accountNumber        String              // ตัวเลขล้วนหลัง normalize
+  registeredEmail      String              // อีเมลที่สมัครกับโบรกเกอร์ (ตัวพิมพ์เล็ก)
+  status               BrokerAccountStatus @default(PENDING)
+  firstVerifiedAt      DateTime?
+  lastVerifiedAt       DateTime?
+  lastVerifiedByUserId String?
+  releasedAt           DateTime?
+  releaseReason        String?
+
+  user                 User                @relation(fields: [userId], references: [id], onDelete: Restrict)
+  orders               Order[]
+
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  @@unique([broker, accountNumber])
+  @@index([userId, status])
 }
 
 /// สลิปทุกใบที่เคยอัปโหลด (รวมใบที่ถูกปฏิเสธ) — hash unique ทำให้สลิปเดิมใช้ซ้ำกับออเดอร์ไหนไม่ได้อีก
@@ -303,6 +363,11 @@ model SystemSetting {
   promptpayNumber     String         @default("")
   supportTelegramUrl  String?
   maintenanceMode     Boolean        @default(false)
+  // สิทธิ์ฟรีผ่าน IB โบรกเกอร์ — ปิดไว้จนกว่าแอดมินกรอกลิงก์พาร์ทเนอร์ + ยอดฝากขั้นต่ำ แล้วเปิดเอง
+  ibClaimsEnabled     Boolean        @default(false)
+  ibXmLink            String         @default("")
+  ibExnessLink        String         @default("")
+  ibMinDepositUsd     Decimal?       @db.Decimal(10, 2) // null = ยังไม่ได้ตั้ง
   updatedAt           DateTime       @updatedAt
 }
 

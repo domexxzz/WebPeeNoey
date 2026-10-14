@@ -9,6 +9,7 @@ import { getMemberDetail } from "@/lib/admin/members";
 import { ActionForm } from "@/components/admin/action-form";
 import { AdminCard, AdminOrderBadge, DefinitionList, inputClass, labelClass, SubscriptionBadge } from "@/components/admin/admin-ui";
 import { ProvisioningPanel } from "@/components/admin/provisioning-panel";
+import { BrokerAccountPanel } from "@/components/admin/broker-account-panel";
 import { revokeMemberAction } from "../../actions";
 
 export const metadata: Metadata = { title: "รายละเอียดสมาชิก", robots: { index: false, follow: false } };
@@ -21,6 +22,9 @@ export default async function AdminMemberDetailPage({ params }: { params: Promis
   const member = await getMemberDetail(prisma, { userId: id, now });
   if (!member) notFound();
   const { membership } = member;
+  const hasIbAccess = member.subscriptions.some(
+    (subscription) => subscription.plan.kind === "BROKER_IB" && (subscription.status === "ACTIVE" || subscription.status === "EXPIRING_SOON") && subscription.currentPeriodEnd > now,
+  );
 
   return (
     <div className="space-y-6">
@@ -55,6 +59,7 @@ export default async function AdminMemberDetailPage({ params }: { params: Promis
                 <div className="flex flex-wrap items-center gap-3 text-sm text-fg-muted">
                   <SubscriptionBadge status={subscription.status} />
                   <span>{subscription.plan.name}</span>
+                  {subscription.plan.kind === "BROKER_IB" && <span className="border border-gold px-2 py-0.5 text-xs text-gold-ink rounded-full">IB</span>}
                   <span>{formatDate(subscription.currentPeriodStart)} → {formatDate(subscription.currentPeriodEnd)}</span>
                   <span className="font-mono text-xs text-fg-subtle">{subscription.order.orderNumber}</span>
                   {subscription.isPriceLocked && subscription.lockedPrice !== null && (
@@ -71,6 +76,8 @@ export default async function AdminMemberDetailPage({ params }: { params: Promis
         )}
       </AdminCard>
 
+      <BrokerAccountPanel userId={member.id} email={member.email} accounts={member.brokerAccounts} hasIbAccess={hasIbAccess} />
+
       <AdminCard title="คำสั่งซื้อ">
         {member.orders.length === 0 ? (
           <p className="text-sm text-fg-subtle">ยังไม่มี</p>
@@ -78,9 +85,11 @@ export default async function AdminMemberDetailPage({ params }: { params: Promis
           <ul className="divide-y divide-line-soft text-sm">
             {member.orders.map((order) => (
               <li key={order.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
-                <Link href={`/admin/orders/${order.id}`} className="font-mono text-gold-ink hover:underline">{order.orderNumber}</Link>
+                <Link href={order.kind === "BROKER_IB" ? `/admin/broker-claims/${order.id}` : `/admin/orders/${order.id}`} className="font-mono text-gold-ink hover:underline">
+                  {order.orderNumber}
+                </Link>
                 <span className="text-fg-subtle">{order.plan.name} · {formatDate(order.createdAt)}</span>
-                <span className="font-mono text-fg">{formatBaht(order.amount)}</span>
+                <span className="font-mono text-fg">{order.kind === "BROKER_IB" ? "ฟรี (IB)" : formatBaht(order.amount)}</span>
                 <AdminOrderBadge status={order.status} />
               </li>
             ))}

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { Activity, ClipboardCheck, ExternalLink, LayoutDashboard, ScrollText, Sliders, Users } from "lucide-react";
+import { Activity, ClipboardCheck, ExternalLink, Handshake, LayoutDashboard, ScrollText, Sliders, Users } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getAdminActor } from "@/lib/admin/guard";
@@ -13,6 +13,7 @@ import { displayFont, thaiFont } from "@/components/marketing/fonts";
 const ADMIN_NAV = [
   { href: "/admin", label: "ภาพรวมระบบ", icon: LayoutDashboard },
   { href: "/admin/orders", label: "ตรวจสอบออเดอร์", icon: ClipboardCheck },
+  { href: "/admin/broker-claims", label: "คำขอสิทธิ์ IB", icon: Handshake },
   { href: "/admin/members", label: "สมาชิก & สิทธิ์", icon: Users },
   { href: "/admin/audit-logs", label: "Audit Logs", icon: ScrollText },
   { href: "/admin/status", label: "สถานะระบบ", icon: Activity },

@@ -13,11 +13,15 @@ interface ReminderSenderDeps {
 /** ส่งเตือนก่อนหมดอายุทางอีเมล + Telegram ส่วนตัว (ถ้าสมาชิกเชื่อมบอทไว้) — ช่องทางใดสำเร็จก็ถือว่าเตือนแล้ว */
 export function createReminderSender({ siteUrl, now = new Date(), sendEmail = sendExpiryReminderEmail, sendTelegram = sendTelegramMessage }: ReminderSenderDeps): SendReminder {
   return async (target) => {
-    const renewUrl = `${siteUrl}/checkout/${encodeURIComponent(target.planSlug)}`;
+    // สิทธิ์ผ่าน IB ต่ออายุด้วยการยื่นคำขอใหม่ (ทีมงานตรวจบัญชีอีกครั้ง) — หน้า /checkout/broker-ib ไม่มีอยู่จริง
+    const viaBroker = target.planKind === "BROKER_IB";
+    const renewUrl = viaBroker ? `${siteUrl}/account/broker-ib` : `${siteUrl}/checkout/${encodeURIComponent(target.planSlug)}`;
     const daysLeft = daysUntil(target.endsAt, now);
     const telegramText = [
       `⏰ สิทธิ์ ${target.planName} ของคุณจะหมดอายุ ${formatDate(target.endsAt)} (อีก ${daysLeft} วัน)`,
-      "ต่ออายุก่อนหมด วันใช้งานจะทบต่อทันที:",
+      viaBroker
+        ? "ยื่นคำขอต่อสิทธิ์ผ่าน IB (ทีมงานตรวจบัญชีอีกครั้ง) หรือเลือกแพ็กเกจแบบชำระเงิน — วันใช้งานทบต่อทันที:"
+        : "ต่ออายุก่อนหมด วันใช้งานจะทบต่อทันที:",
       renewUrl,
     ].join("\n");
 

@@ -41,7 +41,9 @@ export async function listAdminOrders(
   await expireStaleOrders(db, { now });
   const statuses = ADMIN_ORDER_TABS[tab].statuses as readonly OrderStatus[];
   const query = q?.trim();
+  // คำขอสิทธิ์ผ่าน IB มีคิวของตัวเอง (/admin/broker-claims) — รายการนี้เป็นออเดอร์ชำระเงินเท่านั้น
   const where: Prisma.OrderWhereInput = {
+    kind: "PAID",
     ...(statuses.length ? { status: { in: [...statuses] } } : {}),
     ...(query
       ? {
@@ -76,7 +78,7 @@ export async function listAdminOrders(
       },
     }),
     db.order.count({ where }),
-    db.order.groupBy({ by: ["status"], _count: { _all: true } }),
+    db.order.groupBy({ by: ["status"], where: { kind: "PAID" }, _count: { _all: true } }),
   ]);
 
   const byStatus = new Map(grouped.map((group) => [group.status, group._count._all]));

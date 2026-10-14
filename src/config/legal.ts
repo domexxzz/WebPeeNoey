@@ -15,7 +15,7 @@ export const UNSET_LEGAL_VALUE = "[รอระบุโดยผู้ให้
 
 export const legalConfig = {
   isDraft: true,
-  effectiveDate: "2026-10-11",
+  effectiveDate: "2026-10-15",
   operatorName: operatorName || UNSET_LEGAL_VALUE,
   operatorAddress: operatorAddress || UNSET_LEGAL_VALUE,
   /** อายุขั้นต่ำของผู้ใช้บริการ (บรรลุนิติภาวะตามกฎหมายไทย) */

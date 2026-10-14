@@ -1,4 +1,4 @@
-import { Prisma, type OrderStatus, type PrismaClient } from "@prisma/client";
+import { Prisma, type AccessKind, type OrderStatus, type PrismaClient } from "@prisma/client";
 import type { ActorContext } from "./guard";
 import { writeAudit } from "./audit";
 import { carryOverProvisioning, nextPeriodFor, repackFutureSegments } from "./membership";
@@ -27,18 +27,20 @@ export function normalizeBankReference(raw: string): string {
   return raw.replace(/[\s-]/g, "").toUpperCase();
 }
 
-function normalizeReason(raw: string): string | null {
+export function normalizeReason(raw: string): string | null {
   const reason = raw.trim().replace(/\s+/g, " ");
   return reason.length >= REASON_MIN && reason.length <= REASON_MAX ? reason : null;
 }
 
-function isUniqueViolation(error: unknown): boolean {
+export function isUniqueViolation(error: unknown): boolean {
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
 }
 
 /** ล็อกแถวออเดอร์ (SELECT ... FOR UPDATE) — คำขอซ้ำ/พร้อมกันจะรอแล้วเห็นสถานะล่าสุด */
-async function lockOrder(tx: Tx, orderId: string): Promise<{ id: string; status: OrderStatus } | null> {
-  const [row] = await tx.$queryRaw<{ id: string; status: OrderStatus }[]>`SELECT id, status FROM "Order" WHERE id = ${orderId} FOR UPDATE`;
+export async function lockOrder(tx: Tx, orderId: string): Promise<{ id: string; status: OrderStatus; kind: AccessKind; userId: string } | null> {
+  const [row] = await tx.$queryRaw<{ id: string; status: OrderStatus; kind: AccessKind; userId: string }[]>`
+    SELECT id, status, kind, "userId" FROM "Order" WHERE id = ${orderId} FOR UPDATE
+  `;
   return row ?? null;
 }
 
@@ -62,7 +64,7 @@ export async function approveOrder(
       async (tx): Promise<ApproveResult> => {
         const locked = await lockOrder(tx, input.orderId);
         if (!locked) return { ok: false, code: "ORDER_NOT_FOUND" };
-        if (locked.status !== "SLIP_SUBMITTED") return { ok: false, code: "NOT_PENDING_REVIEW" };
+        if (locked.status !== "SLIP_SUBMITTED" || locked.kind !== "PAID") return { ok: false, code: "NOT_PENDING_REVIEW" };
 
         const order = await tx.order.findUniqueOrThrow({
           where: { id: input.orderId },
@@ -154,7 +156,7 @@ export async function rejectOrder(
     async (tx): Promise<RejectResult> => {
       const locked = await lockOrder(tx, input.orderId);
       if (!locked) return { ok: false, code: "ORDER_NOT_FOUND" };
-      if (locked.status !== "SLIP_SUBMITTED") return { ok: false, code: "NOT_PENDING_REVIEW" };
+      if (locked.status !== "SLIP_SUBMITTED" || locked.kind !== "PAID") return { ok: false, code: "NOT_PENDING_REVIEW" };
 
       const order = await tx.order.update({
         where: { id: input.orderId },
@@ -188,7 +190,8 @@ export async function refundOrder(
       async (tx): Promise<RefundResult> => {
         const locked = await lockOrder(tx, input.orderId);
         if (!locked) return { ok: false, code: "ORDER_NOT_FOUND" };
-        if (locked.status !== "APPROVED") return { ok: false, code: "NOT_REFUNDABLE" };
+        // สิทธิ์ผ่าน IB ไม่มีเงินให้คืน (ลูกค้าไม่ได้จ่ายเรา)
+        if (locked.status !== "APPROVED" || locked.kind !== "PAID") return { ok: false, code: "NOT_REFUNDABLE" };
 
         const order = await tx.order.findUniqueOrThrow({
           where: { id: input.orderId },

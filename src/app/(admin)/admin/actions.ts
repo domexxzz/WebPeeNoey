@@ -1,48 +1,18 @@
 "use server";
 
-import { getServerSession } from "next-auth";
-import { revalidatePath } from "next/cache";
-import { authOptions } from "@/lib/auth";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { siteConfig } from "@/config/site";
-import { getClientIp } from "@/lib/request";
 import { sendReceiptEmail, sendSlipRejectedEmail } from "@/lib/email";
 import { sendAdminTelegram } from "@/lib/notify/telegram";
 import { formatDate } from "@/lib/format";
-import { getAdminActor, type ActorContext } from "@/lib/admin/guard";
 import { approveOrder, refundOrder, rejectOrder } from "@/lib/admin/order-review";
 import { revokeMemberAccess, setProvisioning, PROVISIONING_CHANNELS, type ProvisioningChannel } from "@/lib/admin/members";
 import { updatePaymentSettings } from "@/lib/admin/settings";
-import { adminErrorMessage, type AdminErrorCode } from "@/lib/admin/messages";
+import { BROKER_IB_OFFER_TAG } from "@/lib/broker-ib/public-offer";
+import { checked, done, fail, field, runAdminAction, type AdminActionState } from "@/lib/admin/run-admin-action";
 
-export type AdminActionState = { status: "idle" } | { status: "success"; message: string } | { status: "error"; message: string };
-
-const field = (formData: FormData, name: string) => String(formData.get(name) ?? "").trim();
-const checked = (formData: FormData, name: string) => formData.get(name) === "on";
-const fail = (code: AdminErrorCode): AdminActionState => ({ status: "error", message: adminErrorMessage(code) });
-const done = (message: string): AdminActionState => ({ status: "success", message });
-
-/** ตรวจสิทธิ์แอดมินจาก DB ทุกครั้งที่เรียก action (server action ถูกเรียกตรงได้โดยไม่ผ่านหน้าเว็บ) */
-async function requireAdmin(): Promise<ActorContext | null> {
-  const session = await getServerSession(authOptions);
-  const admin = await getAdminActor(prisma, session?.user?.id);
-  return admin ? { id: admin.id, ipAddress: (await getClientIp()) ?? null } : null;
-}
-
-/** ห่อทุก action: ตรวจสิทธิ์ + log ข้อผิดพลาดที่ไม่คาดคิด (ห้ามล้มเงียบ) */
-async function runAdminAction(name: string, run: (actor: ActorContext) => Promise<AdminActionState>): Promise<AdminActionState> {
-  const actor = await requireAdmin();
-  if (!actor) return fail("FORBIDDEN");
-  try {
-    return await run(actor);
-  } catch (error) {
-    console.error(`[admin] ${name} failed`, { actorId: actor.id, error });
-    // ห้ามล้มเงียบ: แจ้งกลุ่มแอดมินด้วย (sendAdminTelegram log ความล้มเหลวของตัวเองอยู่แล้ว)
-    await sendAdminTelegram(`⚠️ หลังบ้าน: ${name} ล้มเหลว (UNEXPECTED)
-แอดมิน: ${actor.id}`);
-    return fail("UNEXPECTED");
-  }
-}
+export type { AdminActionState };
 
 function refreshOrder(orderId: string): void {
   revalidatePath("/admin");
@@ -128,6 +98,10 @@ PromptPay: ${field(formData, "promptpayNumber") || "-"}
     );
     revalidatePath("/admin/settings");
     revalidatePath("/admin");
+    // โหมดปิดปรับปรุงปิดข้อเสนอสิทธิ์ผ่าน IB บนหน้าเว็บด้วย — รีเฟรชแคชทันที ไม่รอ 5 นาที
+    revalidateTag(BROKER_IB_OFFER_TAG);
+    revalidatePath("/");
+    revalidatePath("/broker-ib");
     return done("บันทึกการตั้งค่าแล้ว");
   });
 }
@@ -157,6 +131,7 @@ export async function setProvisioningAction(_previous: AdminActionState, formDat
     if (!result.ok) return fail("UNEXPECTED");
     // คำนวณหน้าที่ต้องรีเฟรชจากข้อมูลฝั่ง server เอง ไม่รับ path จากฟอร์ม
     revalidatePath(`/admin/orders/${result.orderId}`);
+    revalidatePath(`/admin/broker-claims/${result.orderId}`);
     revalidatePath(`/admin/members/${result.userId}`);
     return done("อัปเดตสถานะการเปิดสิทธิ์แล้ว");
   });

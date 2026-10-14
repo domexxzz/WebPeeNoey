@@ -4,6 +4,7 @@ import { markAdminNotified } from "@/lib/orders/submit-slip";
 import { buildNewSlipMessage } from "@/lib/orders/slip-notification";
 import { sendAdminTelegram, type TelegramFailure, type TelegramWebhookInfo } from "@/lib/notify/telegram";
 import { JOB_NAMES, runJob, type AdminAlert, type JobOutcome } from "./job-run";
+import { checkBrokerClaimQueue, renotifyBrokerClaims } from "@/lib/broker-ib/watchdog-checks";
 
 const MINUTE_MS = 60 * 1000;
 const HOUR_MS = 60 * MINUTE_MS;
@@ -153,10 +154,19 @@ export async function inspectSystem(
   db: PrismaClient,
   { now, siteUrl, alert, webhookCheck, runId }: Required<Pick<WatchdogDeps, "now" | "siteUrl" | "alert">> & Pick<WatchdogDeps, "webhookCheck"> & { runId: string },
 ) {
-  const problems = [...(await checkJobs(db, now, runId)), ...(await checkReviewQueue(db, now)), ...(await checkDeprovisionQueue(db, now))];
+  const problems = [
+    ...(await checkJobs(db, now, runId)),
+    ...(await checkReviewQueue(db, now)),
+    ...(await checkBrokerClaimQueue(db, now)),
+    ...(await checkDeprovisionQueue(db, now)),
+  ];
   const slips = await renotifySlips(db, { now, siteUrl, alert });
   if (slips.failed > 0) {
     problems.push({ key: "slip-notify-failed", message: `แจ้งสลิปใหม่เข้ากลุ่มแอดมินไม่สำเร็จ ${slips.failed} รายการ — เปิดดูที่ ${siteUrl}/admin/orders` });
+  }
+  const claims = await renotifyBrokerClaims(db, { now, siteUrl, alert });
+  if (claims.failed > 0) {
+    problems.push({ key: "broker-claim-notify-failed", message: `แจ้งคำขอสิทธิ์ผ่าน IB เข้ากลุ่มแอดมินไม่สำเร็จ ${claims.failed} รายการ — เปิดดูที่ ${siteUrl}/admin/broker-claims` });
   }
   if (webhookCheck) problems.push(...(await checkWebhook(webhookCheck, now)));
   return { problems, slips };

@@ -1,5 +1,6 @@
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { SITE_PLANS } from "@/config/plans";
+import { BROKER_IB_PLAN } from "@/config/broker-ib";
 import { verifyPassword } from "@/lib/security";
 import { SYSTEM_SETTING_ID, seedDatabase } from "@/lib/db/seed";
 import { assertSafeTestDatabaseUrl } from "./global-setup";
@@ -20,13 +21,22 @@ describe("Integration: database seed (real PostgreSQL)", () => {
   it("creates every plan from config with exact prices and order", async () => {
     await seedDatabase(prisma, OPTIONS);
 
-    const plans = await prisma.plan.findMany({ orderBy: { sortOrder: "asc" } });
+    const plans = await prisma.plan.findMany({ where: { kind: "PAID" }, orderBy: { sortOrder: "asc" } });
     expect(plans.map((plan) => plan.slug)).toEqual(SITE_PLANS.map((plan) => plan.slug));
     plans.forEach((plan, index) => {
       expect(plan.price.toNumber()).toBe(SITE_PLANS[index].price);
       expect(plan.durationDays).toBe(SITE_PLANS[index].durationDays);
       expect(plan.promoEnrolledCount).toBe(0);
     });
+  });
+
+  it("creates the free broker IB plan (price 0, 30 days) that checkout can never sell", async () => {
+    await seedDatabase(prisma, OPTIONS);
+
+    const plan = await prisma.plan.findUniqueOrThrow({ where: { slug: BROKER_IB_PLAN.slug } });
+    expect(plan).toMatchObject({ kind: "BROKER_IB", durationDays: 30, isActive: true, isPromo: false, lockPriceForLife: false });
+    expect(plan.price.toNumber()).toBe(0);
+    expect(plan.features).toEqual([...BROKER_IB_PLAN.features]);
   });
 
   it("creates system settings with payments disabled and no PromptPay account", async () => {
@@ -36,6 +46,7 @@ describe("Integration: database seed (real PostgreSQL)", () => {
     expect(setting.paymentsEnabled).toBe(false);
     expect(setting.promptpayNumber).toBe("");
     expect(setting.promptpayAccountName).toBe("");
+    expect(setting).toMatchObject({ ibClaimsEnabled: false, ibXmLink: "", ibExnessLink: "", ibMinDepositUsd: null });
   });
 
   it("creates one admin with a bcrypt-hashed password and a normalized email", async () => {
@@ -58,7 +69,7 @@ describe("Integration: database seed (real PostgreSQL)", () => {
     const second = await seedDatabase(prisma, { ...OPTIONS, adminPassword: "a-different-password-456" });
 
     expect(second.adminCreated).toBe(false);
-    expect(await prisma.plan.count()).toBe(SITE_PLANS.length);
+    expect(await prisma.plan.count()).toBe(SITE_PLANS.length + 1);
     expect(await prisma.user.count()).toBe(1);
     const adminAfter = await prisma.user.findUniqueOrThrow({ where: { email: "admin.test@example.com" } });
     expect(adminAfter.passwordHash).toBe(admin.passwordHash);
