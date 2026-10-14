@@ -15,8 +15,8 @@ export function ProvisioningPanel({ subscription }: ProvisioningPanelProps) {
         const { field, label } = PROVISIONING_CHANNELS[channel];
         const granted = subscription[field];
         return (
-          <li key={channel} className="bg-ink-raised p-3">
-            <p className={`flex items-center gap-1.5 text-sm ${granted ? "text-signal" : "text-gray-300"}`}>
+          <li key={channel} className="bg-surface p-3">
+            <p className={`flex items-center gap-1.5 text-sm ${granted ? "text-gold-ink" : "text-fg-muted"}`}>
               {granted ? <CheckCircle2 className="w-4 h-4" aria-hidden="true" /> : <Circle className="w-4 h-4" aria-hidden="true" />}
               {label}: {granted ? "เปิดแล้ว" : "ยังไม่เปิด"}
             </p>

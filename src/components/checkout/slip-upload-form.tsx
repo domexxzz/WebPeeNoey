@@ -21,8 +21,8 @@ export function SlipUploadForm({ orderId }: { orderId: string }) {
 
   if (state.status === "success") {
     return (
-      <p role="status" className="flex items-start gap-2 border border-signal bg-signal-muted px-4 py-3 text-sm text-gray-100 rounded-xl">
-        <CheckCircle2 className="w-5 h-5 shrink-0 text-signal" aria-hidden="true" />
+      <p role="status" className="flex items-start gap-2 border border-gold bg-gold-muted px-4 py-3 text-sm text-fg rounded-xl">
+        <CheckCircle2 className="w-5 h-5 shrink-0 text-gold-ink" aria-hidden="true" />
         {state.message}
       </p>
     );
@@ -34,11 +34,11 @@ export function SlipUploadForm({ orderId }: { orderId: string }) {
     <form action={formAction} className="space-y-4">
       <input type="hidden" name="orderId" value={orderId} />
       <label className="block">
-        <span className="flex items-center gap-2 text-sm font-medium text-white">
-          <ImageUp className="w-4 h-4 text-signal" aria-hidden="true" />
+        <span className="flex items-center gap-2 text-sm font-medium text-fg">
+          <ImageUp className="w-4 h-4 text-gold-ink" aria-hidden="true" />
           แนบสลิปการโอน
         </span>
-        <span className="mt-1 block text-xs text-gray-400">
+        <span className="mt-1 block text-xs text-fg-subtle">
           ไฟล์ {PAYMENT_RULES.slipAllowedFormats.join(", ")} ขนาดไม่เกิน {PAYMENT_RULES.slipMaxSizeMb}MB — สลิป 1 ใบใช้ได้กับคำสั่งซื้อเดียว
         </span>
         <input
@@ -49,12 +49,12 @@ export function SlipUploadForm({ orderId }: { orderId: string }) {
           onChange={onFileChange}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? "slip-error" : undefined}
-          className="mt-3 block w-full text-sm text-gray-300 file:mr-4 file: file:border-0 file:bg-white/10 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-white/20"
+          className="mt-3 block w-full text-sm text-fg-muted file:mr-4 file: file:border-0 file:bg-fg/10 file:px-4 file:py-2 file:text-sm file:font-medium file:text-fg hover:file:bg-fg/15"
         />
       </label>
 
       {error && (
-        <p id="slip-error" role="alert" className="flex items-start gap-2 text-sm text-red-300">
+        <p id="slip-error" role="alert" className="flex items-start gap-2 text-sm text-red-700">
           <XCircle className="w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
           {error}
         </p>

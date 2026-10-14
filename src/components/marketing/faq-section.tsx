@@ -27,18 +27,18 @@ export function FaqSection() {
               key={item.question}
               data-reveal="up"
               style={staggerStyle(index, 70)}
-              className="mx-faq group rounded-2xl border border-line bg-ink-raised/60 transition-colors hover:border-line-strong open:border-signal/50 open:bg-ink-raised"
+              className="mx-faq group rounded-2xl border border-line bg-surface/80 transition-colors hover:border-line-strong open:border-gold/60 open:bg-surface"
             >
-              <summary className="flex cursor-pointer list-none items-start gap-4 sm:gap-5 rounded-2xl px-5 sm:px-6 py-5 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal [&::-webkit-details-marker]:hidden">
-                <span aria-hidden="true" className="font-display text-sm font-semibold text-signal tabular-nums pt-1">
+              <summary className="flex cursor-pointer list-none items-start gap-4 sm:gap-5 rounded-2xl px-5 sm:px-6 py-5 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-ink [&::-webkit-details-marker]:hidden">
+                <span aria-hidden="true" className="font-display text-sm font-semibold text-gold-ink tabular-nums pt-1">
                   {String(index + 1).padStart(2, "0")}
                 </span>
-                <span className="flex-1 font-display text-lg sm:text-xl font-bold tracking-tight text-white group-hover:text-signal">{item.question}</span>
-                <span aria-hidden="true" className="mt-0.5 flex w-8 h-8 shrink-0 items-center justify-center rounded-full border border-line transition-colors group-hover:border-signal group-open:bg-signal group-open:border-signal">
-                  <Plus className="mx-faq-icon w-4 h-4 text-white group-open:text-ink" />
+                <span className="flex-1 font-display text-lg sm:text-xl font-bold tracking-tight text-fg group-hover:text-gold-ink">{item.question}</span>
+                <span aria-hidden="true" className="mt-0.5 flex w-8 h-8 shrink-0 items-center justify-center rounded-full border border-line transition-colors group-hover:border-gold group-open:bg-gold group-open:border-gold">
+                  <Plus className="mx-faq-icon w-4 h-4 text-fg group-open:text-fg" />
                 </span>
               </summary>
-              <p className="mx-faq-answer pb-6 pl-[3.25rem] sm:pl-[4.25rem] pr-6 sm:pr-14 text-base text-gray-300 leading-relaxed">{item.answer}</p>
+              <p className="mx-faq-answer pb-6 pl-[3.25rem] sm:pl-[4.25rem] pr-6 sm:pr-14 text-base text-fg-muted leading-relaxed">{item.answer}</p>
             </details>
           ))}
         </div>

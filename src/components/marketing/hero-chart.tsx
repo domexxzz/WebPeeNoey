@@ -57,20 +57,20 @@ export function HeroChart({ className = "", animated = false }: { className?: st
   const cls = (name: string) => (animated ? name : undefined);
   return (
     <svg aria-hidden="true" focusable="false" viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className={`${animated ? "hc-anim " : ""}${className}`.trim()}>
-      <rect x="0.5" y="0.5" width={WIDTH - 1} height={HEIGHT - 1} rx="16" fill="#0C0E0D" stroke="rgba(255,255,255,0.16)" />
+      <rect x="0.5" y="0.5" width={WIDTH - 1} height={HEIGHT - 1} rx="16" fill="#FFFFFF" stroke="rgba(31,26,18,0.16)" />
       {/* แถบหัวหน้าต่าง */}
-      <line x1="0" x2={WIDTH} y1="40" y2="40" stroke="rgba(255,255,255,0.14)" />
+      <line x1="0" x2={WIDTH} y1="40" y2="40" stroke="rgba(31,26,18,0.14)" />
       {[18, 32, 46].map((x) => (
-        <circle key={x} cx={x + 4.5} cy="19.5" r="4.5" fill="none" stroke="rgba(255,255,255,0.45)" />
+        <circle key={x} cx={x + 4.5} cy="19.5" r="4.5" fill="none" stroke="rgba(31,26,18,0.45)" />
       ))}
-      <rect x="70" y="16" width="120" height="7" rx="3.5" fill="rgba(255,255,255,0.12)" />
-      <rect className={cls("hc-pill")} x={WIDTH - 110} y="14" width="88" height="12" rx="6" fill="#6EEA6E" />
+      <rect x="70" y="16" width="120" height="7" rx="3.5" fill="rgba(31,26,18,0.12)" />
+      <rect className={cls("hc-pill")} x={WIDTH - 110} y="14" width="88" height="12" rx="6" fill="#D4A537" />
 
       {[0.2, 0.4, 0.6, 0.8].map((ratio) => (
-        <line key={ratio} x1="24" x2={WIDTH - 24} y1={CHART_TOP + ratio * (CHART_BOTTOM - CHART_TOP)} y2={CHART_TOP + ratio * (CHART_BOTTOM - CHART_TOP)} stroke="rgba(255,255,255,0.06)" strokeDasharray="3 6" />
+        <line key={ratio} x1="24" x2={WIDTH - 24} y1={CHART_TOP + ratio * (CHART_BOTTOM - CHART_TOP)} y2={CHART_TOP + ratio * (CHART_BOTTOM - CHART_TOP)} stroke="rgba(31,26,18,0.06)" strokeDasharray="3 6" />
       ))}
 
-      <path className={cls("hc-band")} d={bandPath} fill="rgba(110,234,110,0.08)" />
+      <path className={cls("hc-band")} d={bandPath} fill="rgba(212,165,55,0.08)" />
 
       {CANDLES.map((candle, index) => {
         const rising = candle.close >= candle.open;
@@ -79,34 +79,34 @@ export function HeroChart({ className = "", animated = false }: { className?: st
         return (
           <g key={candle.x} className={cls("hc-candle")} style={animated ? indexStyle(index) : undefined}>
             <g className={index === LAST ? cls("hc-breathe") : undefined}>
-              <line x1={candle.x + 5} x2={candle.x + 5} y1={toY(candle.high)} y2={toY(candle.low)} stroke={rising ? "#6EEA6E" : "rgba(255,255,255,0.55)"} strokeWidth="1.5" />
-              <rect x={candle.x} y={top} width="10" height={height} fill={rising ? "#6EEA6E" : "#0C0E0D"} stroke={rising ? "#6EEA6E" : "rgba(255,255,255,0.55)"} />
+              <line x1={candle.x + 5} x2={candle.x + 5} y1={toY(candle.high)} y2={toY(candle.low)} stroke={rising ? "#D4A537" : "rgba(31,26,18,0.55)"} strokeWidth="1.5" />
+              <rect x={candle.x} y={top} width="10" height={height} fill={rising ? "#D4A537" : "#FFFFFF"} stroke={rising ? "#D4A537" : "rgba(31,26,18,0.55)"} />
             </g>
           </g>
         );
       })}
 
-      <path className={cls("hc-line")} d={linePath} pathLength={animated ? 1 : undefined} fill="none" stroke="#FFFFFF" strokeWidth="2" />
+      <path className={cls("hc-line")} d={linePath} pathLength={animated ? 1 : undefined} fill="none" stroke="#1F1A12" strokeWidth="2" />
 
       {MARKERS.map((candle, index) => (
         <g key={candle.x} style={animated ? indexStyle(index) : undefined}>
-          {animated && <circle className="hc-ping" cx={candle.x + 5} cy={toY(candle.low) + 18} r="9" fill="none" stroke="#6EEA6E" strokeWidth="1.5" />}
-          <path className={cls("hc-marker")} d={`M${candle.x + 5} ${toY(candle.low) + 12} l7 12 h-14 z`} fill="#6EEA6E" />
+          {animated && <circle className="hc-ping" cx={candle.x + 5} cy={toY(candle.low) + 18} r="9" fill="none" stroke="#D4A537" strokeWidth="1.5" />}
+          <path className={cls("hc-marker")} d={`M${candle.x + 5} ${toY(candle.low) + 12} l7 12 h-14 z`} fill="#D4A537" />
         </g>
       ))}
 
       {animated && (
         <g className="hc-scan">
-          <line x1="34" x2="34" y1="48" y2="384" stroke="#6EEA6E" strokeWidth="1.5" strokeDasharray="4 4" />
-          <rect x="24" y="48" width="20" height="336" fill="rgba(110,234,110,0.07)" />
-          <rect x="29" y="44" width="10" height="10" fill="#6EEA6E" />
+          <line x1="34" x2="34" y1="48" y2="384" stroke="#D4A537" strokeWidth="1.5" strokeDasharray="4 4" />
+          <rect x="24" y="48" width="20" height="336" fill="rgba(212,165,55,0.07)" />
+          <rect x="29" y="44" width="10" height="10" fill="#D4A537" />
         </g>
       )}
 
       {/* แท่งปริมาณ */}
-      <line x1="24" x2={WIDTH - 24} y1="318" y2="318" stroke="rgba(255,255,255,0.14)" />
+      <line x1="24" x2={WIDTH - 24} y1="318" y2="318" stroke="rgba(31,26,18,0.14)" />
       {CANDLES.map((candle, index) => (
-        <rect key={`v-${candle.x}`} className={cls("hc-vol")} style={animated ? indexStyle(index) : undefined} x={candle.x} y={round(378 - VOLUMES[index])} width="10" height={VOLUMES[index]} fill="rgba(255,255,255,0.16)" />
+        <rect key={`v-${candle.x}`} className={cls("hc-vol")} style={animated ? indexStyle(index) : undefined} x={candle.x} y={round(378 - VOLUMES[index])} width="10" height={VOLUMES[index]} fill="rgba(31,26,18,0.16)" />
       ))}
     </svg>
   );

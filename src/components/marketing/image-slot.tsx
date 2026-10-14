@@ -38,11 +38,11 @@ export function ImageSlot({ spec, alt, src, priority = false, className = "" }: 
       aria-label={`${alt} (รอใส่รูปภาพ)`}
       style={{ aspectRatio }}
       data-image-slot={spec.label}
-      className={`w-full border border-dashed border-line bg-[repeating-linear-gradient(135deg,rgba(110,234,110,0.05)_0,rgba(110,234,110,0.05)_12px,transparent_12px,transparent_24px)] flex flex-col items-center justify-center gap-2 p-4 text-center rounded-2xl ${className}`}
+      className={`w-full border border-dashed border-line bg-[repeating-linear-gradient(135deg,rgba(212,165,55,0.05)_0,rgba(212,165,55,0.05)_12px,transparent_12px,transparent_24px)] flex flex-col items-center justify-center gap-2 p-4 text-center rounded-2xl ${className}`}
     >
-      <ImageIcon className="w-7 h-7 text-signal/70" aria-hidden="true" />
-      <span className="text-xs font-medium text-signal">{spec.label}</span>
-      <span className="text-[11px] text-gray-400">
+      <ImageIcon className="w-7 h-7 text-gold-ink/70" aria-hidden="true" />
+      <span className="text-xs font-medium text-gold-ink">{spec.label}</span>
+      <span className="text-[11px] text-fg-subtle">
         {spec.width} × {spec.height} px · WebP/AVIF ไม่เกิน 200KB
       </span>
     </div>

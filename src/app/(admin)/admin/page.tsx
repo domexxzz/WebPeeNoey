@@ -16,7 +16,7 @@ const PAYMENT_CLOSED_REASON = {
 } as const;
 
 /** ช่องตัวเลขในตารางกรอบ (วางใน grid ที่มี gap-px บนพื้นสีเส้น) */
-function StatCard({ label, icon, value, valueClass = "text-white", children }: {
+function StatCard({ label, icon, value, valueClass = "text-fg", children }: {
   label: string;
   icon: React.ReactNode;
   value: React.ReactNode;
@@ -24,8 +24,8 @@ function StatCard({ label, icon, value, valueClass = "text-white", children }: {
   children?: React.ReactNode;
 }) {
   return (
-    <div className="bg-ink p-5 sm:p-6">
-      <div className="flex items-center justify-between gap-3 text-gray-400">
+    <div className="bg-surface p-5 sm:p-6">
+      <div className="flex items-center justify-between gap-3 text-fg-subtle">
         <span className="text-xs">{label}</span>
         {icon}
       </div>
@@ -36,7 +36,7 @@ function StatCard({ label, icon, value, valueClass = "text-white", children }: {
 }
 
 const outlineLink =
-  "inline-flex items-center gap-2 border border-line px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:border-signal hover:bg-signal hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-signal rounded-xl";
+  "inline-flex items-center gap-2 border border-line px-4 py-2.5 text-sm font-semibold text-fg transition-colors hover:border-gold hover:bg-gold hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold-ink rounded-xl";
 
 export default async function AdminDashboardPage() {
   const admin = await requireAdminPage();
@@ -48,20 +48,20 @@ export default async function AdminDashboardPage() {
       <AdminPageHeader title="ภาพรวมระบบและการเงิน" description={`ยินดีต้อนรับ ผู้ดูแลระบบ ${admin.email}`}>
         <div className="flex flex-wrap items-stretch border border-line rounded-xl overflow-hidden">
           <div className="flex items-center gap-3 px-4 py-2.5">
-            <span className="text-xs text-gray-400">ระบบรับชำระเงิน</span>
+            <span className="text-xs text-fg-subtle">ระบบรับชำระเงิน</span>
             {payments.open ? (
-              <span className="inline-flex items-center gap-1.5 text-sm font-bold text-signal">
-                <span aria-hidden="true" className="w-2 h-2 bg-signal rounded-full" /> เปิดอยู่
+              <span className="inline-flex items-center gap-1.5 text-sm font-bold text-emerald-700">
+                <span aria-hidden="true" className="w-2 h-2 bg-emerald-500 rounded-full" /> เปิดอยู่
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-300">
+              <span className="inline-flex items-center gap-1.5 text-sm font-bold text-orange-700">
                 <PowerOff className="w-4 h-4" aria-hidden="true" /> {PAYMENT_CLOSED_REASON[payments.reason]}
               </span>
             )}
           </div>
           <Link
             href="/admin/settings"
-            className="flex items-center border-l border-line px-4 py-2.5 text-sm font-semibold text-signal transition-colors hover:bg-signal hover:text-ink"
+            className="flex items-center border-l border-line px-4 py-2.5 text-sm font-semibold text-gold-ink transition-colors hover:bg-gold hover:text-fg"
           >
             ตั้งค่าสวิตช์ →
           </Link>
@@ -71,19 +71,19 @@ export default async function AdminDashboardPage() {
       {stats.pendingDeprovision > 0 && (
         <Link
           href="/admin/status"
-          className="flex items-center gap-3 border border-red-400/60 bg-red-500/10 p-4 text-sm text-red-100 transition-colors hover:bg-red-500/15 rounded-2xl"
+          className="flex items-center gap-3 border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-800 transition-colors hover:bg-red-500/15 rounded-2xl"
         >
-          <UserX className="w-5 h-5 shrink-0 text-red-300" aria-hidden="true" />
+          <UserX className="w-5 h-5 shrink-0 text-red-700" aria-hidden="true" />
           <span>
-            มี <strong className="text-white">{stats.pendingDeprovision}</strong> ช่วงสิทธิ์ที่หมดอายุ/ถูกปิดแล้ว แต่ยังบันทึกว่าเปิดสิทธิ์ใน TradingView / Discord / Telegram — ต้องถอดสิทธิ์ด้วยมือ
+            มี <strong className="text-fg">{stats.pendingDeprovision}</strong> ช่วงสิทธิ์ที่หมดอายุ/ถูกปิดแล้ว แต่ยังบันทึกว่าเปิดสิทธิ์ใน TradingView / Discord / Telegram — ต้องถอดสิทธิ์ด้วยมือ
           </span>
           <ArrowRight className="w-4 h-4 ml-auto shrink-0" aria-hidden="true" />
         </Link>
       )}
 
       <div className="grid grid-cols-1 gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-4 rounded-2xl overflow-hidden">
-        <StatCard label="ยอดขายสะสมสุทธิ" icon={<DollarSign className="w-4 h-4 text-signal" aria-hidden="true" />} value={`${formatBaht(revenue.net)} ฿`}>
-          <span className="mt-2 block text-xs text-gray-400">
+        <StatCard label="ยอดขายสะสมสุทธิ" icon={<DollarSign className="w-4 h-4 text-gold-ink" aria-hidden="true" />} value={`${formatBaht(revenue.net)} ฿`}>
+          <span className="mt-2 block text-xs text-fg-subtle">
             รับเข้า {formatBaht(revenue.gross)} ฿ จาก {revenue.paidOrders} ออเดอร์
             {revenue.refunded > 0 && <> · คืนเงิน {formatBaht(revenue.refunded)} ฿</>}
           </span>
@@ -91,48 +91,48 @@ export default async function AdminDashboardPage() {
 
         <StatCard
           label="สลิปรอตรวจสอบ"
-          icon={<ClipboardCheck className="w-4 h-4 text-amber-300" aria-hidden="true" />}
+          icon={<ClipboardCheck className="w-4 h-4 text-orange-700" aria-hidden="true" />}
           value={stats.pendingReview}
-          valueClass={stats.pendingReview > 0 ? "text-amber-300" : "text-white"}
+          valueClass={stats.pendingReview > 0 ? "text-orange-700" : "text-fg"}
         >
-          <Link href="/admin/orders?tab=review" className="mt-2 block text-xs font-semibold text-signal hover:underline">
+          <Link href="/admin/orders?tab=review" className="mt-2 block text-xs font-semibold text-gold-ink hover:underline">
             ไปตรวจสอบทันที →
           </Link>
         </StatCard>
 
-        <StatCard label="สมาชิกที่กำลังใช้งาน" icon={<Users className="w-4 h-4 text-signal" aria-hidden="true" />} value={members.active}>
-          <span className="mt-2 block text-xs text-gray-400">ผู้ใช้ทั้งหมดในระบบ: {stats.totalUsers} บัญชี</span>
+        <StatCard label="สมาชิกที่กำลังใช้งาน" icon={<Users className="w-4 h-4 text-gold-ink" aria-hidden="true" />} value={members.active}>
+          <span className="mt-2 block text-xs text-fg-subtle">ผู้ใช้ทั้งหมดในระบบ: {stats.totalUsers} บัญชี</span>
         </StatCard>
 
         <StatCard
           label={`ใกล้หมดอายุใน ${PAYMENT_RULES.expiryReminderDays} วัน`}
-          icon={<Clock className="w-4 h-4 text-amber-300" aria-hidden="true" />}
+          icon={<Clock className="w-4 h-4 text-orange-700" aria-hidden="true" />}
           value={members.expiringSoon}
-          valueClass={members.expiringSoon > 0 ? "text-amber-300" : "text-white"}
+          valueClass={members.expiringSoon > 0 ? "text-orange-700" : "text-fg"}
         >
-          <span className="mt-2 block text-xs text-gray-400">นับรายคน — คนที่ต่ออายุทบวันไว้แล้วไม่นับ</span>
+          <span className="mt-2 block text-xs text-fg-subtle">นับรายคน — คนที่ต่ออายุทบวันไว้แล้วไม่นับ</span>
         </StatCard>
       </div>
 
       <div className="grid gap-px border border-line bg-line md:grid-cols-2 rounded-2xl overflow-hidden">
-        <div className="bg-ink p-6">
-          <h2 className="flex items-center gap-2 font-display text-lg font-bold text-white">
-            <ClipboardCheck className="w-5 h-5 text-signal" aria-hidden="true" />
+        <div className="bg-surface p-6">
+          <h2 className="flex items-center gap-2 font-display text-lg font-bold text-fg">
+            <ClipboardCheck className="w-5 h-5 text-gold-ink" aria-hidden="true" />
             การจัดการออเดอร์และการเงิน
           </h2>
-          <p className="mt-2 mb-5 text-sm text-gray-400">ตรวจสลิปโอนเงิน PromptPay อนุมัติสิทธิ์ ปฏิเสธ หรือบันทึกการคืนเงิน — ทุกการกระทำบันทึก Audit Log</p>
+          <p className="mt-2 mb-5 text-sm text-fg-subtle">ตรวจสลิปโอนเงิน PromptPay อนุมัติสิทธิ์ ปฏิเสธ หรือบันทึกการคืนเงิน — ทุกการกระทำบันทึก Audit Log</p>
           <Link href="/admin/orders" className={outlineLink}>
             เปิดรายการออเดอร์
             <ArrowRight className="w-4 h-4" aria-hidden="true" />
           </Link>
         </div>
 
-        <div className="bg-ink p-6">
-          <h2 className="flex items-center gap-2 font-display text-lg font-bold text-white">
-            <Activity className="w-5 h-5 text-signal" aria-hidden="true" />
+        <div className="bg-surface p-6">
+          <h2 className="flex items-center gap-2 font-display text-lg font-bold text-fg">
+            <Activity className="w-5 h-5 text-gold-ink" aria-hidden="true" />
             สถานะความพร้อมของระบบ
           </h2>
-          <p className="mt-2 mb-5 text-sm text-gray-400">ตรวจการเชื่อมต่อฐานข้อมูล ตัวแปรสภาพแวดล้อม (ไม่แสดงค่าความลับ) งานอัตโนมัติ และคิวงานที่ค้าง</p>
+          <p className="mt-2 mb-5 text-sm text-fg-subtle">ตรวจการเชื่อมต่อฐานข้อมูล ตัวแปรสภาพแวดล้อม (ไม่แสดงค่าความลับ) งานอัตโนมัติ และคิวงานที่ค้าง</p>
           <Link href="/admin/status" className={outlineLink}>
             ตรวจสอบสถานะระบบ
             <ArrowRight className="w-4 h-4" aria-hidden="true" />

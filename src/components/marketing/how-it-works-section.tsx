@@ -14,7 +14,7 @@ export function HowItWorksSection() {
     <section
       aria-labelledby={`${HOME_SECTION_IDS.howItWorks}-heading`}
       id={HOME_SECTION_IDS.howItWorks}
-      className="scroll-mt-20 overflow-x-clip bg-signal text-ink"
+      className="scroll-mt-20 overflow-x-clip bg-gold text-fg"
     >
       <div className="grid gap-12 px-4 sm:px-6 lg:px-10 py-20 sm:py-28 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.4fr)]">
         <div className="lg:sticky lg:top-28 lg:self-start">
@@ -28,8 +28,8 @@ export function HowItWorksSection() {
         </div>
 
         <ol className="relative space-y-3">
-          <span aria-hidden="true" className="absolute -left-6 top-0 bottom-0 hidden w-[3px] bg-ink/15 md:block">
-            <span className="hiw-rail-fill block h-full w-full bg-ink" />
+          <span aria-hidden="true" className="absolute -left-6 top-0 bottom-0 hidden w-[3px] bg-fg/15 md:block">
+            <span className="hiw-rail-fill block h-full w-full bg-fg" />
           </span>
           {HOW_IT_WORKS.map((item, index) => (
             <li
@@ -39,10 +39,10 @@ export function HowItWorksSection() {
               className={CARD_OFFSETS[index % CARD_OFFSETS.length]}
             >
               <div
-                className="group rounded-2xl bg-ink text-white px-6 sm:px-8 py-7 sm:py-8 transition-[transform,box-shadow] duration-500 ease-out hover:translate-x-2 hover:shadow-[0_24px_50px_-20px_rgba(17,19,18,0.6)]"
+                className="group rounded-2xl bg-surface text-fg px-6 sm:px-8 py-7 sm:py-8 transition-[transform,box-shadow] duration-500 ease-out hover:translate-x-2 hover:shadow-[0_24px_50px_-20px_rgba(31,26,18,0.6)]"
               >
               <div className="flex items-start gap-5 sm:gap-8">
-                <span aria-hidden="true" className="mx-digit-mask font-display text-4xl sm:text-5xl font-bold leading-none text-signal tabular-nums">
+                <span aria-hidden="true" className="mx-digit-mask font-display text-4xl sm:text-5xl font-bold leading-none text-gold-ink tabular-nums">
                   <span className="mx-digit">{String(item.step).padStart(2, "0")}</span>
                 </span>
                 <div>
@@ -50,7 +50,7 @@ export function HowItWorksSection() {
                     <span className="sr-only">ขั้นตอนที่ {item.step}: </span>
                     {item.title}
                   </h3>
-                  <p className="mt-2 text-sm sm:text-base text-gray-300 leading-relaxed">{item.description}</p>
+                  <p className="mt-2 text-sm sm:text-base text-fg-muted leading-relaxed">{item.description}</p>
                 </div>
               </div>
               </div>

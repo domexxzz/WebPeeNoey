@@ -29,24 +29,24 @@ export default async function AdminAuditLogsPage({ searchParams }: { searchParam
               </option>
             ))}
           </select>
-          <button type="submit" className="bg-white/10 px-3 text-sm text-gray-200 hover:bg-white/20">กรอง</button>
+          <button type="submit" className="bg-fg/10 px-3 text-sm text-fg hover:bg-fg/15">กรอง</button>
         </form>
       </AdminPageHeader>
 
       <ol className="space-y-3">
-        {items.length === 0 && <li className="border border-line bg-ink p-6 text-center text-sm text-gray-400 rounded-2xl">ยังไม่มีรายการ</li>}
+        {items.length === 0 && <li className="border border-line bg-surface p-6 text-center text-sm text-fg-subtle rounded-2xl">ยังไม่มีรายการ</li>}
         {items.map((log) => (
-          <li key={log.id} className="border border-line bg-ink p-4 rounded-2xl">
+          <li key={log.id} className="border border-line bg-surface p-4 rounded-2xl">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-              <span className="font-medium text-white">{log.actionLabel}</span>
-              <span className="text-gray-400">โดย {log.actorEmail}</span>
-              <span className="text-gray-400">{formatDateTime(log.createdAt)}</span>
-              {log.ipAddress && <span className="font-mono text-xs text-gray-500">IP {log.ipAddress}</span>}
-              <span className="font-mono text-xs text-gray-500">{log.targetType}:{log.targetId}</span>
+              <span className="font-medium text-fg">{log.actionLabel}</span>
+              <span className="text-fg-subtle">โดย {log.actorEmail}</span>
+              <span className="text-fg-subtle">{formatDateTime(log.createdAt)}</span>
+              {log.ipAddress && <span className="font-mono text-xs text-fg-subtle">IP {log.ipAddress}</span>}
+              <span className="font-mono text-xs text-fg-subtle">{log.targetType}:{log.targetId}</span>
             </div>
             <details className="mt-2">
-              <summary className="cursor-pointer text-xs text-signal">รายละเอียด (ก่อน/หลัง)</summary>
-              <pre className="mt-2 overflow-x-auto bg-ink-raised p-3 text-xs text-gray-300">{JSON.stringify(log.details, null, 2)}</pre>
+              <summary className="cursor-pointer text-xs text-gold-ink">รายละเอียด (ก่อน/หลัง)</summary>
+              <pre className="mt-2 overflow-x-auto bg-surface p-3 text-xs text-fg-muted">{JSON.stringify(log.details, null, 2)}</pre>
             </details>
           </li>
         ))}

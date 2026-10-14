@@ -1,13 +1,13 @@
 import { ORDER_PHASE_LABELS, type BadgeTone } from "@/lib/orders/messages";
 import type { OrderPhase } from "@/lib/orders/phase";
 
-/** สีตามความหมาย: เขียวสัญญาณ = สำเร็จ, อำพัน = รอดำเนินการ, ฟ้า = รอชำระ, แดง = ไม่ผ่าน, เทา = จบแล้ว */
+/** สีตามความหมาย (ธีมครีม-ทอง): เขียว = สำเร็จ, ส้ม = รอดำเนินการ, ฟ้า = รอชำระ, แดง = ไม่ผ่าน, เทา = จบแล้ว — ทองสงวนไว้สำหรับแบรนด์/ปุ่ม ไม่ใช้เป็นสถานะ */
 const TONE_CLASSES: Record<BadgeTone, string> = {
-  amber: "border-amber-400/60 text-amber-300",
-  blue: "border-sky-400/60 text-sky-300",
-  emerald: "border-signal bg-signal text-ink",
-  red: "border-red-400/60 text-red-300",
-  gray: "border-line-soft text-gray-400",
+  amber: "border-orange-500/50 text-orange-700",
+  blue: "border-sky-500/50 text-sky-700",
+  emerald: "border-emerald-600/40 bg-emerald-50 text-emerald-800",
+  red: "border-red-500/40 text-red-700",
+  gray: "border-line-soft text-fg-subtle",
 };
 
 export function OrderStatusBadge({ phase }: { phase: OrderPhase }) {

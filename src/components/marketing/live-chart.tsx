@@ -90,7 +90,7 @@ export function LiveChart({ decorations }: { decorations?: React.ReactNode }) {
     <>
       <div className="mx-load-zoom" style={{ "--load-delay": "250ms" } as React.CSSProperties}>
         <div className="relative">
-          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-ink-deep ring-1 ring-line sm:aspect-[16/10]">
+          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-surface-sunken ring-1 ring-line sm:aspect-[16/10]">
             <div aria-hidden="true" className={`absolute inset-0 transition-opacity duration-700 ${ready ? "opacity-0" : "opacity-100"}`}>
               <HeroChart animated className="h-full w-full" />
             </div>
@@ -106,7 +106,7 @@ export function LiveChart({ decorations }: { decorations?: React.ReactNode }) {
           {decorations}
         </div>
       </div>
-      <figcaption className="mx-load text-xs leading-relaxed text-gray-400 sm:pl-2" style={{ "--load-delay": "1200ms" } as React.CSSProperties}>
+      <figcaption className="mx-load text-xs leading-relaxed text-fg-subtle sm:pl-2" style={{ "--load-delay": "1200ms" } as React.CSSProperties}>
         {ready ? (
           <>
             {HERO_CONTENT.liveChartCaption} ·{" "}
@@ -114,7 +114,7 @@ export function LiveChart({ decorations }: { decorations?: React.ReactNode }) {
               href={TRADINGVIEW_CHART.attributionHref}
               target="_blank"
               rel="noopener nofollow"
-              className="text-signal underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-signal"
+              className="text-gold-ink underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold-ink"
             >
               Track all markets on TradingView
             </a>

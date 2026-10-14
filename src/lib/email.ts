@@ -10,28 +10,31 @@ export function escapeHtml(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
-/** สีตามธีมเว็บ: เขียวสัญญาณ = แบรนด์/ปุ่ม, อำพัน = เตือน */
-const BRAND_GREEN = "#6EEA6E";
-const WARNING_AMBER = "#FBBF24";
+/** สีตามธีมเว็บ (ครีม-ทอง): ทอง = ปุ่ม, ทองเข้ม = หัวข้อ/ลิงก์, ส้ม = เตือน — ตัวหนังสือบนพื้นขาวผ่าน WCAG AA */
+const BRAND_GOLD = "#D4A537";
+const GOLD_INK = "#8A5F00";
+const WARNING_ORANGE = "#C2410C";
+const TEXT = "#1F1A12";
+const TEXT_SUBTLE = "#6B604E";
 const appUrl = () => process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 /** โครงอีเมลเดียวกันทุกฉบับ: ชื่อแบรนด์ด้านบน + ลงชื่อทีมงานพร้อมลิงก์เว็บด้านล่าง (ชื่อมาจาก siteConfig) */
-export function emailLayout(heading: string, body: string, headingColor: string = BRAND_GREEN): string {
+export function emailLayout(heading: string, body: string, headingColor: string = GOLD_INK): string {
   const brand = escapeHtml(siteConfig.name);
   const site = appUrl();
   return `
-        <div style="font-family: sans-serif; background-color: #111312; color: #FFFFFF; padding: 32px; border-radius: 16px;">
-          <p style="margin: 0 0 24px; font-size: 18px; font-weight: bold;"><span style="display: inline-block; width: 10px; height: 10px; border-radius: 3px; background-color: ${BRAND_GREEN}; margin-right: 8px;"></span>${brand}</p>
+        <div style="font-family: sans-serif; background-color: #FFFFFF; color: ${TEXT}; padding: 32px; border-radius: 16px; border: 1px solid #EADFC8;">
+          <p style="margin: 0 0 24px; font-size: 18px; font-weight: bold;"><span style="display: inline-block; width: 10px; height: 10px; border-radius: 3px; background-color: ${BRAND_GOLD}; margin-right: 8px;"></span>${brand}</p>
           <h2 style="color: ${headingColor}; margin: 0 0 16px;">${heading}</h2>
           ${body}
-          <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.12); margin: 32px 0 16px;" />
-          <p style="color: #9CA3AF; font-size: 12px; margin: 0;">ทีมงาน ${brand} · <a href="${escapeHtml(site)}" style="color: ${BRAND_GREEN};">${escapeHtml(site.replace(/^https?:\/\//, ""))}</a></p>
+          <hr style="border: none; border-top: 1px solid rgba(31,26,18,0.12); margin: 32px 0 16px;" />
+          <p style="color: ${TEXT_SUBTLE}; font-size: 12px; margin: 0;">ทีมงาน ${brand} · <a href="${escapeHtml(site)}" style="color: ${GOLD_INK};">${escapeHtml(site.replace(/^https?:\/\//, ""))}</a></p>
         </div>
       `;
 }
 
 function emailButton(href: string, label: string): string {
-  return `<div style="margin: 28px 0;"><a href="${escapeHtml(href)}" style="background-color: ${BRAND_GREEN}; color: #111312; padding: 12px 24px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block;">${label}</a></div>`;
+  return `<div style="margin: 28px 0;"><a href="${escapeHtml(href)}" style="background-color: ${BRAND_GOLD}; color: ${TEXT}; padding: 12px 24px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block;">${label}</a></div>`;
 }
 
 export async function sendPasswordResetEmail(email: string, resetToken: string): Promise<boolean> {
@@ -55,7 +58,7 @@ export async function sendPasswordResetEmail(email: string, resetToken: string):
           <p>เราได้รับคำขอรีเซ็ตรหัสผ่านสำหรับบัญชี <strong>${escapeHtml(email)}</strong> ของคุณ</p>
           <p>กรุณาคลิกปุ่มด้านล่างเพื่อดำเนินการตั้งรหัสผ่านใหม่ (ลิงก์มีอายุ 1 ชั่วโมง):</p>
           ${emailButton(resetUrl, "ตั้งรหัสผ่านใหม่")}
-          <p style="color: #9CA3AF; font-size: 13px;">หากคุณไม่ได้เป็นผู้ส่งคำขอนี้ สามารถเพิกเฉยต่ออีเมลนี้ได้อย่างปลอดภัย</p>
+          <p style="color: ${TEXT_SUBTLE}; font-size: 13px;">หากคุณไม่ได้เป็นผู้ส่งคำขอนี้ สามารถเพิกเฉยต่ออีเมลนี้ได้อย่างปลอดภัย</p>
         `,
       ),
     });
@@ -97,7 +100,7 @@ export async function sendReceiptEmail(
         `
           <p>เรียนคุณ ${escapeHtml(email)},</p>
           <p>คำสั่งซื้อหมายเลข <strong>${escapeHtml(orderNumber)}</strong> ได้รับการตรวจสอบและอนุมัติสิทธิ์เรียบร้อยแล้ว</p>
-          <div style="background-color: #171A18; padding: 20px; border-radius: 12px; margin: 20px 0; border: 1px solid rgba(255,255,255,0.12);">
+          <div style="background-color: #FAF6EE; padding: 20px; border-radius: 12px; margin: 20px 0; border: 1px solid rgba(31,26,18,0.12);">
             <p style="margin: 6px 0;"><strong>แพ็กเกจ:</strong> ${escapeHtml(planName)}</p>
             <p style="margin: 6px 0;"><strong>ยอดชำระ:</strong> ${amount.toLocaleString()} บาท</p>
             <p style="margin: 6px 0;"><strong>วันหมดอายุสิทธิ์:</strong> ${periodEnd.toLocaleDateString("th-TH", { timeZone: "Asia/Bangkok" })}</p>
@@ -141,7 +144,7 @@ export async function sendSlipRejectedEmail(email: string, orderNumber: string, 
           <p>หากคุณโอนเงินแล้ว กรุณาแนบสลิปใบที่ถูกต้องอีกครั้งที่หน้าคำสั่งซื้อ หรือติดต่อทีมงาน</p>
           ${emailButton(orderUrl, "ไปหน้าคำสั่งซื้อ")}
         `,
-        WARNING_AMBER,
+        WARNING_ORANGE,
       ),
     });
     if (error) {
@@ -184,9 +187,9 @@ export async function sendExpiryReminderEmail(email: string, reminder: ExpiryRem
           <p>แพ็กเกจ <strong>${escapeHtml(reminder.planName)}</strong> จะหมดอายุวันที่ <strong>${escapeHtml(endsAt)}</strong> (อีก ${reminder.daysLeft} วัน)</p>
           <p>ต่ออายุก่อนหมด วันใช้งานจะทบต่อจากวันหมดอายุเดิมทันที ไม่เสียวันที่เหลือ และหากคุณได้ล็อกราคาโปรโมชันไว้ ระบบจะคิดราคาเดิมให้อัตโนมัติ</p>
           ${emailButton(reminder.renewUrl, "ต่ออายุสมาชิก")}
-          <p style="color: #9CA3AF; font-size: 12px;">หากต่ออายุแล้ว ไม่ต้องดำเนินการใด ๆ เพิ่มเติม</p>
+          <p style="color: ${TEXT_SUBTLE}; font-size: 12px;">หากต่ออายุแล้ว ไม่ต้องดำเนินการใด ๆ เพิ่มเติม</p>
         `,
-        WARNING_AMBER,
+        WARNING_ORANGE,
       ),
     });
     if (error) {

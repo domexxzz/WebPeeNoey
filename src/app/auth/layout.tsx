@@ -13,7 +13,7 @@ import { MotionToggle } from "@/components/motion/motion-toggle";
  */
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className={`mx-scope ${displayFont.variable} ${thaiFont.variable} font-thai min-h-screen bg-ink text-white flex flex-col selection:bg-signal selection:text-ink`}>
+    <div className={`mx-scope ${displayFont.variable} ${thaiFont.variable} font-thai min-h-screen bg-page text-fg flex flex-col selection:bg-gold selection:text-fg`}>
       <header className="flex h-16 items-stretch border-b border-line">
         <div className="flex items-center px-4 sm:px-6 lg:px-8">
           <BrandMark />
@@ -21,7 +21,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="flex-1" />
         <Link
           href="/"
-          className="mr-3 sm:mr-5 flex items-center gap-2 self-center rounded-full px-4 py-2 text-sm text-gray-200 transition-colors hover:bg-white/[0.07] hover:text-signal focus-visible:outline focus-visible:outline-2 focus-visible:outline-signal"
+          className="mr-3 sm:mr-5 flex items-center gap-2 self-center rounded-full px-4 py-2 text-sm text-fg transition-colors hover:bg-fg/[0.06] hover:text-gold-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold-ink"
         >
           <ArrowLeft className="w-4 h-4" aria-hidden="true" />
           กลับหน้าแรก
@@ -29,16 +29,16 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </header>
 
       <div className="flex-1 grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <aside aria-hidden="true" className="hidden lg:flex flex-col justify-between gap-10 border-r border-line bg-ink-raised p-10 xl:p-14">
+        <aside aria-hidden="true" className="hidden lg:flex flex-col justify-between gap-10 border-r border-line bg-surface p-10 xl:p-14">
           <p className="mx-load font-display text-5xl xl:text-6xl font-bold tracking-tight leading-[1.05]">
             {HERO_CONTENT.titleLead}
-            <span className="block text-signal">{HERO_CONTENT.titleHighlight}</span>
+            <span className="block text-gold-ink">{HERO_CONTENT.titleHighlight}</span>
           </p>
           <HeroChart animated className="w-full h-auto" />
           <ul className="mx-load grid gap-px bg-line border border-line rounded-2xl overflow-hidden" style={loadDelay(500)}>
             {HERO_CONTENT.highlights.map((item) => (
-              <li key={item} className="flex items-start gap-2.5 bg-ink px-4 py-3 text-sm text-gray-200">
-                <Check className="w-4 h-4 mt-0.5 shrink-0 text-signal" />
+              <li key={item} className="flex items-start gap-2.5 bg-surface px-4 py-3 text-sm text-fg">
+                <Check className="w-4 h-4 mt-0.5 shrink-0 text-gold-ink" />
                 {item}
               </li>
             ))}

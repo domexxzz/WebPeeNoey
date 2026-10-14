@@ -41,19 +41,19 @@ export function BrandMark({ size = "md" }: { size?: "md" | "xl" }) {
   return (
     <Link
       href="/"
-      className="group inline-flex items-center gap-2 shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-signal"
+      className="group inline-flex items-center gap-2 shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-ink"
       aria-label={`${siteConfig.name} หน้าแรก`}
     >
       <span
         aria-hidden="true"
-        className={`shrink-0 rounded-[30%] bg-signal transition-transform duration-500 group-hover:rotate-[135deg] ${isLarge ? "w-5 h-5 sm:w-7 sm:h-7" : "w-2.5 h-2.5"}`}
+        className={`shrink-0 rounded-[30%] bg-gold transition-transform duration-500 group-hover:rotate-[135deg] ${isLarge ? "w-5 h-5 sm:w-7 sm:h-7" : "w-2.5 h-2.5"}`}
       />
       {isLarge ? (
-        <span className="mx-wave min-w-0 font-display text-4xl font-bold leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-5xl xl:text-6xl 2xl:text-7xl">
+        <span className="mx-wave min-w-0 font-display text-4xl font-bold leading-[1.05] tracking-tight text-fg sm:text-6xl lg:text-5xl xl:text-6xl 2xl:text-7xl">
           <WaveWordmark text={siteConfig.shortName} />
         </span>
       ) : (
-        <span className="font-display text-xl font-bold tracking-tight text-white whitespace-nowrap">{siteConfig.shortName}</span>
+        <span className="font-display text-xl font-bold tracking-tight text-fg whitespace-nowrap">{siteConfig.shortName}</span>
       )}
     </Link>
   );
@@ -62,7 +62,7 @@ export function BrandMark({ size = "md" }: { size?: "md" | "xl" }) {
 /** แถบเมนูแบบกรอบเส้น (แต่ละเมนูเป็นช่องของตัวเอง) — จอเล็กกว่า lg ใช้เมนูแบบเปิด/ปิด */
 export function SiteHeader() {
   return (
-    <header data-site-header="" className="sticky top-0 z-50 border-b border-line bg-ink/95 backdrop-blur supports-[backdrop-filter]:bg-ink/85">
+    <header data-site-header="" className="sticky top-0 z-50 border-b border-line bg-page/90 backdrop-blur supports-[backdrop-filter]:bg-page/85">
       <div className="relative flex h-16 lg:h-[72px] items-stretch">
         <div className="flex items-center px-4 sm:px-6 lg:px-8">
           <BrandMark />
@@ -75,7 +75,7 @@ export function SiteHeader() {
             <Link
               key={link.href}
               href={link.href}
-              className="rounded-full px-4 py-2 text-sm text-gray-200 transition-colors hover:bg-white/[0.07] hover:text-signal focus-visible:outline focus-visible:outline-2 focus-visible:outline-signal"
+              className="rounded-full px-4 py-2 text-sm text-fg transition-colors hover:bg-fg/[0.06] hover:text-gold-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold-ink"
             >
               {link.label}
             </Link>

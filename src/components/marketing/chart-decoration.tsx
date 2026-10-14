@@ -27,12 +27,12 @@ export function ChartDecoration({ className = "", animated = false }: { classNam
   return (
     <svg aria-hidden="true" focusable="false" viewBox={`0 0 ${width} 90`} preserveAspectRatio="none" className={`${animated ? "cd-anim " : ""}${className}`.trim()}>
       {[20, 45, 70].map((y) => (
-        <line key={y} x1="0" x2={width} y1={y} y2={y} stroke="rgba(255,255,255,0.06)" strokeDasharray="3 5" />
+        <line key={y} x1="0" x2={width} y1={y} y2={y} stroke="rgba(31,26,18,0.06)" strokeDasharray="3 5" />
       ))}
       {CANDLES.map((candle, index) => {
         const x = index * CANDLE_GAP + 10;
         const isUp = candle.close < candle.open;
-        const color = isUp ? "#6EEA6E" : "rgba(255,255,255,0.6)";
+        const color = isUp ? "#D4A537" : "rgba(31,26,18,0.6)";
         const top = Math.min(candle.open, candle.close);
         const height = Math.max(Math.abs(candle.open - candle.close), 2);
         return (

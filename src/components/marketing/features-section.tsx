@@ -35,12 +35,12 @@ export function FeaturesSection() {
           title="ครบทั้งเครื่องมือ การแจ้งเตือน และคอมมูนิตี้"
         />
         <div data-reveal="up" style={staggerStyle(4, 90)} className="mt-8 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between lg:pl-[18%]">
-          <p className="max-w-2xl text-base sm:text-xl text-gray-200 leading-relaxed">
+          <p className="max-w-2xl text-base sm:text-xl text-fg leading-relaxed">
             ทุกแพ็กเกจได้รับสิทธิ์หลักเหมือนกัน แพ็กเกจระยะยาวจะมีสิทธิประโยชน์เพิ่มเติมตามที่ระบุในตารางราคา
           </p>
           <Link
             href="/features"
-            className="group inline-flex items-center gap-2 shrink-0 text-sm font-semibold text-signal hover:text-signal-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-signal"
+            className="group inline-flex items-center gap-2 shrink-0 text-sm font-semibold text-gold-ink hover:text-gold-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold-ink"
           >
             ดูรายละเอียดฟีเจอร์ทั้งหมด
             <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" />
@@ -55,22 +55,22 @@ export function FeaturesSection() {
             <li key={feature.id} data-reveal="art" className="group grid gap-10 border-t border-line py-12 sm:py-16 md:grid-cols-2 md:items-center lg:gap-16">
               <div className={`mx-art relative mx-4 sm:mx-10 lg:mx-16 ${ART_FROM[index % ART_FROM.length]}`}>
                 <div
-                  className={`border border-line bg-ink-raised transition-[transform,box-shadow] duration-700 ease-out group-hover:rotate-0 group-hover:-translate-y-1 group-hover:shadow-[0_28px_60px_-24px_rgba(110,234,110,0.55)] rounded-2xl overflow-hidden ${TILTS[index % TILTS.length]}`}
+                  className={`border border-line bg-surface transition-[transform,box-shadow] duration-700 ease-out group-hover:rotate-0 group-hover:-translate-y-1 group-hover:shadow-[0_28px_60px_-24px_rgba(212,165,55,0.55)] rounded-2xl overflow-hidden ${TILTS[index % TILTS.length]}`}
                 >
                   <FeatureArt featureId={feature.id} />
                 </div>
-                <span className="absolute -left-4 -top-5 sm:-left-8 sm:-top-6 flex w-14 h-14 items-center justify-center border border-line bg-ink transition-[transform,background-color] duration-500 group-hover:-rotate-12 group-hover:bg-signal rounded-xl">
-                  <Icon className="w-6 h-6 text-signal transition-colors group-hover:text-ink" aria-hidden="true" />
+                <span className="absolute -left-4 -top-5 sm:-left-8 sm:-top-6 flex w-14 h-14 items-center justify-center border border-line bg-surface transition-[transform,background-color] duration-500 group-hover:-rotate-12 group-hover:bg-gold rounded-xl">
+                  <Icon className="w-6 h-6 text-gold-ink transition-colors group-hover:text-fg" aria-hidden="true" />
                 </span>
               </div>
               <div className="max-w-md">
-                <p aria-hidden="true" className="font-display text-sm font-semibold text-signal">
+                <p aria-hidden="true" className="font-display text-sm font-semibold text-gold-ink">
                   <span className="mx-digit-mask">
                     <span className="mx-digit">{String(index + 1).padStart(2, "0")}</span>
                   </span>
                 </p>
-                <h3 className="mt-3 font-display text-2xl sm:text-3xl font-bold tracking-tight text-white">{feature.title}</h3>
-                <p className="mt-4 text-base text-gray-300 leading-relaxed">{feature.description}</p>
+                <h3 className="mt-3 font-display text-2xl sm:text-3xl font-bold tracking-tight text-fg">{feature.title}</h3>
+                <p className="mt-4 text-base text-fg-muted leading-relaxed">{feature.description}</p>
               </div>
             </li>
           );
@@ -81,11 +81,11 @@ export function FeaturesSection() {
         {rest.map((feature, index) => {
           const Icon = FEATURE_ICONS[feature.icon];
           return (
-            <li key={feature.id} data-spotlight="" className="group bg-ink transition-colors hover:bg-ink-raised">
+            <li key={feature.id} data-spotlight="" className="group bg-surface transition-colors hover:bg-surface">
               <div data-reveal="up" style={staggerStyle(index, 120)} className="px-6 sm:px-8 py-10">
-                <Icon className="w-6 h-6 text-signal transition-transform duration-500 ease-out group-hover:-translate-y-1 group-hover:scale-110" aria-hidden="true" />
-                <h3 className="mt-5 font-display text-lg font-bold text-white">{feature.title}</h3>
-                <p className="mt-2 text-sm text-gray-400 leading-relaxed">{feature.description}</p>
+                <Icon className="w-6 h-6 text-gold-ink transition-transform duration-500 ease-out group-hover:-translate-y-1 group-hover:scale-110" aria-hidden="true" />
+                <h3 className="mt-5 font-display text-lg font-bold text-fg">{feature.title}</h3>
+                <p className="mt-2 text-sm text-fg-subtle leading-relaxed">{feature.description}</p>
               </div>
             </li>
           );

@@ -24,29 +24,29 @@ export default async function OrdersPage() {
       <AccountPageHeader eyebrow="บัญชีของฉัน" title="ประวัติคำสั่งซื้อ" description="ติดตามสถานะการชำระเงินและการตรวจสอบสลิปของทุกคำสั่งซื้อ" />
 
       {orders.length === 0 ? (
-        <div className="border border-line bg-ink p-10 text-center rounded-2xl">
-          <Receipt className="mx-auto w-10 h-10 text-gray-500" aria-hidden="true" />
-          <p className="mt-4 text-sm text-gray-300">ยังไม่มีคำสั่งซื้อ</p>
-          <Link href="/#pricing" className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-signal hover:text-signal-hover">
+        <div className="border border-line bg-surface p-10 text-center rounded-2xl">
+          <Receipt className="mx-auto w-10 h-10 text-fg-subtle" aria-hidden="true" />
+          <p className="mt-4 text-sm text-fg-muted">ยังไม่มีคำสั่งซื้อ</p>
+          <Link href="/#pricing" className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-gold-ink hover:text-gold-ink">
             เลือกแพ็กเกจ <ArrowRight className="w-4 h-4" aria-hidden="true" />
           </Link>
         </div>
       ) : (
-        <ul className="divide-y divide-line-soft border border-line bg-ink rounded-2xl overflow-hidden">
+        <ul className="divide-y divide-line-soft border border-line bg-surface rounded-2xl overflow-hidden">
           {orders.map((order) => (
             <li key={order.id}>
               <Link
                 href={`/checkout/order/${order.id}`}
-                className="flex flex-col gap-2 p-5 hover:bg-white/5 sm:flex-row sm:items-center sm:justify-between focus-visible:outline focus-visible:outline-2 focus-visible:outline-signal"
+                className="flex flex-col gap-2 p-5 hover:bg-fg/5 sm:flex-row sm:items-center sm:justify-between focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold-ink"
               >
                 <div>
-                  <p className="font-mono text-sm text-white">{order.orderNumber}</p>
-                  <p className="mt-1 text-xs text-gray-400">
+                  <p className="font-mono text-sm text-fg">{order.orderNumber}</p>
+                  <p className="mt-1 text-xs text-fg-subtle">
                     {order.planName} · {formatDate(order.createdAt)}
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="font-display text-lg font-bold text-white tabular-nums">{formatBaht(order.amount)} ฿</span>
+                  <span className="font-display text-lg font-bold text-fg tabular-nums">{formatBaht(order.amount)} ฿</span>
                   <OrderStatusBadge phase={order.phase} />
                 </div>
               </Link>

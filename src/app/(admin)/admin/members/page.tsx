@@ -25,15 +25,15 @@ export default async function AdminMembersPage({ searchParams }: { searchParams:
         <form role="search" className="flex gap-2" action="/admin/members">
           <label className="sr-only" htmlFor="member-search">ค้นหาสมาชิก</label>
           <input id="member-search" name="q" defaultValue={q} placeholder="ค้นหาสมาชิก" className={`${inputClass} sm:w-72`} />
-          <button type="submit" className="bg-white/10 px-3 text-gray-200 hover:bg-white/20" aria-label="ค้นหา">
+          <button type="submit" className="bg-fg/10 px-3 text-fg hover:bg-fg/15" aria-label="ค้นหา">
             <Search className="w-4 h-4" aria-hidden="true" />
           </button>
         </form>
       </AdminPageHeader>
 
-      <div className="overflow-x-auto border border-line bg-ink rounded-2xl">
+      <div className="overflow-x-auto border border-line bg-surface rounded-2xl">
         <table className="w-full min-w-[680px] text-sm">
-          <thead className="text-left text-xs text-gray-400">
+          <thead className="text-left text-xs text-fg-subtle">
             <tr className="border-b border-line">
               <th className="px-4 py-3 font-medium">สมาชิก</th>
               <th className="px-4 py-3 font-medium">TradingView</th>
@@ -44,24 +44,24 @@ export default async function AdminMembersPage({ searchParams }: { searchParams:
           <tbody className="divide-y divide-line-soft">
             {items.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-4 py-10 text-center text-gray-400">ไม่พบสมาชิก</td>
+                <td colSpan={4} className="px-4 py-10 text-center text-fg-subtle">ไม่พบสมาชิก</td>
               </tr>
             )}
             {items.map((member) => (
-              <tr key={member.id} className="hover:bg-white/5">
+              <tr key={member.id} className="hover:bg-fg/5">
                 <td className="px-4 py-3">
-                  <Link href={`/admin/members/${member.id}`} className="text-signal hover:underline">{member.email}</Link>
-                  <div className="text-xs text-gray-400">{member.name ?? "—"}{member.role === "ADMIN" && " · แอดมิน"}</div>
+                  <Link href={`/admin/members/${member.id}`} className="text-gold-ink hover:underline">{member.email}</Link>
+                  <div className="text-xs text-fg-subtle">{member.name ?? "—"}{member.role === "ADMIN" && " · แอดมิน"}</div>
                 </td>
-                <td className="px-4 py-3 text-gray-300">{member.tradingViewUsername ?? "—"}</td>
+                <td className="px-4 py-3 text-fg-muted">{member.tradingViewUsername ?? "—"}</td>
                 <td className="px-4 py-3">
                   {member.membership.active && member.membership.endsAt ? (
-                    <span className="text-signal">ใช้งานได้ถึง {formatDate(member.membership.endsAt)} (อีก {daysUntil(member.membership.endsAt, now)} วัน)</span>
+                    <span className="text-gold-ink">ใช้งานได้ถึง {formatDate(member.membership.endsAt)} (อีก {daysUntil(member.membership.endsAt, now)} วัน)</span>
                   ) : (
-                    <span className="text-gray-400">ไม่มีสิทธิ์</span>
+                    <span className="text-fg-subtle">ไม่มีสิทธิ์</span>
                   )}
                 </td>
-                <td className="px-4 py-3 text-gray-400">{formatDate(member.createdAt)}</td>
+                <td className="px-4 py-3 text-fg-subtle">{formatDate(member.createdAt)}</td>
               </tr>
             ))}
           </tbody>

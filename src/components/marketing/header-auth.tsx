@@ -5,13 +5,13 @@ import { useSession } from "next-auth/react";
 import { ArrowRight } from "lucide-react";
 
 const primaryButton =
-  "inline-flex items-center gap-1.5 px-4 py-2.5 text-xs sm:text-sm font-semibold whitespace-nowrap text-ink bg-signal hover:bg-signal-hover transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal rounded-xl";
+  "inline-flex items-center gap-1.5 px-4 py-2.5 text-xs sm:text-sm font-semibold whitespace-nowrap text-fg bg-gold hover:bg-gold-hover transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-ink rounded-xl";
 
 export function HeaderAuth() {
   const { data: session, status } = useSession();
 
   if (status === "loading") {
-    return <div className="h-9 w-28 bg-white/5 animate-pulse" aria-hidden="true" />;
+    return <div className="h-9 w-28 bg-fg/5 animate-pulse" aria-hidden="true" />;
   }
 
   if (session?.user) {
@@ -28,7 +28,7 @@ export function HeaderAuth() {
     <div className="flex items-center gap-2">
       <Link
         href="/auth/signin"
-        className="hidden sm:inline-flex px-3 py-2.5 text-xs sm:text-sm font-medium text-gray-200 hover:text-signal transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-signal"
+        className="hidden sm:inline-flex px-3 py-2.5 text-xs sm:text-sm font-medium text-fg hover:text-gold-ink transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold-ink"
       >
         เข้าสู่ระบบ
       </Link>

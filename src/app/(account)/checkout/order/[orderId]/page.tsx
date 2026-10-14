@@ -22,15 +22,15 @@ const formatDateTime = (date: Date) =>
   new Intl.DateTimeFormat("th-TH", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Bangkok" }).format(date);
 
 function Panel({ children }: { children: React.ReactNode }) {
-  return <section className="border border-line bg-ink p-6 space-y-4 rounded-2xl">{children}</section>;
+  return <section className="border border-line bg-surface p-6 space-y-4 rounded-2xl">{children}</section>;
 }
 
 function PaymentPanel({ order, serverNow }: { order: OrderView; serverNow: string }) {
   if (order.paymentSuspended) {
     return (
       <Panel>
-        <p role="alert" className="flex items-start gap-2 text-sm text-amber-100">
-          <AlertTriangle className="w-5 h-5 shrink-0 text-amber-400" aria-hidden="true" />
+        <p role="alert" className="flex items-start gap-2 text-sm text-orange-900">
+          <AlertTriangle className="w-5 h-5 shrink-0 text-orange-600" aria-hidden="true" />
           ระบบระงับการรับชำระเงินชั่วคราว กรุณาอย่าโอนเงินตาม QR เดิม หากโอนไปแล้ว แนบสลิปด้านล่างหรือติดต่อทีมงาน
         </p>
       </Panel>
@@ -39,24 +39,24 @@ function PaymentPanel({ order, serverNow }: { order: OrderView; serverNow: strin
   return (
     <Panel>
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-        <h2 className="font-display text-lg font-semibold text-white">สแกนจ่ายด้วยแอปธนาคาร</h2>
-        <p className="flex items-center gap-1.5 whitespace-nowrap text-sm text-amber-300">
+        <h2 className="font-display text-lg font-semibold text-fg">สแกนจ่ายด้วยแอปธนาคาร</h2>
+        <p className="flex items-center gap-1.5 whitespace-nowrap text-sm text-orange-700">
           <Clock className="w-4 h-4" aria-hidden="true" />
           เหลือเวลา <Countdown deadline={order.expiresAt.toISOString()} serverNow={serverNow} />
         </p>
       </div>
       {order.promptpayPayload && <PromptPayQr payload={order.promptpayPayload} label={`PromptPay QR ยอด ${formatBaht(order.amount)} บาท`} />}
       <dl className="grid grid-cols-2 gap-3 text-sm">
-        <div className="border border-line-soft bg-ink-raised p-4 rounded-2xl">
-          <dt className="text-xs text-gray-400">ยอดที่ต้องโอน</dt>
-          <dd className="mt-1 font-display text-2xl font-bold text-signal">{formatBaht(order.amount)} ฿</dd>
+        <div className="border border-line-soft bg-surface p-4 rounded-2xl">
+          <dt className="text-xs text-fg-subtle">ยอดที่ต้องโอน</dt>
+          <dd className="mt-1 font-display text-2xl font-bold text-gold-ink">{formatBaht(order.amount)} ฿</dd>
         </div>
-        <div className="border border-line-soft bg-ink-raised p-4 rounded-2xl">
-          <dt className="text-xs text-gray-400">ชื่อบัญชีผู้รับ</dt>
-          <dd className="mt-1 font-medium text-white break-words">{order.promptpayAccountName || "—"}</dd>
+        <div className="border border-line-soft bg-surface p-4 rounded-2xl">
+          <dt className="text-xs text-fg-subtle">ชื่อบัญชีผู้รับ</dt>
+          <dd className="mt-1 font-medium text-fg break-words">{order.promptpayAccountName || "—"}</dd>
         </div>
       </dl>
-      <p className="text-xs text-gray-400 leading-relaxed">
+      <p className="text-xs text-fg-subtle leading-relaxed">
         โปรดโอนตามยอดที่แสดงทุกหลัก (รวมเศษสตางค์) และตรวจชื่อบัญชีผู้รับในแอปธนาคารก่อนยืนยันการโอน
       </p>
     </Panel>
@@ -68,8 +68,8 @@ function StatusPanel({ order, serverNow }: { order: OrderView; serverNow: string
     case "SLIP_GRACE":
       return (
         <Panel>
-          <p className="flex items-start gap-2 text-sm text-amber-100">
-            <Hourglass className="w-5 h-5 shrink-0 text-amber-400" aria-hidden="true" />
+          <p className="flex items-start gap-2 text-sm text-orange-900">
+            <Hourglass className="w-5 h-5 shrink-0 text-orange-600" aria-hidden="true" />
             หมดเวลาชำระเงินแล้ว หากคุณโอนเงินไปแล้ว แนบสลิปได้ภายใน {formatDateTime(order.slipDeadline)} (เหลือ <Countdown deadline={order.slipDeadline.toISOString()} serverNow={serverNow} />)
           </p>
         </Panel>
@@ -77,8 +77,8 @@ function StatusPanel({ order, serverNow }: { order: OrderView; serverNow: string
     case "SLIP_SUBMITTED":
       return (
         <Panel>
-          <p className="flex items-start gap-2 text-sm text-blue-100">
-            <Clock className="w-5 h-5 shrink-0 text-blue-300" aria-hidden="true" />
+          <p className="flex items-start gap-2 text-sm text-blue-900">
+            <Clock className="w-5 h-5 shrink-0 text-blue-700" aria-hidden="true" />
             ได้รับสลิปเมื่อ {order.slipUploadedAt ? formatDateTime(order.slipUploadedAt) : "-"} ทีมงานกำลังตรวจสอบ และจะแจ้งผลทางอีเมล
           </p>
         </Panel>
@@ -86,8 +86,8 @@ function StatusPanel({ order, serverNow }: { order: OrderView; serverNow: string
     case "REJECTED":
       return (
         <Panel>
-          <p className="flex items-start gap-2 text-sm text-red-200">
-            <XCircle className="w-5 h-5 shrink-0 text-red-400" aria-hidden="true" />
+          <p className="flex items-start gap-2 text-sm text-red-800">
+            <XCircle className="w-5 h-5 shrink-0 text-red-600" aria-hidden="true" />
             สลิปไม่ผ่านการตรวจสอบ{order.rejectionReason ? `: ${order.rejectionReason}` : ""} — แนบสลิปใบใหม่ได้ด้านล่าง
           </p>
         </Panel>
@@ -95,11 +95,11 @@ function StatusPanel({ order, serverNow }: { order: OrderView; serverNow: string
     case "APPROVED":
       return (
         <Panel>
-          <p className="flex items-start gap-2 text-sm text-gray-100">
-            <CheckCircle2 className="w-5 h-5 shrink-0 text-signal" aria-hidden="true" />
+          <p className="flex items-start gap-2 text-sm text-fg">
+            <CheckCircle2 className="w-5 h-5 shrink-0 text-gold-ink" aria-hidden="true" />
             คำสั่งซื้อได้รับอนุมัติแล้ว ดูสิทธิ์การใช้งานได้ที่แดชบอร์ดสมาชิก
           </p>
-          <Link href="/account" className="inline-flex items-center gap-1.5 text-sm font-medium text-signal hover:text-signal-hover">
+          <Link href="/account" className="inline-flex items-center gap-1.5 text-sm font-medium text-gold-ink hover:text-gold-ink">
             ไปแดชบอร์ดสมาชิก <ArrowRight className="w-4 h-4" aria-hidden="true" />
           </Link>
         </Panel>
@@ -107,8 +107,8 @@ function StatusPanel({ order, serverNow }: { order: OrderView; serverNow: string
     case "EXPIRED":
       return (
         <Panel>
-          <p className="text-sm text-gray-300">คำสั่งซื้อนี้หมดอายุแล้ว หากโอนเงินไปแล้วกรุณาติดต่อทีมงานพร้อมสลิป หรือสร้างคำสั่งซื้อใหม่</p>
-          <Link href={`/checkout/${order.planSlug}`} className="inline-flex items-center gap-1.5 text-sm font-medium text-signal hover:text-signal-hover">
+          <p className="text-sm text-fg-muted">คำสั่งซื้อนี้หมดอายุแล้ว หากโอนเงินไปแล้วกรุณาติดต่อทีมงานพร้อมสลิป หรือสร้างคำสั่งซื้อใหม่</p>
+          <Link href={`/checkout/${order.planSlug}`} className="inline-flex items-center gap-1.5 text-sm font-medium text-gold-ink hover:text-gold-ink">
             สร้างคำสั่งซื้อใหม่ <ArrowRight className="w-4 h-4" aria-hidden="true" />
           </Link>
         </Panel>
@@ -116,7 +116,7 @@ function StatusPanel({ order, serverNow }: { order: OrderView; serverNow: string
     case "REFUNDED":
       return (
         <Panel>
-          <p className="text-sm text-gray-300">คำสั่งซื้อนี้ได้รับการคืนเงินแล้ว</p>
+          <p className="text-sm text-fg-muted">คำสั่งซื้อนี้ได้รับการคืนเงินแล้ว</p>
         </Panel>
       );
     default:
@@ -140,7 +140,7 @@ export default async function OrderPaymentPage({ params }: { params: Promise<{ o
         title="ชำระเงิน"
         description={
           <>
-            คำสั่งซื้อ <span className="font-mono text-white">{order.orderNumber}</span> · {order.planName} · สร้างเมื่อ {formatDateTime(order.createdAt)}
+            คำสั่งซื้อ <span className="font-mono text-fg">{order.orderNumber}</span> · {order.planName} · สร้างเมื่อ {formatDateTime(order.createdAt)}
           </>
         }
       >
@@ -155,9 +155,9 @@ export default async function OrderPaymentPage({ params }: { params: Promise<{ o
         </Panel>
       )}
 
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-fg-subtle">
         ดูคำสั่งซื้อทั้งหมดได้ที่{" "}
-        <Link href="/account/orders" className="text-signal underline underline-offset-2">ประวัติคำสั่งซื้อ</Link>
+        <Link href="/account/orders" className="text-gold-ink underline underline-offset-2">ประวัติคำสั่งซื้อ</Link>
       </p>
     </div>
   );

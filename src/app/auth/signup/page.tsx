@@ -65,16 +65,16 @@ export default function SignUpPage() {
   return (
     <div className="w-full flex justify-center">
 
-      <div className="w-full max-w-md border border-line bg-ink p-6 sm:p-8 rounded-2xl">
+      <div className="w-full max-w-md border border-line bg-surface p-6 sm:p-8 rounded-2xl">
         <div className="mb-6">
-          <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-white">สมัครสมาชิกใหม่</h1>
-          <p className="text-sm text-gray-400 mt-1">
+          <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-fg">สมัครสมาชิกใหม่</h1>
+          <p className="text-sm text-fg-subtle mt-1">
             เริ่มต้นใช้งานระบบเทรดและเครื่องมือวิเคราะห์ระดับโปร
           </p>
         </div>
 
         {error && (
-          <div role="alert" className="mb-6 p-3.5 bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-start gap-2.5 rounded-xl">
+          <div role="alert" className="mb-6 p-3.5 bg-red-500/10 border border-red-500/30 text-red-700 text-sm flex items-start gap-2.5 rounded-xl">
             <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
@@ -82,11 +82,11 @@ export default function SignUpPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="signup-field-1" className="block text-xs font-medium text-gray-300 mb-1.5">
+            <label htmlFor="signup-field-1" className="block text-xs font-medium text-fg-muted mb-1.5">
               ชื่อ-นามสกุล หรือชื่อเล่น
             </label>
             <div className="relative">
-              <User className="w-5 h-5 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <User className="w-5 h-5 text-fg-subtle absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 id="signup-field-1"
                 type="text"
@@ -94,17 +94,17 @@ export default function SignUpPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="สมชาย ใจดี"
-                className="w-full bg-ink-raised border border-line py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-signal transition-colors rounded-xl"
+                className="w-full bg-surface border border-line py-2.5 pl-11 pr-4 text-sm text-fg placeholder-fg-subtle focus:outline-none focus:border-gold transition-colors rounded-xl"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="signup-field-2" className="block text-xs font-medium text-gray-300 mb-1.5">
+            <label htmlFor="signup-field-2" className="block text-xs font-medium text-fg-muted mb-1.5">
               อีเมล
             </label>
             <div className="relative">
-              <Mail className="w-5 h-5 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Mail className="w-5 h-5 text-fg-subtle absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 id="signup-field-2"
                 type="email"
@@ -112,17 +112,17 @@ export default function SignUpPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@example.com"
-                className="w-full bg-ink-raised border border-line py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-signal transition-colors rounded-xl"
+                className="w-full bg-surface border border-line py-2.5 pl-11 pr-4 text-sm text-fg placeholder-fg-subtle focus:outline-none focus:border-gold transition-colors rounded-xl"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="signup-field-3" className="block text-xs font-medium text-gray-300 mb-1.5">
+            <label htmlFor="signup-field-3" className="block text-xs font-medium text-fg-muted mb-1.5">
               รหัสผ่าน (อย่างน้อย 8 ตัวอักษร)
             </label>
             <div className="relative">
-              <Lock className="w-5 h-5 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Lock className="w-5 h-5 text-fg-subtle absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 id="signup-field-3"
                 type="password"
@@ -131,20 +131,20 @@ export default function SignUpPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-ink-raised border border-line py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-signal transition-colors rounded-xl"
+                className="w-full bg-surface border border-line py-2.5 pl-11 pr-4 text-sm text-fg placeholder-fg-subtle focus:outline-none focus:border-gold transition-colors rounded-xl"
               />
             </div>
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label htmlFor="signup-field-4" className="text-xs font-medium text-gray-300">
+              <label htmlFor="signup-field-4" className="text-xs font-medium text-fg-muted">
                 TradingView Username
               </label>
-              <span className="text-[11px] text-gray-400">สำหรับรับสิทธิ์อินดิเคเตอร์</span>
+              <span className="text-[11px] text-fg-subtle">สำหรับรับสิทธิ์อินดิเคเตอร์</span>
             </div>
             <div className="relative">
-              <LineChart className="w-5 h-5 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <LineChart className="w-5 h-5 text-fg-subtle absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 id="signup-field-4"
                 type="text"
@@ -152,7 +152,7 @@ export default function SignUpPage() {
                 onChange={(e) => setTradingViewUsername(e.target.value)}
                 maxLength={50}
                 placeholder="ชื่อบัญชีใน TradingView (ไม่ใส่ก็ได้)"
-                className="w-full bg-ink-raised border border-line py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-signal transition-colors rounded-xl"
+                className="w-full bg-surface border border-line py-2.5 pl-11 pr-4 text-sm text-fg placeholder-fg-subtle focus:outline-none focus:border-gold transition-colors rounded-xl"
               />
             </div>
           </div>
@@ -160,7 +160,7 @@ export default function SignUpPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-3 py-3 px-4 font-medium text-ink bg-signal hover:bg-signal-hover transition-all flex items-center justify-center gap-2 disabled:opacity-50 rounded-xl"
+            className="w-full mt-3 py-3 px-4 font-medium text-fg bg-gold hover:bg-gold-hover transition-all flex items-center justify-center gap-2 disabled:opacity-50 rounded-xl"
           >
             {loading ? (
               <span className="inline-block animate-pulse">กำลังสร้างบัญชี...</span>
@@ -174,11 +174,11 @@ export default function SignUpPage() {
         </form>
 
         <div className="mt-6 pt-6 border-t border-line text-center">
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-fg-subtle">
             มีบัญชีสมาชิกอยู่แล้ว?{" "}
             <Link
               href="/auth/signin"
-              className="text-signal hover:text-signal-hover font-medium transition-colors"
+              className="text-gold-ink hover:text-gold-ink font-medium transition-colors"
             >
               เข้าสู่ระบบ
             </Link>

@@ -23,8 +23,9 @@ export default function OpengraphImage() {
           flexDirection: "column",
           justifyContent: "space-between",
           padding: "72px",
-          background: "linear-gradient(135deg, #0B0F17 0%, #111827 60%, #2A1F0A 100%)",
-          color: "#F3F4F6",
+          // ธีมครีม-ทอง (ค่าเดียวกับ token page / surface-sunken / fg)
+          background: "linear-gradient(135deg, #FAF6EE 0%, #F3EDE0 100%)",
+          color: "#1F1A12",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
@@ -33,26 +34,26 @@ export default function OpengraphImage() {
               width: "72px",
               height: "72px",
               borderRadius: "18px",
-              background: "linear-gradient(135deg, #FBBF24, #D97706)",
+              background: "#D4A537",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               fontSize: "40px",
               fontWeight: 700,
-              color: "#000",
+              color: "#1F1A12",
             }}
           >
-            P
+            {siteConfig.name.charAt(0)}
           </div>
           <div style={{ fontSize: "40px", fontWeight: 700 }}>{siteConfig.name}</div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          <div style={{ fontSize: "64px", fontWeight: 700, color: "#FBBF24", lineHeight: 1.1 }}>
+          <div style={{ fontSize: "64px", fontWeight: 700, color: "#8A5F00", lineHeight: 1.1 }}>
             TradingView Invite-only Indicator
           </div>
-          <div style={{ fontSize: "32px", color: "#D1D5DB" }}>Telegram VIP alerts · Discord community · PromptPay checkout</div>
+          <div style={{ fontSize: "32px", color: "#5C5344" }}>Telegram VIP alerts · Discord community · PromptPay checkout</div>
         </div>
-        <div style={{ fontSize: "24px", color: "#9CA3AF" }}>{siteConfig.domain}</div>
+        <div style={{ fontSize: "24px", color: "#6B604E" }}>{siteConfig.domain}</div>
       </div>
     ),
     size,

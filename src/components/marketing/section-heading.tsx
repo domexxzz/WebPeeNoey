@@ -20,10 +20,10 @@ export function SectionHeading({ id, eyebrow, title, description, align = "left"
       <p
         data-reveal="clip"
         className={`inline-flex items-center gap-2 border px-3 py-1 text-xs font-semibold tracking-wide rounded-full ${
-          onSignal ? "border-ink/70 text-ink" : "border-line text-signal"
+          onSignal ? "border-fg/70 text-fg" : "border-line text-gold-ink"
         }`}
       >
-        <span aria-hidden="true" className={`w-1.5 h-1.5 ${onSignal ? "bg-ink" : "bg-signal"}`} />
+        <span aria-hidden="true" className={`w-1.5 h-1.5 ${onSignal ? "bg-surface" : "bg-gold"}`} />
         {eyebrow}
       </p>
       <h2
@@ -31,7 +31,7 @@ export function SectionHeading({ id, eyebrow, title, description, align = "left"
         data-reveal="words"
         style={staggerStyle(2, 90)}
         className={`mt-5 font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.05] ${
-          onSignal ? "text-ink" : "text-white"
+          onSignal ? "text-fg" : "text-fg"
         }`}
       >
         <Phrases text={title} animate />
@@ -40,7 +40,7 @@ export function SectionHeading({ id, eyebrow, title, description, align = "left"
         <p
           data-reveal="up"
           style={staggerStyle(5, 90)}
-          className={`mt-5 text-base sm:text-lg leading-relaxed ${onSignal ? "text-ink/80" : "text-gray-300"}`}
+          className={`mt-5 text-base sm:text-lg leading-relaxed ${onSignal ? "text-fg/80" : "text-fg-muted"}`}
         >
           {description}
         </p>

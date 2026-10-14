@@ -35,7 +35,7 @@ export function MobileNav({ links }: { links: NavLink[] }) {
         aria-expanded={isOpen}
         aria-controls={PANEL_ID}
         aria-label={isOpen ? "ปิดเมนู" : "เปิดเมนู"}
-        className="p-2 -mr-2 text-gray-200 hover:text-signal focus-visible:outline focus-visible:outline-2 focus-visible:outline-signal"
+        className="p-2 -mr-2 text-fg hover:text-gold-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold-ink"
       >
         {isOpen ? <X className="w-5 h-5" aria-hidden="true" /> : <Menu className="w-5 h-5" aria-hidden="true" />}
       </button>
@@ -44,7 +44,7 @@ export function MobileNav({ links }: { links: NavLink[] }) {
         <nav
           id={PANEL_ID}
           aria-label="เมนูหลัก (มือถือ)"
-          className="absolute left-0 right-0 top-16 border-b border-line bg-ink"
+          className="absolute left-0 right-0 top-16 border-b border-line bg-surface"
         >
           <ul className="divide-y divide-line-soft">
             {links.map((link) => (
@@ -52,7 +52,7 @@ export function MobileNav({ links }: { links: NavLink[] }) {
                 <Link
                   href={link.href}
                   onClick={() => setIsOpen(false)}
-                  className="block px-5 py-4 text-base text-gray-100 hover:bg-white/[0.04] hover:text-signal"
+                  className="block px-5 py-4 text-base text-fg hover:bg-fg/[0.04] hover:text-gold-ink"
                 >
                   {link.label}
                 </Link>
@@ -63,7 +63,7 @@ export function MobileNav({ links }: { links: NavLink[] }) {
                 <Link
                   href="/auth/signin"
                   onClick={() => setIsOpen(false)}
-                  className="block px-5 py-4 text-base text-gray-100 hover:bg-white/[0.04] hover:text-signal"
+                  className="block px-5 py-4 text-base text-fg hover:bg-fg/[0.04] hover:text-gold-ink"
                 >
                   เข้าสู่ระบบ
                 </Link>

@@ -29,11 +29,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <div className={`${displayFont.variable} ${thaiFont.variable} font-thai min-h-screen bg-ink text-gray-200 flex flex-col md:flex-row selection:bg-signal selection:text-ink`}>
+    <div className={`${displayFont.variable} ${thaiFont.variable} font-thai min-h-screen bg-page text-fg flex flex-col md:flex-row selection:bg-gold selection:text-fg`}>
       <aside className="flex w-full shrink-0 flex-col border-b border-line md:sticky md:top-0 md:h-screen md:w-64 md:border-b-0 md:border-r">
         <div className="flex h-16 items-center justify-between gap-2 border-b border-line px-4">
           <BrandMark />
-          <span className="border border-red-400/70 px-2 py-0.5 text-[11px] font-bold tracking-wider text-red-300 rounded-full">ADMIN</span>
+          <span className="border border-red-500/50 px-2 py-0.5 text-[11px] font-bold tracking-wider text-red-700 rounded-full">ADMIN</span>
         </div>
 
         <nav aria-label="เมนูผู้ดูแลระบบ" className="flex gap-1 overflow-x-auto p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:flex-1 md:flex-col md:overflow-visible md:p-3">
@@ -41,9 +41,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <Link
               key={href}
               href={href}
-              className="flex shrink-0 items-center gap-3 whitespace-nowrap rounded-xl px-4 py-3 text-sm text-gray-200 transition-colors hover:bg-white/[0.06] hover:text-signal focus-visible:outline focus-visible:outline-2 focus-visible:outline-signal"
+              className="flex shrink-0 items-center gap-3 whitespace-nowrap rounded-xl px-4 py-3 text-sm text-fg transition-colors hover:bg-fg/[0.05] hover:text-gold-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold-ink"
             >
-              <Icon className="w-4 h-4 text-signal" aria-hidden="true" />
+              <Icon className="w-4 h-4 text-gold-ink" aria-hidden="true" />
               {label}
             </Link>
           ))}
@@ -51,11 +51,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
         <div className="hidden md:block space-y-3 border-t border-line px-5 py-4 text-xs">
           <div>
-            <span className="block text-gray-400">ผู้ดูแลระบบ</span>
-            <span className="block truncate font-medium text-white">{session.user.email}</span>
+            <span className="block text-fg-subtle">ผู้ดูแลระบบ</span>
+            <span className="block truncate font-medium text-fg">{session.user.email}</span>
           </div>
           <div className="flex items-center justify-between gap-2">
-            <Link href="/account" className="flex items-center gap-1 text-gray-400 transition-colors hover:text-signal">
+            <Link href="/account" className="flex items-center gap-1 text-fg-subtle transition-colors hover:text-gold-ink">
               <ExternalLink className="w-3 h-3" aria-hidden="true" /> หน้าสมาชิก
             </Link>
             <AccountSignOutButton />
@@ -65,15 +65,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex min-h-14 flex-wrap items-center justify-between gap-x-6 gap-y-1 border-b border-line px-4 sm:px-6 lg:px-8 py-3 text-xs">
-          <p className="flex items-center gap-2 text-gray-300">
+          <p className="flex items-center gap-2 text-fg-muted">
             <span aria-hidden="true" className="w-2 h-2 bg-red-400 rounded-full" />
             โซนผู้ดูแลระบบ — ทุกการเปลี่ยนแปลงถูกบันทึกใน Audit Log
           </p>
-          <p className="text-gray-400">
+          <p className="text-fg-subtle">
             เวลาไทย {formatDateTime(new Date())}
             <span className="md:hidden">
               {" · "}
-              <Link href="/account" className="text-gray-300 underline underline-offset-2 hover:text-signal">
+              <Link href="/account" className="text-fg-muted underline underline-offset-2 hover:text-gold-ink">
                 หน้าสมาชิก
               </Link>
             </span>

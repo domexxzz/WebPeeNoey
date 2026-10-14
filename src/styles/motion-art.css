@@ -242,8 +242,8 @@ html[data-motion] [data-reveal]:not([data-inview]) .cd-anim * {
   position: absolute;
   inset: -48px;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    linear-gradient(rgba(31, 26, 18, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(31, 26, 18, 0.05) 1px, transparent 1px);
   background-size: 48px 48px;
   animation: mx-grid-drift 9s linear infinite;
 }
@@ -419,7 +419,7 @@ html[data-motion] [data-reveal]:not([data-inview]) .cd-anim * {
 }
 
 .mx-qr::before {
-  --qr-c: #6eea6e;
+  --qr-c: #d4a537;
   --qr-l: 28px;
   --qr-t: 3px;
   content: "";
@@ -456,7 +456,7 @@ html[data-motion] [data-reveal]:not([data-inview]) .cd-anim * {
 .group:hover .mx-wave span,
 .group:focus-visible .mx-wave span {
   translate: 0 -0.12em;
-  color: #6eea6e;
+  color: #8a5f00;
 }
 
 @media (prefers-reduced-motion: reduce) {

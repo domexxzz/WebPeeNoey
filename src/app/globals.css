@@ -2,9 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ธีมครีม-ทอง (ค่าเดียวกับ token page / fg ใน tailwind.config.ts) */
 :root {
-  --background: #0B0F17;
-  --foreground: #F3F4F6;
+  --background: #FAF6EE;
+  --foreground: #1F1A12;
+  color-scheme: light;
 }
 
 @layer base {
@@ -44,12 +46,12 @@
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #0B0F17;
+  background: #FAF6EE;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1F2937;
+  background: #D9CDB5;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #374151;
+  background: #C3B394;
 }

@@ -11,8 +11,8 @@ export const metadata: Metadata = { title: "สถานะระบบ", robots
 export const dynamic = "force-dynamic";
 
 function StatusIcon({ ok, warn }: { ok: boolean; warn?: boolean }) {
-  if (ok) return <CheckCircle2 className="w-4 h-4 text-signal" aria-label="ปกติ" />;
-  return warn ? <CircleAlert className="w-4 h-4 text-amber-400" aria-label="ควรตรวจสอบ" /> : <XCircle className="w-4 h-4 text-red-400" aria-label="ผิดปกติ" />;
+  if (ok) return <CheckCircle2 className="w-4 h-4 text-gold-ink" aria-label="ปกติ" />;
+  return warn ? <CircleAlert className="w-4 h-4 text-orange-600" aria-label="ควรตรวจสอบ" /> : <XCircle className="w-4 h-4 text-red-600" aria-label="ผิดปกติ" />;
 }
 
 const JOB_STATUS_LABEL = { RUNNING: "กำลังทำงาน", SUCCESS: "สำเร็จ", FAILED: "ล้มเหลว" } as const;
@@ -35,12 +35,12 @@ export default async function AdminStatusPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <AdminCard title="บริการหลัก">
           <ul className="space-y-2 text-sm">
-            <li className="flex items-center gap-2 text-gray-200">
+            <li className="flex items-center gap-2 text-fg">
               <StatusIcon ok={health.database.ok} /> ฐานข้อมูล {health.database.ok ? `(ตอบสนอง ${health.database.latencyMs} ms)` : "เชื่อมต่อไม่ได้"}
             </li>
-            <li className="flex items-center gap-2 text-gray-200">
+            <li className="flex items-center gap-2 text-fg">
               <StatusIcon ok={health.payments.open} warn /> การรับชำระเงิน: {health.payments.open ? "เปิด" : "ปิด"}
-              <Link href="/admin/settings" className="text-xs text-signal hover:underline">ตั้งค่า</Link>
+              <Link href="/admin/settings" className="text-xs text-gold-ink hover:underline">ตั้งค่า</Link>
             </li>
           </ul>
         </AdminCard>
@@ -48,11 +48,11 @@ export default async function AdminStatusPage() {
         <AdminCard title="คิวงาน">
           <ul className="space-y-2 text-sm">
             {queues.map((queue) => (
-              <li key={queue.label} className="flex items-center justify-between gap-2 text-gray-200">
+              <li key={queue.label} className="flex items-center justify-between gap-2 text-fg">
                 <span className="flex items-center gap-2">
                   <StatusIcon ok={!queue.warn} warn /> {queue.label}
                 </span>
-                <Link href={queue.href} className="font-mono tabular-nums text-signal hover:underline">{queue.value}</Link>
+                <Link href={queue.href} className="font-mono tabular-nums text-gold-ink hover:underline">{queue.value}</Link>
               </li>
             ))}
           </ul>
@@ -62,19 +62,19 @@ export default async function AdminStatusPage() {
       <AdminCard title="งานอัตโนมัติ (Cron / Watchdog)">
         <ul className="space-y-3 text-sm">
           {health.jobs.map((job) => (
-            <li key={job.job} className="bg-ink-raised px-3 py-2">
-              <span className="flex items-center gap-2 text-gray-200">
+            <li key={job.job} className="bg-surface px-3 py-2">
+              <span className="flex items-center gap-2 text-fg">
                 <StatusIcon ok={job.lastRun?.status === "SUCCESS"} warn={job.lastRun === null || job.lastRun.status === "RUNNING"} />
                 {job.label}
               </span>
-              <span className="block text-xs text-gray-400 mt-1">
+              <span className="block text-xs text-fg-subtle mt-1">
                 {job.lastRun
                   ? `รันล่าสุด ${formatDateTime(job.lastRun.startedAt)} · ${JOB_STATUS_LABEL[job.lastRun.status]}`
                   : "ยังไม่เคยรัน"}
                 {job.lastSuccessAt && job.lastRun?.status !== "SUCCESS" && ` · สำเร็จล่าสุด ${formatDateTime(job.lastSuccessAt)}`}
               </span>
               {job.lastRun?.status === "FAILED" && job.lastRun.error && (
-                <span className="block text-xs text-red-300 mt-1 break-words">{job.lastRun.error.slice(0, 300)}</span>
+                <span className="block text-xs text-red-700 mt-1 break-words">{job.lastRun.error.slice(0, 300)}</span>
               )}
             </li>
           ))}
@@ -84,11 +84,11 @@ export default async function AdminStatusPage() {
       <AdminCard title="ตัวแปรสภาพแวดล้อม (Environment)">
         <ul className="grid gap-2 sm:grid-cols-2 text-sm">
           {health.env.map((item) => (
-            <li key={item.key} className="flex items-start gap-2 bg-ink-raised px-3 py-2">
+            <li key={item.key} className="flex items-start gap-2 bg-surface px-3 py-2">
               <StatusIcon ok={item.configured} warn={!item.required} />
               <span>
-                <span className="font-mono text-xs text-white">{item.key}</span>
-                <span className="block text-xs text-gray-400">
+                <span className="font-mono text-xs text-fg">{item.key}</span>
+                <span className="block text-xs text-fg-subtle">
                   {item.purpose} · {item.configured ? "ตั้งค่าแล้ว" : item.required ? "ยังไม่ได้ตั้ง (จำเป็น)" : "ยังไม่ได้ตั้ง"}
                 </span>
               </span>

@@ -45,9 +45,10 @@ describe("Brand name in member emails", () => {
       expect(message.html).toContain(siteConfig.name);
       expect(message.html).toContain(`ทีมงาน ${siteConfig.name}`);
       expect(message.html).toContain('href="https://example.test"');
-      // ธีมปัจจุบัน (เขียวสัญญาณ) — ไม่เหลือสีทอง/สีพื้นของธีมเดิม
-      expect(message.html).toContain("#6EEA6E");
-      expect(message.html).not.toMatch(/#F59E0B|#0B0F17|#10B981/);
+      // ธีมปัจจุบัน (ครีม-ทอง) — ปุ่มทอง พื้นขาว ไม่เหลือสีของธีมเก่า (เขียวสัญญาณ / พื้นมืด)
+      expect(message.html).toContain("#D4A537");
+      expect(message.html).toContain("background-color: #FFFFFF");
+      expect(message.html).not.toMatch(/#6EEA6E|#111312|#0B0F17|#10B981/i);
     }
   });
 

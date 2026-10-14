@@ -19,28 +19,28 @@ export const dynamic = "force-dynamic";
 
 function SlipViewer({ order }: { order: AdminOrderDetail }) {
   const [latest, ...older] = order.slips;
-  if (!latest) return <p className="text-sm text-gray-400">ยังไม่มีสลิป</p>;
+  if (!latest) return <p className="text-sm text-fg-subtle">ยังไม่มีสลิป</p>;
   return (
     <div className="space-y-3">
       <a href={`/api/slips/${latest.id}`} target="_blank" rel="noopener noreferrer" className="group block">
         {/* สลิปเป็นไฟล์ที่ต้องตรวจสิทธิ์ทุกครั้ง จึงไม่ผ่าน image optimizer (unoptimized) */}
-        <div className="relative mx-auto aspect-[9/16] max-h-[640px] w-full overflow-hidden bg-ink-raised">
+        <div className="relative mx-auto aspect-[9/16] max-h-[640px] w-full overflow-hidden bg-surface">
           <Image src={`/api/slips/${latest.id}`} alt={`สลิปของคำสั่งซื้อ ${order.orderNumber}`} fill unoptimized sizes="(min-width: 1024px) 420px, 100vw" className="object-contain" />
         </div>
-        <span className="mt-2 inline-flex items-center gap-1 text-xs text-signal group-hover:underline">
+        <span className="mt-2 inline-flex items-center gap-1 text-xs text-gold-ink group-hover:underline">
           เปิดภาพเต็ม <ExternalLink className="w-3 h-3" aria-hidden="true" />
         </span>
       </a>
-      <p className="text-xs text-gray-400">
+      <p className="text-xs text-fg-subtle">
         อัปโหลด {formatDateTime(latest.createdAt)} · {formatFileSize(latest.sizeBytes)} · SHA-256 {latest.hash.slice(0, 12)}…
       </p>
       {older.length > 0 && (
-        <details className="text-xs text-gray-400">
+        <details className="text-xs text-fg-subtle">
           <summary className="cursor-pointer">สลิปก่อนหน้า ({older.length})</summary>
           <ul className="mt-2 space-y-1">
             {older.map((slip) => (
               <li key={slip.id}>
-                <a href={`/api/slips/${slip.id}`} target="_blank" rel="noopener noreferrer" className="text-signal hover:underline">
+                <a href={`/api/slips/${slip.id}`} target="_blank" rel="noopener noreferrer" className="text-gold-ink hover:underline">
                   {formatDateTime(slip.createdAt)}
                 </a>
               </li>
@@ -62,8 +62,8 @@ function ReviewForms({ order }: { order: AdminOrderDetail }) {
             <label className={labelClass} htmlFor="referenceNo">เลขอ้างอิงธุรกรรม (จากสลิป/แอปธนาคาร)</label>
             <input id="referenceNo" name="referenceNo" required autoComplete="off" className={inputClass} placeholder="เช่น 2026101112345678" />
           </div>
-          <label className="flex items-start gap-2 text-sm text-gray-300">
-            <input type="checkbox" name="confirmReceived" required className="mt-1 accent-[#6EEA6E]" />
+          <label className="flex items-start gap-2 text-sm text-fg-muted">
+            <input type="checkbox" name="confirmReceived" required className="mt-1 accent-[#B8860B]" />
             ตรวจแล้วว่ามีเงิน {formatBaht(order.amount)} บาท เข้าบัญชี {order.payment?.promptpayAccountName || "ผู้รับ"} จริง
           </label>
         </ActionForm>
@@ -95,7 +95,7 @@ function ReviewForms({ order }: { order: AdminOrderDetail }) {
 function RefundForm({ order }: { order: AdminOrderDetail }) {
   return (
     <AdminCard title="คืนเงิน">
-      <p className="flex items-start gap-2 text-xs text-amber-200">
+      <p className="flex items-start gap-2 text-xs text-orange-800">
         <ShieldAlert className="w-4 h-4 shrink-0" aria-hidden="true" />
         โอนเงินคืนให้ลูกค้าก่อน แล้วจึงบันทึกที่นี่ — ระบบจะปิดสิทธิ์ของคำสั่งซื้อนี้ทันที และคืนเงินซ้ำไม่ได้
       </p>
@@ -115,7 +115,7 @@ function RefundForm({ order }: { order: AdminOrderDetail }) {
           <label className={labelClass} htmlFor="refundReason">เหตุผล</label>
           <input id="refundReason" name="reason" required minLength={2} maxLength={300} className={inputClass} />
         </div>
-        <label className="flex items-start gap-2 text-sm text-gray-300">
+        <label className="flex items-start gap-2 text-sm text-fg-muted">
           <input type="checkbox" name="confirmRefund" required className="mt-1 accent-red-500" />
           ยืนยันว่าโอนเงินคืนให้ลูกค้าแล้ว
         </label>
@@ -132,14 +132,14 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
 
   return (
     <div className="space-y-6">
-      <Link href="/admin/orders" className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-white">
+      <Link href="/admin/orders" className="inline-flex items-center gap-1.5 text-sm text-fg-subtle hover:text-fg">
         <ArrowLeft className="w-4 h-4" aria-hidden="true" /> กลับไปรายการคำสั่งซื้อ
       </Link>
 
       <header className="flex flex-wrap items-center gap-3">
-        <h1 className="font-mono text-2xl font-bold text-white">{order.orderNumber}</h1>
+        <h1 className="font-mono text-2xl font-bold text-fg">{order.orderNumber}</h1>
         <AdminOrderBadge status={order.status} />
-        {order.priceReason && <span className="text-xs text-gray-400">ราคา: {order.priceReason}</span>}
+        {order.priceReason && <span className="text-xs text-fg-subtle">ราคา: {order.priceReason}</span>}
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
@@ -149,12 +149,12 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
 
         <div className="space-y-6">
           <AdminCard title="ข้อมูลคำสั่งซื้อ">
-            <p className="font-display text-3xl font-bold text-signal">
-              {formatBaht(order.amount)} <span className="text-base text-gray-400">บาท</span>
+            <p className="font-display text-3xl font-bold text-gold-ink">
+              {formatBaht(order.amount)} <span className="text-base text-fg-subtle">บาท</span>
             </p>
             <DefinitionList
               items={[
-                { label: "ลูกค้า", value: <Link href={`/admin/members/${order.user.id}`} className="text-signal hover:underline">{order.user.email}</Link> },
+                { label: "ลูกค้า", value: <Link href={`/admin/members/${order.user.id}`} className="text-gold-ink hover:underline">{order.user.email}</Link> },
                 { label: "TradingView Username", value: order.user.tradingViewUsername ?? "—" },
                 { label: "Discord User ID", value: order.user.discordUserId ?? "—" },
                 { label: "แพ็กเกจ", value: `${order.plan.name} (${order.plan.durationDays} วัน)` },
@@ -164,7 +164,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
                 { label: "ยอมรับข้อกำหนด", value: order.termsAcceptedAt ? `${formatDateTime(order.termsAcceptedAt)} (v${order.termsVersion}) · IP ${order.createdIp ?? "—"}` : "—" },
               ]}
             />
-            {order.rejectionReason && <p className="text-sm text-red-300">เหตุผลที่ปฏิเสธล่าสุด: {order.rejectionReason}</p>}
+            {order.rejectionReason && <p className="text-sm text-red-700">เหตุผลที่ปฏิเสธล่าสุด: {order.rejectionReason}</p>}
           </AdminCard>
 
           {order.status === "SLIP_SUBMITTED" && <ReviewForms order={order} />}
@@ -172,10 +172,10 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
 
           {order.subscription && (
             <AdminCard title="สิทธิ์จากคำสั่งซื้อนี้">
-              <div className="flex flex-wrap items-center gap-3 text-sm text-gray-300">
+              <div className="flex flex-wrap items-center gap-3 text-sm text-fg-muted">
                 <SubscriptionBadge status={order.subscription.status} />
                 {formatDateTime(order.subscription.currentPeriodStart)} → {formatDateTime(order.subscription.currentPeriodEnd)}
-                {order.subscription.isPriceLocked && <span className="text-xs text-signal">ล็อกราคา</span>}
+                {order.subscription.isPriceLocked && <span className="text-xs text-gold-ink">ล็อกราคา</span>}
               </div>
               <ProvisioningPanel subscription={order.subscription} />
             </AdminCard>
@@ -183,7 +183,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
 
           {order.refund && (
             <AdminCard title="การคืนเงิน">
-              <p className="text-sm text-gray-300">
+              <p className="text-sm text-fg-muted">
                 คืน {formatBaht(order.refund.amount)} บาท เมื่อ {formatDateTime(order.refund.createdAt)} — {order.refund.reason}
                 {order.refund.transferReference && ` (อ้างอิง ${order.refund.transferReference})`}
               </p>
@@ -192,13 +192,13 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
 
           <AdminCard title="ประวัติการดำเนินการ">
             {order.auditLogs.length === 0 ? (
-              <p className="text-sm text-gray-400">ยังไม่มี</p>
+              <p className="text-sm text-fg-subtle">ยังไม่มี</p>
             ) : (
               <ol className="space-y-2 text-sm">
                 {order.auditLogs.map((log) => (
-                  <li key={log.id} className="text-gray-300">
-                    <span className="text-white">{AUDIT_ACTIONS[log.action as AuditAction] ?? log.action}</span> โดย {log.actorEmail} ·{" "}
-                    <span className="text-gray-400">{formatDateTime(log.createdAt)}</span>
+                  <li key={log.id} className="text-fg-muted">
+                    <span className="text-fg">{AUDIT_ACTIONS[log.action as AuditAction] ?? log.action}</span> โดย {log.actorEmail} ·{" "}
+                    <span className="text-fg-subtle">{formatDateTime(log.createdAt)}</span>
                   </li>
                 ))}
               </ol>

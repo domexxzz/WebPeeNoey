@@ -35,7 +35,7 @@ describe("TradingView live chart in the hero", () => {
   it("uses the official TradingView embed with Thai locale, Bangkok time and the required attribution link", () => {
     expect(TRADINGVIEW_CHART.scriptSrc).toBe("https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js");
     expect(TRADINGVIEW_CHART.attributionHref).toBe("https://www.tradingview.com/");
-    expect(TRADINGVIEW_CHART.config).toMatchObject({ locale: "th_TH", timezone: "Asia/Bangkok", theme: "dark", autosize: true });
+    expect(TRADINGVIEW_CHART.config).toMatchObject({ locale: "th_TH", timezone: "Asia/Bangkok", theme: "light", autosize: true });
   });
 
   it("states that the live chart does not show our indicator's signals and is not investment advice", () => {

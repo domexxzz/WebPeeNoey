@@ -36,8 +36,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="th" className={`dark ${headingFont.variable} ${bodyFont.variable}`}>
-      <body className="min-h-screen bg-[#0B0F17] text-gray-100 antialiased selection:bg-amber-500 selection:text-black">
+    <html lang="th" className={`${headingFont.variable} ${bodyFont.variable}`}>
+      <body className="min-h-screen bg-page text-fg antialiased selection:bg-gold selection:text-fg">
         <Providers>{children}</Providers>
       </body>
     </html>

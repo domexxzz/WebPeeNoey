@@ -36,7 +36,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
           <input type="hidden" name="tab" value={tab} />
           <label className="sr-only" htmlFor="order-search">ค้นหาคำสั่งซื้อ</label>
           <input id="order-search" name="q" defaultValue={q} placeholder="เลขออเดอร์ / อีเมล / เลขอ้างอิง" className={`${inputClass} sm:w-72`} />
-          <button type="submit" className="bg-white/10 px-3 text-gray-200 hover:bg-white/20" aria-label="ค้นหา">
+          <button type="submit" className="bg-fg/10 px-3 text-fg hover:bg-fg/15" aria-label="ค้นหา">
             <Search className="w-4 h-4" aria-hidden="true" />
           </button>
         </form>
@@ -49,7 +49,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
             href={tabHref(key, q)}
             aria-current={key === tab ? "page" : undefined}
             className={`border px-3.5 py-1.5 text-xs font-medium transition-colors rounded-xl ${
-              key === tab ? "border-signal bg-signal text-ink" : "border-line text-gray-300 hover:bg-white/5"
+              key === tab ? "border-gold bg-gold text-fg" : "border-line text-fg-muted hover:bg-fg/5"
             }`}
           >
             {ADMIN_ORDER_TABS[key].label} <span className="ml-1 tabular-nums opacity-70">{counts[key]}</span>
@@ -57,9 +57,9 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
         ))}
       </nav>
 
-      <div className="overflow-x-auto border border-line bg-ink rounded-2xl">
+      <div className="overflow-x-auto border border-line bg-surface rounded-2xl">
         <table className="w-full min-w-[720px] text-sm">
-          <thead className="text-left text-xs text-gray-400">
+          <thead className="text-left text-xs text-fg-subtle">
             <tr className="border-b border-line">
               <th className="px-4 py-3 font-medium">คำสั่งซื้อ</th>
               <th className="px-4 py-3 font-medium">ลูกค้า</th>
@@ -71,28 +71,28 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
           <tbody className="divide-y divide-line-soft">
             {items.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-10 text-center text-gray-400">
+                <td colSpan={5} className="px-4 py-10 text-center text-fg-subtle">
                   ไม่มีคำสั่งซื้อในหมวดนี้
                 </td>
               </tr>
             )}
             {items.map((order) => (
-              <tr key={order.id} className="hover:bg-white/5">
+              <tr key={order.id} className="hover:bg-fg/5">
                 <td className="px-4 py-3">
-                  <Link href={`/admin/orders/${order.id}`} className="font-mono text-signal hover:underline">
+                  <Link href={`/admin/orders/${order.id}`} className="font-mono text-gold-ink hover:underline">
                     {order.orderNumber}
                   </Link>
-                  <div className="text-xs text-gray-400">{order.planName}</div>
+                  <div className="text-xs text-fg-subtle">{order.planName}</div>
                 </td>
                 <td className="px-4 py-3">
-                  <div className="text-white">{order.name ?? "—"}</div>
-                  <div className="text-xs text-gray-400">{order.email}</div>
+                  <div className="text-fg">{order.name ?? "—"}</div>
+                  <div className="text-xs text-fg-subtle">{order.email}</div>
                 </td>
-                <td className="px-4 py-3 text-right font-mono tabular-nums text-white">{formatBaht(order.amount)}</td>
-                <td className="px-4 py-3 text-gray-300">
+                <td className="px-4 py-3 text-right font-mono tabular-nums text-fg">{formatBaht(order.amount)}</td>
+                <td className="px-4 py-3 text-fg-muted">
                   {order.slipUploadedAt ? formatDateTime(order.slipUploadedAt) : "—"}
                   {order.status === "SLIP_SUBMITTED" && !order.adminNotifiedAt && (
-                    <span className="mt-1 flex items-center gap-1 text-xs text-signal" title="ส่งแจ้งเตือน Telegram ไม่สำเร็จ">
+                    <span className="mt-1 flex items-center gap-1 text-xs text-gold-ink" title="ส่งแจ้งเตือน Telegram ไม่สำเร็จ">
                       <BellOff className="w-3 h-3" aria-hidden="true" /> ยังไม่ได้แจ้งเตือน
                     </span>
                   )}

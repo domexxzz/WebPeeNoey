@@ -45,17 +45,17 @@ function SignInContent() {
   };
 
   return (
-    <div className="w-full max-w-md border border-line bg-ink p-6 sm:p-8 rounded-2xl">
+    <div className="w-full max-w-md border border-line bg-surface p-6 sm:p-8 rounded-2xl">
       {/* Brand Header */}
       <div className="mb-8">
-        <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-white">เข้าสู่ระบบสมาชิก</h1>
-        <p className="text-sm text-gray-400 mt-1">
+        <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-fg">เข้าสู่ระบบสมาชิก</h1>
+        <p className="text-sm text-fg-subtle mt-1">
           เข้าใช้งานอินดิเคเตอร์และคอมมูนิตี้สำหรับสมาชิก
         </p>
       </div>
 
       {error && (
-        <div role="alert" className="mb-6 p-3.5 bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-start gap-2.5 rounded-xl">
+        <div role="alert" className="mb-6 p-3.5 bg-red-500/10 border border-red-500/30 text-red-700 text-sm flex items-start gap-2.5 rounded-xl">
           <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
@@ -63,11 +63,11 @@ function SignInContent() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="signin-field-1" className="block text-xs font-medium text-gray-300 mb-1.5">
+          <label htmlFor="signin-field-1" className="block text-xs font-medium text-fg-muted mb-1.5">
             อีเมล
           </label>
           <div className="relative">
-            <Mail className="w-5 h-5 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Mail className="w-5 h-5 text-fg-subtle absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               id="signin-field-1"
               type="email"
@@ -75,25 +75,25 @@ function SignInContent() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="name@example.com"
-              className="w-full bg-ink-raised border border-line py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-signal transition-colors rounded-xl"
+              className="w-full bg-surface border border-line py-2.5 pl-11 pr-4 text-sm text-fg placeholder-fg-subtle focus:outline-none focus:border-gold transition-colors rounded-xl"
             />
           </div>
         </div>
 
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label htmlFor="signin-field-2" className="text-xs font-medium text-gray-300">
+            <label htmlFor="signin-field-2" className="text-xs font-medium text-fg-muted">
               รหัสผ่าน
             </label>
             <Link
               href="/auth/forgot-password"
-              className="text-xs text-signal hover:text-signal-hover transition-colors"
+              className="text-xs text-gold-ink hover:text-gold-ink transition-colors"
             >
               ลืมรหัสผ่าน?
             </Link>
           </div>
           <div className="relative">
-            <Lock className="w-5 h-5 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Lock className="w-5 h-5 text-fg-subtle absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               id="signin-field-2"
               type="password"
@@ -101,7 +101,7 @@ function SignInContent() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full bg-ink-raised border border-line py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-signal transition-colors rounded-xl"
+              className="w-full bg-surface border border-line py-2.5 pl-11 pr-4 text-sm text-fg placeholder-fg-subtle focus:outline-none focus:border-gold transition-colors rounded-xl"
             />
           </div>
         </div>
@@ -109,7 +109,7 @@ function SignInContent() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full mt-2 py-3 px-4 font-medium text-ink bg-signal hover:bg-signal-hover transition-all flex items-center justify-center gap-2 disabled:opacity-50 rounded-xl"
+          className="w-full mt-2 py-3 px-4 font-medium text-fg bg-gold hover:bg-gold-hover transition-all flex items-center justify-center gap-2 disabled:opacity-50 rounded-xl"
         >
           {loading ? (
             <span className="inline-block animate-pulse">กำลังเข้าสู่ระบบ...</span>
@@ -123,19 +123,19 @@ function SignInContent() {
       </form>
 
       <div className="mt-6 pt-6 border-t border-line text-center">
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-fg-subtle">
           ยังไม่มีบัญชีสมาชิก?{" "}
           <Link
             href={callbackUrl === "/account" ? "/auth/signup" : `/auth/signup?callbackUrl=${encodeURIComponent(callbackUrl)}`}
-            className="text-signal hover:text-signal-hover font-medium transition-colors"
+            className="text-gold-ink hover:text-gold-ink font-medium transition-colors"
           >
             สมัครสมาชิกใหม่
           </Link>
         </p>
       </div>
 
-      <div className="mt-6 flex items-center justify-center gap-2 text-xs text-gray-500">
-        <ShieldCheck className="w-4 h-4 text-signal" />
+      <div className="mt-6 flex items-center justify-center gap-2 text-xs text-fg-subtle">
+        <ShieldCheck className="w-4 h-4 text-gold-ink" />
         <span>เชื่อมต่อแบบเข้ารหัส (HTTPS)</span>
       </div>
     </div>
@@ -145,7 +145,7 @@ function SignInContent() {
 export default function SignInPage() {
   return (
     <div className="w-full flex justify-center">
-      <Suspense fallback={<div className="text-gray-400 text-sm">กำลังโหลด...</div>}>
+      <Suspense fallback={<div className="text-fg-subtle text-sm">กำลังโหลด...</div>}>
         <SignInContent />
       </Suspense>
     </div>
