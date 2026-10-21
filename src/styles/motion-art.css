@@ -315,6 +315,172 @@ html[data-motion] [data-reveal]:not([data-inview]) .cd-anim * {
   }
 }
 
+/* ---------- ภาพหน้าจอจริงในการ์ดฟีเจอร์ (src/components/marketing/feature-art.tsx) ----------
+   ทุกชั้นใช้ scale / translate / opacity เท่านั้น (ไม่ใช้ clip-path กับเป้าหมาย reveal) */
+.fa-photo {
+  position: relative;
+  overflow: hidden;
+}
+
+/* กราฟ: แผ่นสีพื้นกราฟหดไปทางขวา = กราฟถูกวาดจากซ้ายไปขวา */
+.fa-wipe {
+  position: absolute;
+  inset: 0;
+  background: #0f0f0f;
+  transform-origin: 100% 50%;
+  pointer-events: none;
+}
+
+[data-reveal] .fa-wipe {
+  scale: 0 1;
+  transition: scale 1.6s var(--ease-out) 0.7s;
+}
+
+/* ป้าย BUY → TP1 → TP2 → SL: วงแสงกระพริบทีละจุด วนตลอด */
+.fa-pulse {
+  position: absolute;
+  width: 1.9rem;
+  height: 1.9rem;
+  margin: -0.95rem 0 0 -0.95rem;
+  border: 2px solid #d4a537;
+  border-radius: 9999px;
+  box-shadow: 0 0 14px rgba(212, 165, 55, 0.65);
+  opacity: 0;
+  pointer-events: none;
+  animation: fa-pulse 4.8s ease-out infinite;
+  animation-delay: calc(var(--i, 0) * 1.2s + 2.4s);
+}
+
+@keyframes fa-pulse {
+  0% {
+    opacity: 0;
+    scale: 0.4;
+  }
+  8% {
+    opacity: 1;
+  }
+  25%,
+  100% {
+    opacity: 0;
+    scale: 1.7;
+  }
+}
+
+/* แชต: จุด "กำลังพิมพ์" ขึ้นก่อน แล้วข้อความเลื่อนขึ้นมาแทนที่ */
+[data-reveal] .fa-slide {
+  transition:
+    opacity 0.5s var(--ease-out) 1.6s,
+    translate 0.9s var(--ease-spring) 1.6s;
+}
+
+.fa-typing {
+  position: absolute;
+  left: 9%;
+  bottom: 16%;
+  display: flex;
+  gap: 0.3rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 1rem;
+  background: #182533;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.fa-typing .fa-dot {
+  display: block;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 9999px;
+  background: #d4a537;
+}
+
+[data-reveal][data-inview] .fa-typing {
+  animation: fa-typing-show 1.7s ease-out 0.4s both;
+}
+
+@keyframes fa-typing-show {
+  0% {
+    opacity: 0;
+    translate: 0 8px;
+  }
+  15%,
+  75% {
+    opacity: 1;
+    translate: 0 0;
+  }
+  100% {
+    opacity: 0;
+    translate: 0 -8px;
+  }
+}
+
+/* Discord: แถบไฮไลต์ไล่ลงตามห้องทีละห้อง (ระยะห่างแต่ละห้อง = 110% ของความสูงแถบ) */
+.fa-scan {
+  position: absolute;
+  left: 2.5%;
+  top: 32.5%;
+  width: 40.5%;
+  height: 7%;
+  border-radius: 0.5rem;
+  background: rgba(212, 165, 55, 0.2);
+  box-shadow: inset 0 0 0 1px rgba(212, 165, 55, 0.7);
+  pointer-events: none;
+  animation: fa-scan 9s var(--ease-out) 2s infinite;
+}
+
+@keyframes fa-scan {
+  0%,
+  12% {
+    translate: 0 0;
+  }
+  16%,
+  28% {
+    translate: 0 110%;
+  }
+  32%,
+  44% {
+    translate: 0 220%;
+  }
+  48%,
+  60% {
+    translate: 0 330%;
+  }
+  64%,
+  76% {
+    translate: 0 440%;
+  }
+  80%,
+  92% {
+    translate: 0 550%;
+  }
+  100% {
+    translate: 0 0;
+  }
+}
+
+@media (scripting: enabled) {
+  [data-reveal]:not([data-inview]) .fa-wipe {
+    scale: 1 1;
+  }
+  [data-reveal]:not([data-inview]) .fa-slide {
+    opacity: 0;
+    translate: 0 18%;
+  }
+  /* กันพลาด: ถ้า runtime ไม่เริ่ม อย่าให้แผ่นปิดกราฟ/ข้อความค้างซ่อนอยู่ */
+  html:not([data-motion]) [data-reveal] .fa-wipe {
+    animation: fa-wipe-failsafe 0.4s 2.5s forwards;
+  }
+  html:not([data-motion]) [data-reveal] .fa-slide {
+    animation: mx-failsafe 0.4s 2.5s forwards;
+  }
+}
+
+@keyframes fa-wipe-failsafe {
+  to {
+    scale: 0 1;
+  }
+}
+
 /* ---------- การ์ดราคายอดนิยม: เส้นแสงวิ่งรอบขอบ + ป้ายมีประกาย ----------
    กรอบ (.mx-beam-frame) ตัดเหลือเฉพาะเส้นขอบด้วย mask ส่วนชั้นข้างใน (.mx-beam-spin) หมุนด้วย rotate — ทำงานบน GPU */
 .mx-beam-frame {
@@ -485,5 +651,18 @@ html[data-motion] [data-reveal]:not([data-inview]) .cd-anim * {
 
   .mx-ping::after {
     display: none;
+  }
+
+  /* ภาพหน้าจอฟีเจอร์: เห็นภาพเต็มทันที ไม่มีชั้นที่วนหรือปิดภาพ */
+  .fa-wipe,
+  .fa-typing,
+  .fa-pulse,
+  .fa-scan {
+    display: none !important;
+  }
+
+  [data-reveal] .fa-slide {
+    opacity: 1 !important;
+    translate: none !important;
   }
 }

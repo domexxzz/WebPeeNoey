@@ -292,6 +292,8 @@ html[data-motion-paused] :is(
     .hc-pill,
     .fa-dot,
     .fa-ping,
+    .fa-pulse,
+    .fa-scan,
     .mx-beam-spin,
     .pc-seal-ring
   ),

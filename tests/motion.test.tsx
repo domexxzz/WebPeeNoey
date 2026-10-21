@@ -155,9 +155,21 @@ describe("animated markup", () => {
   it("shows real screenshots for the indicator, Telegram and Discord rows with the pop-in animation", () => {
     const html = renderToStaticMarkup(<FeaturesSection />);
     ["indicator-chart.webp", "telegram-alert.webp", "discord-channels.webp"].forEach((file) => {
-      expect(html).toMatch(new RegExp(`<div class="fa-pop fa-center[^"]*"[^>]*><img[^>]*alt="[^"]+"[^>]*${file.replace(".", "\\.")}`));
+      expect(html).toMatch(new RegExp(`<div class="fa-pop fa-center"><div class="fa-photo[^"]*">(?:<div[^>]*>)?<img[^>]*alt="[^"]+"[^>]*${file.replace(".", "\\.")}`));
     });
     expect(html).toMatch(/sizes="\(min-width: 1024px\) 560px, 100vw"/);
+  });
+
+  it("animates each screenshot its own way and adds a hover shine", () => {
+    const html = renderToStaticMarkup(<FeaturesSection />);
+    expect(html.match(/class="fa-photo mx-shine/g)).toHaveLength(3);
+    expect(html).toContain("fa-wipe"); // กราฟเผยจากซ้ายไปขวา
+    expect(html.match(/class="fa-pulse"/g)).toHaveLength(4); // BUY, TP1, TP2, SL
+    expect(html).toContain("fa-slide"); // ข้อความ Telegram เลื่อนเข้า
+    expect(html).toContain("fa-typing");
+    expect(html).toContain("fa-scan"); // ไฮไลต์ไล่ห้อง Discord
+    // ชิ้นตกแต่งไม่ถูกอ่านซ้ำโดยโปรแกรมอ่านหน้าจอ
+    expect(html).not.toMatch(/class="fa-(pulse|typing|scan)"(?![^>]*aria-hidden="true")/);
   });
 
   it("renders nothing on the server for the motion runtime", () => {
@@ -204,6 +216,14 @@ describe("motion stylesheet", () => {
   it("pauses looping animations off-screen and when the visitor presses pause", () => {
     expect(css).toMatch(/\[data-loop\]\[data-offscreen\][^{]*\{[^}]*animation-play-state:\s*paused/);
     expect(css).toMatch(/html\[data-motion-paused\][\s\S]*?animation:\s*none\s*!important/);
+  });
+
+  it("pauses the screenshot loops and leaves the screenshots uncovered for reduced motion", () => {
+    const paused = css.slice(css.indexOf("html[data-motion-paused] :is("));
+    expect(paused.slice(0, paused.indexOf(")"))).toMatch(/\.fa-pulse[\s\S]*\.fa-scan|\.fa-scan[\s\S]*\.fa-pulse/);
+    const reduced = css.slice(css.lastIndexOf("@media (prefers-reduced-motion: reduce)"));
+    expect(reduced).toMatch(/\.fa-wipe,\s*\.fa-typing,[^{]*\{\s*display:\s*none/);
+    expect(reduced).toMatch(/\.fa-slide\s*\{\s*opacity:\s*1\s*!important/);
   });
 
   it("only applies the 3D tilt transform while the pointer is on the element", () => {

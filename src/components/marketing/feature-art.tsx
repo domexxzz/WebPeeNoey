@@ -1,30 +1,79 @@
+import type { CSSProperties } from "react";
 import Image from "next/image";
 import { IMAGE_SLOTS } from "@/config/marketing";
+import { indexStyle } from "@/lib/motion";
 import { ChartDecoration } from "./chart-decoration";
+
+type PhotoEffect = "chart" | "chat" | "channels";
 
 /**
  * ภาพหน้าจอจริงจากเจ้าของ (ตัดแล้ว): กราฟตัดตาราง Win Rate/สถิติออก, แชตเหลือเฉพาะข้อความสัญญาณ + เบลอชื่อสมาชิก,
  * Discord เหลือรายชื่อห้อง (ตัดรายชื่อ/จำนวนสมาชิกออก + เบลอตาราง Win Rate ในภาพคู่มือ)
  * ห้ามใส่ภาพที่มีกำไร/สถิติผลงาน หรือชื่อ/รูปของสมาชิกคนอื่น (CLAUDE.md ข้อ 3)
+ * backdrop = สีพื้นของภาพ (เห็นระหว่างที่ภาพเลื่อนเข้า)
  */
-const FEATURE_PHOTOS: Record<string, { src: string; alt: string }> = {
+const FEATURE_PHOTOS: Record<string, { src: string; alt: string; effect: PhotoEffect; backdrop: string }> = {
   indicator: {
     src: "/images/features/indicator-chart.webp",
     alt: "กราฟทองคำ 1 นาทีบน TradingView ที่เปิดอินดิเคเตอร์ Gold HybridShot Signals แสดงจุด BUY พร้อมเส้น TP1, TP2 และ SL",
+    effect: "chart",
+    backdrop: "bg-[#0f0f0f]",
   },
   telegram: {
     src: "/images/features/telegram-alert.webp",
     alt: "ข้อความสัญญาณจากบอท Gold Hybridshot ในกลุ่ม Telegram ระบุราคาเข้า, SL, TP1 และ TP2",
+    effect: "chat",
+    backdrop: "bg-[#17212b]",
   },
   discord: {
     src: "/images/features/discord-channels.webp",
     alt: "เซิร์ฟเวอร์ Discord Noble Gold Society แสดงห้องการใช้เครื่องมือ, e-book, คลิปเรียนย้อนหลัง และไลฟ์เทรดสด",
+    effect: "channels",
+    backdrop: "bg-[#1e1f22]",
   },
 };
 
+/** ตำแหน่งป้าย BUY, TP1, TP2, SL ในภาพกราฟ (% ของภาพ 1200×750) — กระพริบตามลำดับนี้ */
+const CHART_MARKERS = [
+  { x: 82.3, y: 56.3 },
+  { x: 93.7, y: 38.8 },
+  { x: 93.4, y: 31.1 },
+  { x: 93.3, y: 72.1 },
+];
+
+function markerStyle(index: number, x: number, y: number): CSSProperties {
+  return { ...indexStyle(index), left: `${x}%`, top: `${y}%` };
+}
+
+/** ชั้นอนิเมชันซ้อนบนภาพ (ตกแต่งเท่านั้น — ซ่อนจากโปรแกรมอ่านหน้าจอ) */
+function PhotoOverlay({ effect }: { effect: PhotoEffect }) {
+  if (effect === "chart") {
+    return (
+      <>
+        <span className="fa-wipe" aria-hidden="true" />
+        {CHART_MARKERS.map((marker, index) => (
+          <span key={index} className="fa-pulse" aria-hidden="true" style={markerStyle(index, marker.x, marker.y)} />
+        ))}
+      </>
+    );
+  }
+  if (effect === "chat") {
+    return (
+      <span className="fa-typing" aria-hidden="true">
+        {[0, 1, 2].map((dot) => (
+          <i key={dot} className="fa-dot" style={indexStyle(dot)} />
+        ))}
+      </span>
+    );
+  }
+  return <span className="fa-scan" aria-hidden="true" />;
+}
+
 /**
  * ภาพประกอบของแต่ละฟีเจอร์: ภาพหน้าจอจริง (FEATURE_PHOTOS) หรือกราฟวาดเองสำหรับฟีเจอร์ที่ยังไม่มีภาพ
- * อนิเมชัน: ภาพ .fa-pop เด้งเมื่อแถวเลื่อนมาถึง ([data-reveal] ของแถว) — ดู src/styles/motion-art.css
+ * อนิเมชัน (src/styles/motion-art.css): ภาพเด้งเข้า (.fa-pop) แล้วแต่ละภาพมีลูกเล่นของตัวเอง —
+ * กราฟเผยจากซ้ายไปขวา + ป้าย BUY/TP/SL กระพริบทีละจุด, แชตขึ้น "กำลังพิมพ์" แล้วข้อความเลื่อนขึ้น,
+ * Discord มีแถบไฮไลต์ไล่ตามห้อง — ชี้แล้วมีแสงวิ้งผ่านภาพ (.mx-shine)
  */
 export function FeatureArt({ featureId }: { featureId: string }) {
   const photo = FEATURE_PHOTOS[featureId];
@@ -37,15 +86,20 @@ export function FeatureArt({ featureId }: { featureId: string }) {
   }
   const { width, height, sizes } = IMAGE_SLOTS.featureScreenshot;
   return (
-    <div className="fa-pop fa-center overflow-hidden">
-      <Image
-        src={photo.src}
-        alt={photo.alt}
-        width={width}
-        height={height}
-        sizes={sizes}
-        className="block w-full h-auto transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-      />
+    <div className="fa-pop fa-center">
+      <div className={`fa-photo mx-shine ${photo.backdrop}`}>
+        <div className={photo.effect === "chat" ? "fa-slide" : undefined}>
+          <Image
+            src={photo.src}
+            alt={photo.alt}
+            width={width}
+            height={height}
+            sizes={sizes}
+            className="block w-full h-auto transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+          />
+        </div>
+        <PhotoOverlay effect={photo.effect} />
+      </div>
     </div>
   );
 }
