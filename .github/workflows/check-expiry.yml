@@ -1,0 +1,64 @@
+# งานประจำวัน (Flow 6) — เรียก /api/cron/check-expiry ทุกวัน 02:05 UTC (ราว 09:05 น. ไทย; GitHub อาจเลื่อนเวลาได้บ้าง)
+# แทน Vercel Cron เดิม (โฮสต์ใหม่ไม่มี cron ในตัว) — ตัวงานเองบันทึกผล/แจ้งแอดมินเมื่อพลาดอยู่แล้ว (src/lib/jobs/expiry.ts)
+# - 200 = สำเร็จ (hasMore=true = สมาชิกเกินโควตาต่อรอบ ส่วนที่เหลือทำในรอบถัดไป → เตือนใน log)
+# - สถานะอื่น/เข้าเว็บไม่ได้ = ล้มเหลว → แจ้ง Telegram จากที่นี่ (ไม่พึ่งแอป) + GitHub ส่งอีเมลว่า workflow ล้มเหลว
+# ต้องตั้ง: vars.APP_URL, secrets.CRON_SECRET (+ secrets.TELEGRAM_BOT_TOKEN, secrets.TELEGRAM_ADMIN_CHAT_ID) — ชุดเดียวกับ watchdog.yml
+name: Check expiry
+
+on:
+  schedule:
+    - cron: "5 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-expiry
+  cancel-in-progress: false
+
+jobs:
+  check-expiry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Call check-expiry endpoint
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$APP_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "::error::ยังไม่ได้ตั้ง vars.APP_URL หรือ secrets.CRON_SECRET"
+            exit 1
+          fi
+          case "$APP_URL" in
+            https://*) ;;
+            *) echo "::error::APP_URL ต้องเป็น https:// (ห้ามส่ง CRON_SECRET แบบไม่เข้ารหัส)"; exit 1 ;;
+          esac
+          status=$(curl -sS --proto '=https' -o response.json -w '%{http_code}' --max-time 120 \
+            -H "Authorization: Bearer ${CRON_SECRET}" "${APP_URL}/api/cron/check-expiry") || true
+          echo "HTTP ${status}"
+          cat response.json 2>/dev/null || true
+          echo
+          if [ "$status" != "200" ]; then
+            echo "::error::check-expiry ตอบ HTTP ${status} — งานประจำวันไม่สำเร็จ"
+            exit 1
+          fi
+          if [ "$(jq -r '.hasMore // false' response.json 2>/dev/null)" = "true" ]; then
+            echo "::warning::สมาชิกที่ต้องจัดการเกินโควตาต่อรอบ — ส่วนที่เหลือจะทำในรอบถัดไป"
+          fi
+
+      - name: Alert admins (independent of the app)
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_CHAT_ID }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_ADMIN_CHAT_ID" ]; then
+            echo "::warning::ไม่ได้ตั้ง Telegram secrets — ใช้อีเมลแจ้งเตือนของ GitHub แทน"
+            exit 0
+          fi
+          curl -sS --max-time 20 -o /dev/null -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_ADMIN_CHAT_ID}" \
+            --data-urlencode "text=🚨 งานประจำวัน check-expiry ไม่สำเร็จ — ${RUN_URL}"

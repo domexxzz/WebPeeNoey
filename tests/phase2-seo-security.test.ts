@@ -111,6 +111,15 @@ describe("Phase 2: SEO", () => {
     expect(resolveSiteUrl({})).toBe("http://localhost:3000");
   });
 
+  it("applies the same production URL check on Render (excluding pull request previews)", () => {
+    expect(() => resolveSiteUrl({ RENDER: "true" })).toThrow(/NEXT_PUBLIC_APP_URL/);
+    expect(() => resolveSiteUrl({ RENDER: "true", NEXT_PUBLIC_APP_URL: "http://127.0.0.1:3000" })).toThrow();
+    expect(resolveSiteUrl({ RENDER: "true", NEXT_PUBLIC_APP_URL: "https://goldhybridshot.onrender.com" })).toBe(
+      "https://goldhybridshot.onrender.com",
+    );
+    expect(resolveSiteUrl({ RENDER: "true", IS_PULL_REQUEST: "true" })).toBe("http://localhost:3000");
+  });
+
   it("sets canonical, Open Graph and Twitter metadata for a page", () => {
     const metadata = buildPageMetadata({ title: "คู่มือ", description: "รายละเอียด", path: "/guide" });
     expect(metadata.alternates?.canonical).toBe("/guide");

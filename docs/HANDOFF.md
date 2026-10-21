@@ -1,5 +1,34 @@
 # เอกสารส่งต่องาน (Project Handoff & Session Log)
 
+## เซสชัน: เว็บจริงถูก Vercel พักไว้ (Fair-use CPU เกิน)
+**วันที่:** 21 ตุลาคม 2026  
+**สถานะ:** ตรวจสาเหตุแล้ว ไม่ได้แก้โค้ด — https://goldhybridshot.vercel.app แสดง "This deployment is temporarily paused"
+
+- ทีม Vercel `domezzxxs-projects` (Hobby) โดน `softBlock` เหตุผล `FAIR_USE_LIMITS_EXCEEDED` ประเภท `fluidCpuDuration` เมื่อ 20 ต.ค. 2026 14:19 น. — ปลดเองอัตโนมัติ **19 พ.ย. 2026 14:19 น.** (ดูจาก `vercel api /v2/teams/<orgId>` ฟิลด์ `softBlock`)
+- **โควตาเป็นของทั้งทีม ไม่ใช่ของโปรเจกต์นี้** — ทีมมี 14 โปรเจกต์ ถูกพักทั้งหมด (badminton-booking, free30 ได้ 402)
+- สัดส่วนการใช้ 1–20 ต.ค. (จาก `vercel api "/v2/usage?type=requests&from=<ISO>&to=<ISO>"` ฟิลด์ `breakdown`): function invocations — tradepulse 96.6% (~447k), badminton-booking 3.3%, webpeenoey 0.1% (624 ครั้ง); function execution (GB-hrs) — tradepulse ~92%, badminton-booking ~8%, webpeenoey ~0.2% → **ตัวกินโควตาคือ tradepulse ไม่ใช่เว็บนี้**
+- quantvisionx.com (โดเมนของ tradepulse) ตอนนี้ DNS ชี้ไป Render แล้ว (216.24.57.x) แต่ยังผูกโดเมนไว้ในโปรเจกต์ Vercel `tradepulse`; badminton-booking ใช้มากขึ้นตั้งแต่ 13 ต.ค. (บางวัน 38–56% ของทีม)
+- Hobby ใช้ `vercel metrics` / `/v1/usage` ไม่ได้ (ต้อง Observability Plus / Pro) — ใช้ `/v2/usage` แทน
+- ทางเลือก (เจ้าของตัดสินใจ): รอถึง 19 พ.ย. / อัปเกรด Pro ให้เว็บกลับมาทันที / แยก webpeenoey ไปอยู่บัญชีหรือโฮสต์ที่ไม่แชร์โควตากับ tradepulse และ badminton-booking
+- **เจ้าของเลือก: ย้ายไป Render Starter (Singapore)** — ไม่ใช้ Vercel Hobby บัญชีใหม่ (Hobby ห้ามใช้เชิงพาณิชย์ เว็บนี้รับชำระเงิน)
+
+### ย้ายไป Render — ขั้นที่ 1: เตรียมโค้ด (เสร็จ ยังไม่ commit / ยังไม่ deploy)
+**สถานะ:** unit 341/341 + เทสต์ใหม่ผ่าน, `tsc` ผ่าน, `next build` ผ่านด้วย `RENDER=true` + `NEXT_PUBLIC_APP_URL=https://goldhybridshot.onrender.com`, `next start` ตอบ `/robots.txt`, `/`, `/sitemap.xml` = 200 พร้อม `X-Frame-Options: DENY` และ URL ที่ตั้งไว้
+
+- `render.yaml` (Blueprint): web service `goldhybridshot`, node, singapore, starter, build `npm ci --include=dev && npx prisma generate && npm run build`, start `npm start`, health check `/robots.txt`, `NODE_VERSION=24`, ค่าลับทุกตัว `sync: false` (กรอกใน dashboard) — migration ยังรันเองก่อน deploy เหมือนเดิม
+- `src/lib/request.ts`: บน Render (`RENDER=true`) อ่าน IP จาก `cf-connecting-ip` อย่างเดียว — Render แค่ต่อท้าย `x-forwarded-for` และไม่ตั้ง `x-real-ip` ผู้ใช้จึงปลอมสองตัวนั้นได้; ไม่มี header = ถัง `unknown-ip` รวม; บน Vercel ทำงานเหมือนเดิม
+- `src/config/site.ts`: เช็ก `NEXT_PUBLIC_APP_URL` ตอน build production ทำงานบน Render ด้วย (`RENDER=true` และไม่ใช่ `IS_PULL_REQUEST=true`)
+- งานประจำวัน check-expiry ย้ายจาก Vercel Cron (ลบ `crons` ออกจาก `vercel.json`) ไป `.github/workflows/check-expiry.yml` (02:05 UTC, Bearer `CRON_SECRET`, ล้มเหลว → แจ้ง Telegram) ใช้ `vars.APP_URL` / secrets ชุดเดียวกับ watchdog
+- เทสต์: `tests/auth-rate-limit.test.ts` (Render 5 ข้อ), `tests/phase2-seo-security.test.ts` (Render 1 ข้อ), `tests/render-deploy-config.test.ts` (render.yaml ประกาศ env ที่หน้าสถานะตรวจครบ, ไม่มีค่าลับในไฟล์, workflow เรียก cron ผ่าน https + แจ้งเตือนเมื่อล้มเหลว, vercel.json ไม่มี cron ซ้ำ)
+- **กับดัก:**
+  - ก่อนเปลี่ยน `vars.APP_URL` เป็น URL ใหม่ watchdog/check-expiry ใน GitHub Actions จะล้มเหลวและแจ้ง Telegram ทุกครั้ง เพราะเว็บเก่าถูกพักอยู่
+  - deployment เก่าบน Vercel ยังมี cron อยู่: พอปลดพัก 19 พ.ย. มันจะเรียก check-expiry กับ Neon ตัวเดียวกันซ้ำวันละครั้ง → ต้องแทนด้วย deployment ที่ redirect อย่างเดียว หรือลบโปรเจกต์ก่อน/ทันทีที่ปลดพัก
+  - หลัง deploy จริงต้องยืนยันว่า Render ส่ง `cf-connecting-ip` มาจริง และค่าที่ผู้ใช้ส่งมาเองถูกเขียนทับ (ถ้าไม่มี rate limit จะรวมทุกคนเป็นถังเดียว)
+  - อย่าเปิด proxy ของ Cloudflare (เมฆส้ม) ซ้อนบนโดเมนตัวเองที่ชี้ไป Render
+- **ขั้นถัดไป:** 2) เจ้าของสร้าง Blueprint บน Render จาก repo + กรอก env 3) ตั้ง URL ใหม่ใน `NEXTAUTH_URL` / `NEXT_PUBLIC_APP_URL` / `NEXT_PUBLIC_SITE_DOMAIN`, Google OAuth redirect URI, `npm run telegram:webhook`, `vars.APP_URL` 4) smoke test บนเว็บจริง 5) หลัง 19 พ.ย. ให้ `goldhybridshot.vercel.app` redirect ไป URL ใหม่
+
+---
+
 ## เซสชัน: ปุ่มเข้าร่วม Discord (Noble Gold Society)
 **วันที่:** 15 ตุลาคม 2026  
 **สถานะ:** เทสต์ `tests/community.test.tsx` 5 ข้อ + ชุดเดิมผ่าน, build ผ่าน, ตรวจบน dev server แล้ว — commit `278f810`, deploy ขึ้น https://goldhybridshot.vercel.app แล้ว (15 ต.ค. 2026) — หน้าแรกจริงมีปุ่ม Discord

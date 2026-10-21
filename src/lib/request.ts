@@ -44,18 +44,30 @@ function readHeader(source: HeaderSource, name: string): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
+/** ตัวแปรที่บอกว่ารันอยู่บนโฮสต์ไหน (Render ตั้ง RENDER=true ให้เองทั้งตอน build และตอนรัน) */
+export type HostEnv = { RENDER?: string };
+
 /**
- * IP ของผู้ใช้: ใช้ x-real-ip ก่อน (บน Vercel แพลตฟอร์มตั้งเอง ผู้ใช้ปลอมไม่ได้) แล้วค่อย x-forwarded-for ตัวแรก
- * ค่าที่ไม่ใช่ IP ถูกทิ้ง — ต้องรันหลัง proxy ที่เชื่อถือได้ (Vercel) ซึ่งเขียนทับ header เหล่านี้
+ * header ที่ proxy ของโฮสต์เขียนทับเอง ผู้ใช้ปลอมไม่ได้ — ตามลำดับที่เชื่อถือ
+ * - Vercel: x-real-ip และ x-forwarded-for (แพลตฟอร์มเขียนทับทั้งคู่)
+ * - Render: อยู่หลัง Cloudflare ซึ่งเขียนทับ cf-connecting-ip ทุกคำขอ แต่ Render แค่ต่อท้าย x-forwarded-for
+ *   และไม่ได้ตั้ง x-real-ip → สองตัวนั้นผู้ใช้ส่งมาเองได้ ห้ามใช้ (ห้าม proxy โดเมนเองผ่าน Cloudflare ซ้อนอีกชั้น)
  */
-export function clientIpFromHeaders(source: HeaderSource): string | undefined {
-  const candidates = [readHeader(source, "x-real-ip"), readHeader(source, "x-forwarded-for")?.split(",")[0]];
-  return candidates.map((value) => value?.trim() ?? "").find((value) => value && isValidIp(value));
+function trustedIpCandidates(source: HeaderSource, env: HostEnv): (string | undefined)[] {
+  if (env.RENDER === "true") return [readHeader(source, "cf-connecting-ip")];
+  return [readHeader(source, "x-real-ip"), readHeader(source, "x-forwarded-for")?.split(",")[0]];
+}
+
+/** IP ของผู้ใช้จาก header ที่โฮสต์รับรอง — ค่าที่ไม่ใช่ IP ถูกทิ้ง */
+export function clientIpFromHeaders(source: HeaderSource, env: HostEnv = { RENDER: process.env.RENDER }): string | undefined {
+  return trustedIpCandidates(source, env)
+    .map((value) => value?.trim() ?? "")
+    .find((value) => value && isValidIp(value));
 }
 
 /** IP สำหรับใช้เป็น key ของ rate limit (ไม่มีวันว่าง) */
-export function rateLimitIp(source: HeaderSource): string {
-  const ip = clientIpFromHeaders(source);
+export function rateLimitIp(source: HeaderSource, env: HostEnv = { RENDER: process.env.RENDER }): string {
+  const ip = clientIpFromHeaders(source, env);
   return ip ? rateLimitBucket(ip) : UNKNOWN_IP;
 }
 

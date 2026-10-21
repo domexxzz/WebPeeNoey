@@ -1,0 +1,67 @@
+# Render Blueprint — เว็บหลักบน Render (ย้ายจาก Vercel Hobby ที่แชร์โควตา CPU กับโปรเจกต์อื่นในทีม ดู docs/HANDOFF.md)
+# - Starter = เครื่องเปิดตลอด (ไม่หลับแบบแพ็กเกจฟรี) CPU/RAM คงที่ ไม่มีโควตาให้ถูกพัก
+# - singapore = ภูมิภาคเดียวกับ Neon (ap-southeast-1)
+# - migration ยังรันเองก่อน deploy เหมือนเดิม (prisma migrate deploy ด้วย Neon direct URL) — ไม่รันอัตโนมัติตอน deploy
+# - งานประจำวัน check-expiry เรียกจาก GitHub Actions (.github/workflows/check-expiry.yml) แทน Vercel Cron
+# - IP ผู้ใช้อ่านจาก cf-connecting-ip เมื่อ RENDER=true (src/lib/request.ts) — อย่าเปิด proxy (เมฆส้ม) ของ Cloudflare ซ้อนบนโดเมนเอง
+# ค่าที่ sync: false ต้องกรอกเองใน Render dashboard (ห้ามใส่ค่าลับในไฟล์นี้)
+services:
+  - type: web
+    name: goldhybridshot
+    runtime: node
+    region: singapore
+    plan: starter
+    branch: main
+    # --include=dev: prisma CLI / typescript / tailwind อยู่ใน devDependencies และต้องใช้ตอน build
+    buildCommand: npm ci --include=dev && npx prisma generate && npm run build
+    # next start ฟังพอร์ตจาก PORT ที่ Render ตั้งให้
+    startCommand: npm start
+    # หน้า static ไม่แตะฐานข้อมูล — ใช้ยืนยันว่าเซิร์ฟเวอร์ Next.js พร้อมรับคำขอ
+    healthCheckPath: /robots.txt
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      # ฐานข้อมูล Neon (pooled URL)
+      - key: DATABASE_URL
+        sync: false
+      # NextAuth
+      - key: NEXTAUTH_SECRET
+        sync: false
+      - key: NEXTAUTH_URL
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      # อีเมล (Resend)
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      # Telegram
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_ADMIN_CHAT_ID
+        sync: false
+      - key: TELEGRAM_BOT_USERNAME
+        sync: false
+      - key: TELEGRAM_WEBHOOK_SECRET
+        sync: false
+      # งานอัตโนมัติ (ค่าเดียวกับ secrets.CRON_SECRET ของ GitHub Actions)
+      - key: CRON_SECRET
+        sync: false
+      # ค่าสาธารณะ — NEXT_PUBLIC_* ถูกฝังตอน build: แก้แล้วต้อง deploy ใหม่
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false
+      - key: NEXT_PUBLIC_SITE_DOMAIN
+        sync: false
+      - key: NEXT_PUBLIC_SUPPORT_TELEGRAM
+        sync: false
+      - key: NEXT_PUBLIC_DISCORD_INVITE
+        sync: false
+      - key: NEXT_PUBLIC_LEGAL_OPERATOR_NAME
+        sync: false
+      - key: NEXT_PUBLIC_LEGAL_OPERATOR_ADDRESS
+        sync: false
