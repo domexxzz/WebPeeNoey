@@ -27,6 +27,14 @@
 - ทางเลือก (เจ้าของตัดสินใจ): รอถึง 19 พ.ย. / อัปเกรด Pro ให้เว็บกลับมาทันที / แยก webpeenoey ไปอยู่บัญชีหรือโฮสต์ที่ไม่แชร์โควตากับ tradepulse และ badminton-booking
 - **เจ้าของเลือก: ย้ายไป Render Starter (Singapore)** — ไม่ใช้ Vercel Hobby บัญชีใหม่ (Hobby ห้ามใช้เชิงพาณิชย์ เว็บนี้รับชำระเงิน)
 
+### ย้ายไป Render — ขั้นที่ 2: ออนไลน์แล้ว (21 ต.ค. 2026 17:26 น.)
+- **https://goldhybridshot.onrender.com** (Blueprint `Webpeenoey`, service `goldhybridshot`, Starter, commit `45720ad`) — build 1m47s ผ่านบน RAM 512MB
+- smoke test บนเว็บจริงผ่าน: `/`, `/features`, `/guide`, `/terms`, `/privacy`, `/refund`, `/robots.txt`, `/sitemap.xml`, `/opengraph-image`, `/auth/signin` = 200 พร้อม `X-Frame-Options: DENY`; `/account`, `/admin` = 307 ไป signin; cron check-expiry / watchdog / webhook Telegram ไม่มี secret = 401; canonical = URL Render; ภาพการ์ดฟีเจอร์ทั้ง 3 ขึ้น
+- **แก้ล็อกอินบน Render (commit `7b9ee8c`):** ล็อกอินสำเร็จแต่ middleware มองไม่เห็น session → `/admin`, `/account` เด้งกลับหน้าเข้าสู่ระบบ — `getToken()` เดาชื่อคุกกี้จาก `NEXTAUTH_URL` / `VERCEL` และบน Render คำขอหลัง proxy เป็น http จึงหา `next-auth.session-token` แต่ NextAuth ตั้ง `__Secure-next-auth.session-token` (ทดลองกับ production ด้วย session ของผู้ใช้สมมติที่ไม่มีอยู่จริง ยืนยันแล้ว) → middleware อ่านทั้งสองชื่อ (ยังตรวจลายเซ็นด้วย secret) — commit แรก `87fe231` ที่เดาจาก `x-forwarded-proto` ใช้ไม่ได้บน Render; ยืนยันแล้วว่าเปิด `/admin` ได้ (200) ด้วย session แอดมินจริง
+- รีเซ็ตรหัสแอดมินในฐานข้อมูลจริงตามคำขอเจ้าของ (Audit Log `ADMIN_PASSWORD_RESET`) — รหัสใหม่อยู่ใน `.env.vercel-secrets.local` (`PROD_ADMIN_PASSWORD`, ไม่มีเครื่องหมายคำพูด); `cf-connecting-ip` บน Render ยืนยันแล้วจาก RateLimit key ที่ได้ IP จริง
+- **กับดัก:** deploy แรกล้มเพราะ `vercel env pull` คืน `NEXTAUTH_SECRET` / `CRON_SECRET` เป็นค่าแทน 11 ตัว (ตัวแปร sensitive ของ Vercel) — ค่าจริงอยู่ใน `.env.vercel-secrets.local`
+- **ยังค้าง:** เปลี่ยน GitHub `vars.APP_URL` เป็น URL Render (ไม่งั้น watchdog/check-expiry ยิงไป Vercel ที่ถูกพัก); ยืนยัน `cf-connecting-ip` จาก IP ใน Audit Log หลังมีการกระทำของแอดมินครั้งแรก; เจ้าของลองล็อกอินแอดมิน; เรียก check-expiry ครั้งแรก (หรือรอ 09:05) ไม่งั้น watchdog เตือน "ยังไม่เคยรันสำเร็จ"; หลัง 19 พ.ย. ทำ redirect จาก goldhybridshot.vercel.app
+
 ### ย้ายไป Render — ขั้นที่ 1: เตรียมโค้ด (เสร็จ ยังไม่ commit / ยังไม่ deploy)
 **สถานะ:** unit 341/341 + เทสต์ใหม่ผ่าน, `tsc` ผ่าน, `next build` ผ่านด้วย `RENDER=true` + `NEXT_PUBLIC_APP_URL=https://goldhybridshot.onrender.com`, `next start` ตอบ `/robots.txt`, `/`, `/sitemap.xml` = 200 พร้อม `X-Frame-Options: DENY` และ URL ที่ตั้งไว้
 
