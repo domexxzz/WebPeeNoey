@@ -3,13 +3,15 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { buildAdminCsp, generateNonce } from "@/lib/csp";
 import { getAuthSecret } from "@/lib/auth-secret";
+import { usesSecureSessionCookie } from "@/lib/auth-cookie";
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const secret = getAuthSecret();
 
   // 1. ดึง Token ความปลอดภัย
-  const token = await getToken({ req, secret });
+  const secureCookie = usesSecureSessionCookie(req.headers, req.url, { NEXTAUTH_URL: process.env.NEXTAUTH_URL });
+  const token = await getToken({ req, secret, secureCookie });
 
   // 2. สร้าง Response พื้นฐาน
   let response = NextResponse.next();
