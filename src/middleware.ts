@@ -3,15 +3,15 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { buildAdminCsp, generateNonce } from "@/lib/csp";
 import { getAuthSecret } from "@/lib/auth-secret";
-import { usesSecureSessionCookie } from "@/lib/auth-cookie";
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const secret = getAuthSecret();
 
   // 1. ดึง Token ความปลอดภัย
-  const secureCookie = usesSecureSessionCookie(req.headers, req.url, { NEXTAUTH_URL: process.env.NEXTAUTH_URL });
-  const token = await getToken({ req, secret, secureCookie });
+  // อ่านได้ทั้ง "__Secure-" (HTTPS) และชื่อธรรมดา (http ในเครื่อง) — getToken() เดาชื่อจาก NEXTAUTH_URL / VERCEL ซึ่งผิดบน Render
+  // (คำขอหลัง proxy เป็น http) ทำให้ล็อกอินสำเร็จแต่ถูกเด้งกลับหน้าเข้าสู่ระบบ — ทั้งสองชื่อยังต้องผ่านการตรวจด้วย secret
+  const token = (await getToken({ req, secret, secureCookie: true })) ?? (await getToken({ req, secret, secureCookie: false }));
 
   // 2. สร้าง Response พื้นฐาน
   let response = NextResponse.next();

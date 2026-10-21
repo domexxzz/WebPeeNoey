@@ -1,22 +1,47 @@
-import { describe, expect, it } from "vitest";
-import { usesSecureSessionCookie } from "@/lib/auth-cookie";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { NextRequest } from "next/server";
+import { encode } from "next-auth/jwt";
+import { middleware } from "@/middleware";
 
-describe("Middleware reads the same session cookie NextAuth sets (secure on HTTPS)", () => {
-  it("uses the __Secure- cookie when NEXTAUTH_URL is https, on any host (not only Vercel)", () => {
-    expect(usesSecureSessionCookie(new Headers(), "http://localhost:10000/admin", { NEXTAUTH_URL: "https://goldhybridshot.onrender.com" })).toBe(true);
+const TEST_SECRET = "test-session-cookie-secret-0123456789abcdef";
+const SECURE_COOKIE = "__Secure-next-auth.session-token";
+const PLAIN_COOKIE = "next-auth.session-token";
+
+let previousSecret: string | undefined;
+beforeAll(() => {
+  previousSecret = process.env.NEXTAUTH_SECRET;
+  process.env.NEXTAUTH_SECRET = TEST_SECRET;
+});
+afterAll(() => {
+  process.env.NEXTAUTH_SECRET = previousSecret;
+});
+
+async function requestWith(cookieName: string, secret = TEST_SECRET, url = "http://localhost:10000/admin") {
+  const token = await encode({ token: { sub: "u1", id: "u1", role: "ADMIN" }, secret });
+  return new NextRequest(url, { headers: { cookie: `${cookieName}=${token}` } });
+}
+
+function redirectedToSignIn(response: Response) {
+  return response.headers.get("location")?.includes("/auth/signin") ?? false;
+}
+
+describe("Middleware sees the session whichever cookie name NextAuth used (Vercel, Render or local)", () => {
+  it("accepts the __Secure- cookie even when the proxied request looks like plain http", async () => {
+    expect(redirectedToSignIn(await middleware(await requestWith(SECURE_COOKIE)))).toBe(false);
   });
 
-  it("uses the __Secure- cookie behind a TLS-terminating proxy even when NEXTAUTH_URL is not visible", () => {
-    const headers = new Headers({ "x-forwarded-proto": "https" });
-    expect(usesSecureSessionCookie(headers, "http://localhost:10000/admin", {})).toBe(true);
+  it("accepts the plain cookie used on local http development", async () => {
+    expect(redirectedToSignIn(await middleware(await requestWith(PLAIN_COOKIE, TEST_SECRET, "http://localhost:3000/admin")))).toBe(false);
   });
 
-  it("uses the plain cookie for local http development", () => {
-    expect(usesSecureSessionCookie(new Headers(), "http://localhost:3000/admin", { NEXTAUTH_URL: "http://localhost:3000" })).toBe(false);
-    expect(usesSecureSessionCookie(new Headers(), "http://localhost:3000/admin", {})).toBe(false);
+  it("still rejects a session signed with a different secret under either name", async () => {
+    for (const name of [SECURE_COOKIE, PLAIN_COOKIE]) {
+      const forged = await requestWith(name, "attacker-chosen-secret-0123456789abcdefgh");
+      expect(redirectedToSignIn(await middleware(forged))).toBe(true);
+    }
   });
 
-  it("uses the __Secure- cookie when the request itself is https", () => {
-    expect(usesSecureSessionCookie(new Headers(), "https://goldhybridshot.onrender.com/admin", {})).toBe(true);
+  it("sends visitors with no session to sign-in", async () => {
+    expect(redirectedToSignIn(await middleware(new NextRequest("http://localhost:10000/admin")))).toBe(true);
   });
 });
