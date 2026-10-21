@@ -1,37 +1,12 @@
+import Image from "next/image";
+import { IMAGE_SLOTS } from "@/config/marketing";
 import { indexStyle } from "@/lib/motion";
 import { ChartDecoration } from "./chart-decoration";
 
 /**
- * ภาพประกอบนามธรรมของแต่ละฟีเจอร์ (SVG วาดเอง ไม่ใช่ภาพหน้าจอจริง) — ตกแต่งเท่านั้น
- * ห้ามมีตัวอักษร ตัวเลข หรือรายชื่อบุคคล (กันการสื่อว่าเป็นรีวิว/ผลงานจริง)
- * อนิเมชัน: ชิ้น .fa-pop เด้งทีละชิ้นเมื่อแถวเลื่อนมาถึง ([data-reveal] ของแถว) — ดู src/styles/motion-art.css
+ * ภาพประกอบของแต่ละฟีเจอร์: ภาพหน้าจอจริง (FEATURE_PHOTOS) หรือ SVG วาดเอง (ไม่มีตัวอักษร ตัวเลข หรือรายชื่อบุคคล)
+ * อนิเมชัน: ชิ้น .fa-pop เด้งเมื่อแถวเลื่อนมาถึง ([data-reveal] ของแถว) — ดู src/styles/motion-art.css
  */
-function ChatArt() {
-  const bubbles = [
-    { x: 24, y: 28, w: 190, accent: false },
-    { x: 24, y: 78, w: 140, accent: false },
-    { x: 136, y: 128, w: 160, accent: true },
-  ];
-  return (
-    <svg aria-hidden="true" focusable="false" viewBox="0 0 320 240" className="w-full h-auto">
-      {bubbles.map((bubble, index) => (
-        <g key={bubble.y} className="fa-pop" style={indexStyle(index)}>
-          <rect x={bubble.x} y={bubble.y} width={bubble.w} height="36" rx="12" fill={bubble.accent ? "#D4A537" : "rgba(31,26,18,0.08)"} stroke={bubble.accent ? "none" : "rgba(31,26,18,0.35)"} />
-          <rect x={bubble.x + 12} y={bubble.y + 11} width={bubble.w * 0.55} height="6" rx="3" fill={bubble.accent ? "rgba(31,26,18,0.55)" : "rgba(31,26,18,0.35)"} />
-          <rect x={bubble.x + 12} y={bubble.y + 21} width={bubble.w * 0.35} height="5" rx="2.5" fill={bubble.accent ? "rgba(31,26,18,0.35)" : "rgba(31,26,18,0.18)"} />
-        </g>
-      ))}
-      {/* กล่อง "กำลังพิมพ์" — จุดสามจุดเด้งวนตลอด */}
-      <g className="fa-pop" style={indexStyle(bubbles.length)}>
-        <rect x="24" y="178" width="76" height="36" rx="12" fill="rgba(31,26,18,0.08)" stroke="rgba(31,26,18,0.35)" />
-        {[0, 1, 2].map((dot) => (
-          <circle key={dot} className="fa-dot" style={indexStyle(dot)} cx={44 + dot * 18} cy="196" r="4" fill="#D4A537" />
-        ))}
-      </g>
-    </svg>
-  );
-}
-
 function CommunityArt() {
   const members = [0, 1, 2, 3, 4, 5, 6, 7];
   return (
@@ -58,8 +33,38 @@ function CommunityArt() {
   );
 }
 
+/**
+ * ภาพหน้าจอจริงจากเจ้าของ (ตัดแล้ว): กราฟตัดตาราง Win Rate/สถิติออก, แชตเหลือเฉพาะข้อความสัญญาณ + เบลอชื่อสมาชิก
+ * ห้ามใส่ภาพที่มีกำไร/สถิติผลงาน หรือชื่อ/รูปของสมาชิกคนอื่น (CLAUDE.md ข้อ 3)
+ */
+const FEATURE_PHOTOS: Record<string, { src: string; alt: string }> = {
+  indicator: {
+    src: "/images/features/indicator-chart.webp",
+    alt: "กราฟทองคำ 1 นาทีบน TradingView ที่เปิดอินดิเคเตอร์ Gold HybridShot Signals แสดงจุด BUY พร้อมเส้น TP1, TP2 และ SL",
+  },
+  telegram: {
+    src: "/images/features/telegram-alert.webp",
+    alt: "ข้อความสัญญาณจากบอท Gold Hybridshot ในกลุ่ม Telegram ระบุราคาเข้า, SL, TP1 และ TP2",
+  },
+};
+
 export function FeatureArt({ featureId }: { featureId: string }) {
-  if (featureId === "telegram") return <ChatArt />;
+  const photo = FEATURE_PHOTOS[featureId];
+  if (photo) {
+    const { width, height, sizes } = IMAGE_SLOTS.featureScreenshot;
+    return (
+      <div className="fa-pop fa-center overflow-hidden">
+        <Image
+          src={photo.src}
+          alt={photo.alt}
+          width={width}
+          height={height}
+          sizes={sizes}
+          className="block w-full h-auto transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+        />
+      </div>
+    );
+  }
   if (featureId === "discord") return <CommunityArt />;
   return (
     <div className="p-5">

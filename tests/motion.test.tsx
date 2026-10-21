@@ -152,6 +152,15 @@ describe("animated markup", () => {
     expect(html).not.toMatch(/<text|<title/);
   });
 
+  it("shows real screenshots for the indicator and Telegram rows with the pop-in animation", () => {
+    const html = renderToStaticMarkup(<FeaturesSection />);
+    ["indicator-chart.webp", "telegram-alert.webp"].forEach((file) => {
+      expect(html).toMatch(new RegExp(`<div class="fa-pop fa-center[^"]*"[^>]*><img[^>]*alt="[^"]+"[^>]*${file.replace(".", "\\.")}`));
+    });
+    expect(html).toMatch(/sizes="\(min-width: 1024px\) 560px, 100vw"/);
+    expect(html).toContain("<svg"); // แถว Discord ยังเป็นภาพวาด
+  });
+
   it("renders nothing on the server for the motion runtime", () => {
     expect(renderToStaticMarkup(<MotionRuntime />)).toBe("");
   });
