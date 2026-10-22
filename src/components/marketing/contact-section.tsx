@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Mail, MessageCircle, Send, type LucideIcon } from "lucide-react";
-import { siteConfig } from "@/config/site";
+import { siteConfig, type ContactInfo } from "@/config/site";
 import { HOME_SECTION_IDS } from "@/config/marketing";
 import { COMMUNITY } from "@/config/community";
 import { staggerStyle } from "@/lib/motion";
@@ -23,13 +23,46 @@ function toTelegramUrl(handle: string): string {
   return `https://t.me/${handle.replace(/^@/, "")}`;
 }
 
-export function getContactChannels(): ContactChannel[] {
-  const { email, line, telegram } = siteConfig.contact;
-  return [
-    { label: "อีเมล", value: email, href: `mailto:${email}`, icon: Mail },
-    { label: "LINE Official", value: line, href: toLineUrl(line), icon: MessageCircle },
-    { label: "Telegram", value: telegram, href: toTelegramUrl(telegram), icon: Send },
-  ];
+/** เฉพาะช่องทางที่ตั้งค่าไว้ใน env — ช่องทางที่ไม่ได้ตั้งจะไม่แสดง */
+export function getContactChannels(contact: ContactInfo = siteConfig.contact): ContactChannel[] {
+  const { email, line, telegram } = contact;
+  const channels: ContactChannel[] = [];
+  if (email) channels.push({ label: "อีเมล", value: email, href: `mailto:${email}`, icon: Mail });
+  if (line) channels.push({ label: "LINE Official", value: line, href: toLineUrl(line), icon: MessageCircle });
+  if (telegram) channels.push({ label: "Telegram", value: telegram, href: toTelegramUrl(telegram), icon: Send });
+  return channels;
+}
+
+export function ContactChannels({ contact = siteConfig.contact }: { contact?: ContactInfo }) {
+  const channels = getContactChannels(contact);
+  if (channels.length === 0) return null;
+
+  return (
+    <ul className="mt-10 grid gap-px bg-line border border-line sm:grid-cols-3 rounded-2xl overflow-hidden">
+      {channels.map((channel, index) => {
+        const Icon = channel.icon;
+        const isExternal = channel.href.startsWith("http");
+        return (
+          <li key={channel.label} data-spotlight="" data-reveal="up" style={staggerStyle(index, 110)} className="bg-surface">
+            <a
+              href={channel.href}
+              {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+              className="group flex items-center gap-4 px-6 py-6 transition-colors hover:bg-surface focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-gold-ink"
+            >
+              <span className="flex w-11 h-11 shrink-0 items-center justify-center border border-line text-gold-ink transition-[transform,background-color,color,border-color] duration-500 group-hover:rotate-[-8deg] group-hover:scale-110 group-hover:bg-gold group-hover:text-fg group-hover:border-gold rounded-xl">
+                <Icon className="w-5 h-5" aria-hidden="true" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-xs text-fg-subtle">{channel.label}</span>
+                <span className="block truncate text-base font-medium text-fg">{channel.value}</span>
+              </span>
+              <ArrowUpRight className="w-4 h-4 shrink-0 text-fg-subtle transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-gold-ink" aria-hidden="true" />
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  );
 }
 
 /** ปิดท้ายหน้า: ภาพกราฟขนาดใหญ่ + กล่องดำซ้อนทับ (เรียกให้เริ่มใช้งาน) แล้วตามด้วยช่องทางติดต่อ */
@@ -69,30 +102,7 @@ export function ContactSection() {
           </div>
         </div>
 
-        <ul className="mt-10 grid gap-px bg-line border border-line sm:grid-cols-3 rounded-2xl overflow-hidden">
-          {getContactChannels().map((channel, index) => {
-            const Icon = channel.icon;
-            const isExternal = channel.href.startsWith("http");
-            return (
-              <li key={channel.label} data-spotlight="" data-reveal="up" style={staggerStyle(index, 110)} className="bg-surface">
-                <a
-                  href={channel.href}
-                  {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                  className="group flex items-center gap-4 px-6 py-6 transition-colors hover:bg-surface focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-gold-ink"
-                >
-                  <span className="flex w-11 h-11 shrink-0 items-center justify-center border border-line text-gold-ink transition-[transform,background-color,color,border-color] duration-500 group-hover:rotate-[-8deg] group-hover:scale-110 group-hover:bg-gold group-hover:text-fg group-hover:border-gold rounded-xl">
-                    <Icon className="w-5 h-5" aria-hidden="true" />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-xs text-fg-subtle">{channel.label}</span>
-                    <span className="block truncate text-base font-medium text-fg">{channel.value}</span>
-                  </span>
-                  <ArrowUpRight className="w-4 h-4 shrink-0 text-fg-subtle transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-gold-ink" aria-hidden="true" />
-                </a>
-              </li>
-            );
-          })}
-        </ul>
+        <ContactChannels />
 
         <CommunityBand inviteUrl={COMMUNITY.discord.inviteUrl} />
       </div>

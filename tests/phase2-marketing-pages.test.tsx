@@ -18,7 +18,6 @@ import { getContactChannels } from "@/components/marketing/contact-section";
 import { FAQ_ITEMS, HOME_SECTION_IDS, IMAGE_SLOTS, MAIN_NAV, RISK_DISCLAIMER } from "@/config/marketing";
 import { SITE_PLANS, formatTHB } from "@/config/plans";
 import { legalConfig } from "@/config/legal";
-import { siteConfig } from "@/config/site";
 import { FEATURE_DETAILS } from "@/content/features";
 import { GUIDE_SECTIONS, TROUBLESHOOTING } from "@/content/guide";
 import { LEGAL_DOCUMENTS } from "@/content/legal";
@@ -108,14 +107,9 @@ describe("Phase 2: Home page", () => {
     SITE_PLANS.forEach((plan) => expect(html).toContain(`aria-label="เลือกแพ็กเกจนี้: ${plan.name}`));
   });
 
-  it("builds contact links from site config", () => {
-    const channels = getContactChannels();
-    expect(channels.map((channel) => channel.href)).toEqual([
-      `mailto:${siteConfig.contact.email}`,
-      `https://line.me/R/ti/p/${encodeURIComponent(siteConfig.contact.line)}`,
-      `https://t.me/${siteConfig.contact.telegram.replace(/^@/, "")}`,
-    ]);
-    channels.forEach((channel) => expect(html).toContain(channel.value));
+  it("shows only the contact channels configured in env and never the old peenoey accounts", () => {
+    getContactChannels().forEach((channel) => expect(html).toContain(channel.value));
+    expect(html).not.toMatch(/peenoey\.com|t\.me\/peenoey|%40peenoey/);
   });
 });
 

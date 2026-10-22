@@ -1,5 +1,25 @@
 # เอกสารส่งต่องาน (Project Handoff & Session Log)
 
+## เซสชัน: ตรวจความพร้อมก่อนเปิดขาย (อ่านอย่างเดียว ไม่แก้โค้ด)
+**วันที่:** 22 ตุลาคม 2026  
+**สถานะ:** ตรวจเว็บจริง + GitHub Actions แล้ว — ไม่ได้ล็อกอินหลังบ้าน (ค่าใน `/admin/settings` และ `/admin/status` ยังไม่ได้ดูจากหน้าจริง)
+
+- เว็บจริง https://goldhybridshot.onrender.com: หน้าสาธารณะ/auth = 200 (~0.1–0.4 วินาที), `/account` `/admin` `/checkout/*` = 307 ไป signin, cron ไม่มี secret = 401, header ความปลอดภัยครบ, `/broker-ib` = 404 (IB ปิด), ผู้ให้บริการล็อกอินมีแค่อีเมล+รหัสผ่าน (ไม่มี Google)
+- **GitHub Actions ล้มทุกรอบตั้งแต่ 20 ต.ค.**: repo ไม่มี variables/secrets เลย — watchdog/check-expiry: "ยังไม่ได้ตั้ง vars.APP_URL หรือ secrets.CRON_SECRET", backup: "ยังไม่ได้ตั้ง secrets.BACKUP_DATABASE_URL หรือ vars.BACKUP_GPG_PUBLIC_KEY" → ไม่มีการหมดอายุสมาชิกอัตโนมัติ ไม่มี watchdog ไม่มีสำรองฐานข้อมูล
+- **ช่องทางติดต่อบนเว็บจริงใช้ไม่ได้**: `support@peenoey.com` (โดเมน peenoey.com ไม่มี DNS), `t.me/peenoey_admin` ไม่มีผู้ใช้นี้ — ค่าตายตัวใน `src/config/site.ts` (`contact`); LINE `@peenoey` ยังไม่ได้ตรวจ
+- ลิงก์ Discord `discord.gg/erJFe57YY` **หมดอายุ 13 พ.ย. 2026** (API ของ Discord คืน `expires_at`) — ต้องสร้างลิงก์ "ไม่หมดอายุ" แล้วตั้ง `NEXT_PUBLIC_DISCORD_INVITE` + deploy ใหม่
+- หน้าข้อกำหนดยังขึ้น "ฉบับร่าง" (ยังไม่ได้ตั้ง `NEXT_PUBLIC_LEGAL_OPERATOR_NAME/ADDRESS`)
+- รับเงินมี kill-switch ถูกต้อง (`src/lib/orders/availability.ts`: ปิด/ปิดปรับปรุง/ไม่มีบัญชี = ไม่สร้าง QR)
+
+### แก้ช่องทางติดต่อให้อ่านจาก env (ยังไม่ commit / ยังไม่ deploy)
+**สถานะ:** unit 359/359 (เพิ่ม `tests/contact-config.test.tsx` 11 ข้อ), `tsc` ผ่าน — ไม่ได้เปิด dev server (หน่วยความจำว่าง ~950MB) ตรวจผลแสดงผลผ่าน `renderToStaticMarkup` ในเทสต์แทน
+
+- `src/config/site.ts`: `siteConfig.contact` มาจาก `NEXT_PUBLIC_CONTACT_EMAIL` / `NEXT_PUBLIC_CONTACT_LINE` / `NEXT_PUBLIC_CONTACT_TELEGRAM` ผ่าน `resolveContact()` — ตรวจรูปแบบ (อีเมล, LINE OA `@id`, Telegram username 5–32 ตัวหรือ `https://t.me/<name>`) ไม่ตั้ง/ผิด = `null` **ไม่มีค่าเริ่มต้นแล้ว** (บัญชี peenoey เดิมไม่มีจริง)
+- หน้าแรก (`ContactChannels` ใน `contact-section.tsx`) แสดงเฉพาะช่องทางที่ตั้ง ไม่มีเลย = ไม่แสดงรายการ; เอกสารกฎหมายใช้ `formatContactLine()` (ไม่มีเลย = "ยังไม่ได้ระบุช่องทางติดต่อ …"); JSON-LD ใส่ email เฉพาะเมื่อมี
+- เพิ่มทั้ง 3 ตัวใน `render.yaml`, `.env.example` และหน้าสถานะหลังบ้าน (`MONITORED_ENV`, ไม่บังคับ)
+- **หลัง deploy โดยยังไม่ตั้ง env ทั้ง 3 ตัว หน้าแรกจะไม่มีช่องทางติดต่อเลย** — ต้องกรอกใน Render แล้ว deploy ใหม่ (NEXT_PUBLIC_* ฝังตอน build)
+- ยังไม่แตะ: `siteConfig.supportTelegram` (ไม่มีที่ใช้ ค่าเริ่มต้นเป็น t.me/peenoey_support ที่ไม่มีจริง), `NEXT_PUBLIC_SUPPORT_TELEGRAM` (ลิงก์กลุ่ม VIP ในหน้าสมาชิก), `domain`/`adminEmail` ค่าเริ่มต้น peenoey
+
 ## เซสชัน: ภาพหน้าจอจริงในการ์ดฟีเจอร์หน้าแรก
 **วันที่:** 21 ตุลาคม 2026  
 **สถานะ:** unit 342/342, `tsc` ผ่าน, ตรวจบน dev server แล้ว (โหลดภาพครบ ไม่มี error ใน console) — ยังไม่ commit

@@ -1,5 +1,5 @@
 import { legalConfig } from "@/config/legal";
-import { siteConfig } from "@/config/site";
+import { formatContactLine, siteConfig } from "@/config/site";
 import { RISK_DISCLAIMER } from "@/config/marketing";
 import { BROKER_IB_RULES } from "@/config/broker-ib";
 
@@ -19,7 +19,7 @@ export interface LegalDocument {
   sections: LegalSection[];
 }
 
-const contactLine = `อีเมล ${siteConfig.contact.email} · LINE ${siteConfig.contact.line} · Telegram ${siteConfig.contact.telegram}`;
+const contactLine = formatContactLine(siteConfig.contact);
 
 export const TERMS_DOCUMENT: LegalDocument = {
   slug: "terms",

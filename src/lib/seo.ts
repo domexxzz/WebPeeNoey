@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { siteConfig } from "@/config/site";
+import { siteConfig, type ContactInfo } from "@/config/site";
 import { SITE_PLANS } from "@/config/plans";
 import { IMAGE_SLOTS, type FaqItem } from "@/config/marketing";
 
@@ -80,13 +80,13 @@ export function buildPageMetadata({ title, description, path, noIndex = false }:
 
 type JsonLd = Record<string, unknown>;
 
-export function buildOrganizationJsonLd(): JsonLd {
+export function buildOrganizationJsonLd(contact: ContactInfo = siteConfig.contact): JsonLd {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: siteConfig.name,
     url: siteConfig.url,
-    email: siteConfig.contact.email,
+    ...(contact.email ? { email: contact.email } : {}),
   };
 }
 

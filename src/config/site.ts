@@ -25,8 +25,64 @@ export function resolveSiteUrl(env: SiteUrlEnv): string {
   return configured || LOCAL_SITE_URL;
 }
 
+export interface ContactInfo {
+  email: string | null;
+  /** LINE Official Account ID รูปแบบ @id */
+  line: string | null;
+  /** Telegram username รูปแบบ @handle */
+  telegram: string | null;
+}
+
+interface ContactEnv {
+  NEXT_PUBLIC_CONTACT_EMAIL?: string;
+  NEXT_PUBLIC_CONTACT_LINE?: string;
+  NEXT_PUBLIC_CONTACT_TELEGRAM?: string;
+}
+
+const EMAIL_PATTERN = /^[a-z0-9._%+-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}$/;
+const LINE_ID_PATTERN = /^@?([a-z0-9._-]{3,20})$/;
+// username ของ Telegram 5–32 ตัว (a-z 0-9 _) — ลิงก์เชิญกลุ่ม (t.me/+…, joinchat) ไม่ใช่ช่องทางติดต่อ
+const TELEGRAM_PATTERN = /^(?:https:\/\/t\.me\/|@)?([A-Za-z][A-Za-z0-9_]{4,31})\/?$/;
+
+export function normalizeContactEmail(raw: string | undefined | null): string | null {
+  const value = raw?.trim().toLowerCase() ?? "";
+  return EMAIL_PATTERN.test(value) ? value : null;
+}
+
+export function normalizeLineId(raw: string | undefined | null): string | null {
+  const match = LINE_ID_PATTERN.exec(raw?.trim().toLowerCase() ?? "");
+  return match ? `@${match[1]}` : null;
+}
+
+export function normalizeTelegramHandle(raw: string | undefined | null): string | null {
+  const match = TELEGRAM_PATTERN.exec(raw?.trim() ?? "");
+  return match ? `@${match[1]}` : null;
+}
+
+/**
+ * ช่องทางติดต่อลูกค้าจาก env — ไม่ตั้ง/รูปแบบผิด = null แล้วซ่อนช่องทางนั้น
+ * (ไม่มีค่าเริ่มต้น: บัญชี peenoey เดิมไม่มีอยู่จริง แสดงไว้ลูกค้าจะติดต่อไม่ได้)
+ */
+export function resolveContact(env: ContactEnv): ContactInfo {
+  return {
+    email: normalizeContactEmail(env.NEXT_PUBLIC_CONTACT_EMAIL),
+    line: normalizeLineId(env.NEXT_PUBLIC_CONTACT_LINE),
+    telegram: normalizeTelegramHandle(env.NEXT_PUBLIC_CONTACT_TELEGRAM),
+  };
+}
+
+/** ข้อความช่องทางติดต่อในเอกสารกฎหมาย — แสดงเฉพาะช่องทางที่ตั้งไว้ */
+export function formatContactLine(contact: ContactInfo): string {
+  const parts = [
+    contact.email && `อีเมล ${contact.email}`,
+    contact.line && `LINE ${contact.line}`,
+    contact.telegram && `Telegram ${contact.telegram}`,
+  ].filter(Boolean);
+  return parts.length > 0 ? parts.join(" · ") : "ยังไม่ได้ระบุช่องทางติดต่อ — ผู้ให้บริการจะประกาศบนเว็บไซต์ก่อนเปิดรับชำระเงิน";
+}
+
 export const siteConfig = {
-  // ชื่อแบรนด์ตามอินดิเคเตอร์ที่สมาชิกได้รับ (บน TradingView ชื่อ Gold HybridShot Signals) — เจ้าของเลือกตัวพิมพ์ "Gold Hybridshot" — โดเมน/ช่องทางติดต่อด้านล่างยังเป็นบัญชีเดิม
+  // ชื่อแบรนด์ตามอินดิเคเตอร์ที่สมาชิกได้รับ (บน TradingView ชื่อ Gold HybridShot Signals) — เจ้าของเลือกตัวพิมพ์ "Gold Hybridshot"
   name: "Gold Hybridshot",
   shortName: "Gold Hybridshot",
   description:
@@ -50,9 +106,10 @@ export const siteConfig = {
     privacy: "/privacy",
     refund: "/refund",
   },
-  contact: {
-    email: "support@peenoey.com",
-    line: "@peenoey",
-    telegram: "@peenoey_admin",
-  }
+  // NEXT_PUBLIC_* ต้องอ้างชื่อเต็มตรง ๆ ให้ Next.js ฝังค่าตอน build
+  contact: resolveContact({
+    NEXT_PUBLIC_CONTACT_EMAIL: process.env.NEXT_PUBLIC_CONTACT_EMAIL,
+    NEXT_PUBLIC_CONTACT_LINE: process.env.NEXT_PUBLIC_CONTACT_LINE,
+    NEXT_PUBLIC_CONTACT_TELEGRAM: process.env.NEXT_PUBLIC_CONTACT_TELEGRAM,
+  }),
 };

@@ -61,6 +61,13 @@ services:
         sync: false
       - key: NEXT_PUBLIC_DISCORD_INVITE
         sync: false
+      # ช่องทางติดต่อลูกค้า — ไม่ตั้ง = ซ่อนช่องทางนั้นบนเว็บ
+      - key: NEXT_PUBLIC_CONTACT_EMAIL
+        sync: false
+      - key: NEXT_PUBLIC_CONTACT_LINE
+        sync: false
+      - key: NEXT_PUBLIC_CONTACT_TELEGRAM
+        sync: false
       - key: NEXT_PUBLIC_LEGAL_OPERATOR_NAME
         sync: false
       - key: NEXT_PUBLIC_LEGAL_OPERATOR_ADDRESS

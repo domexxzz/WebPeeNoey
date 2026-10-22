@@ -17,6 +17,9 @@ export const MONITORED_ENV = [
   { key: "TELEGRAM_BOT_USERNAME", required: false, purpose: "ลิงก์เชื่อมบัญชีสมาชิกกับบอท" },
   { key: "TELEGRAM_WEBHOOK_SECRET", required: false, purpose: "ยืนยันว่า webhook มาจาก Telegram" },
   { key: "CRON_SECRET", required: true, purpose: "ป้องกัน Cron / Watchdog endpoint" },
+  { key: "NEXT_PUBLIC_CONTACT_EMAIL", required: false, purpose: "อีเมลติดต่อลูกค้าบนเว็บ" },
+  { key: "NEXT_PUBLIC_CONTACT_LINE", required: false, purpose: "LINE ติดต่อลูกค้าบนเว็บ" },
+  { key: "NEXT_PUBLIC_CONTACT_TELEGRAM", required: false, purpose: "Telegram ติดต่อลูกค้าบนเว็บ" },
 ] as const;
 
 export interface SystemHealth {
