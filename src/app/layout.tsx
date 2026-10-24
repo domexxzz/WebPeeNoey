@@ -6,6 +6,7 @@ import "@/styles/motion-art.css";
 import "@/styles/paper-card.css";
 import { Providers } from "@/components/providers";
 import { siteConfig } from "@/config/site";
+import { buildVerificationMetadata, INTEGRATIONS } from "@/config/integrations";
 
 // หัวข้อใช้ Prompt (มีบุคลิก), เนื้อหาใช้ IBM Plex Sans Thai (อ่านง่ายที่ขนาดเล็ก)
 const headingFont = Prompt({
@@ -29,6 +30,7 @@ export const metadata: Metadata = {
   },
   description: siteConfig.description,
   metadataBase: new URL(siteConfig.url),
+  verification: buildVerificationMetadata(INTEGRATIONS),
 };
 
 export default function RootLayout({

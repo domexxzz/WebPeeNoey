@@ -1,5 +1,6 @@
-import { buildOrganizationJsonLd } from "@/lib/seo";
+import { buildOrganizationJsonLd, buildWebSiteJsonLd } from "@/lib/seo";
 import { JsonLd } from "@/components/marketing/json-ld";
+import { AnalyticsScript } from "@/components/marketing/analytics-script";
 import { SiteHeader } from "@/components/marketing/site-header";
 import { SiteFooter } from "@/components/marketing/site-footer";
 import { displayFont, thaiFont } from "@/components/marketing/fonts";
@@ -20,6 +21,8 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
         ข้ามไปยังเนื้อหาหลัก
       </a>
       <JsonLd data={buildOrganizationJsonLd()} />
+      <JsonLd data={buildWebSiteJsonLd()} />
+      <AnalyticsScript />
       <SiteHeader />
       <main id="main-content" className="flex-1">
         {children}

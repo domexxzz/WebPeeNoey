@@ -80,13 +80,49 @@ export function buildPageMetadata({ title, description, path, noIndex = false }:
 
 type JsonLd = Record<string, unknown>;
 
+const organizationId = () => `${absoluteUrl("/")}#organization`;
+
 export function buildOrganizationJsonLd(contact: ContactInfo = siteConfig.contact): JsonLd {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": organizationId(),
     name: siteConfig.name,
     url: siteConfig.url,
     ...(contact.email ? { email: contact.email } : {}),
+  };
+}
+
+/** ไม่มี SearchAction เพราะเว็บไม่มีหน้าค้นหา */
+export function buildWebSiteJsonLd(): JsonLd {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${absoluteUrl("/")}#website`,
+    name: siteConfig.name,
+    url: absoluteUrl("/"),
+    description: siteConfig.description,
+    inLanguage: "th-TH",
+    publisher: { "@id": organizationId() },
+  };
+}
+
+export interface BreadcrumbCrumb {
+  name: string;
+  path: string;
+}
+
+/** เส้นทางของหน้าย่อย เริ่มที่หน้าแรกเสมอ */
+export function buildBreadcrumbJsonLd(crumbs: BreadcrumbCrumb[]): JsonLd {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [{ name: "หน้าแรก", path: "/" }, ...crumbs].map((crumb, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: crumb.name,
+      item: absoluteUrl(crumb.path),
+    })),
   };
 }
 

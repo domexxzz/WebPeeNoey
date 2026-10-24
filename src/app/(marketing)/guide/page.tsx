@@ -3,7 +3,8 @@ import Link from "next/link";
 import { ArrowRight, Lightbulb } from "lucide-react";
 import { HOME_SECTION_IDS, IMAGE_SLOTS } from "@/config/marketing";
 import { GUIDE_SECTIONS, TROUBLESHOOTING } from "@/content/guide";
-import { buildPageMetadata } from "@/lib/seo";
+import { buildBreadcrumbJsonLd, buildPageMetadata } from "@/lib/seo";
+import { JsonLd } from "@/components/marketing/json-ld";
 import { ImageSlot } from "@/components/marketing/image-slot";
 import { PageHeader } from "@/components/marketing/page-header";
 
@@ -19,6 +20,7 @@ const TROUBLESHOOTING_ID = "troubleshooting";
 export default function GuidePage() {
   return (
     <>
+      <JsonLd data={buildBreadcrumbJsonLd([{ name: "คู่มือการใช้งาน", path: "/guide" }])} />
       <PageHeader
         eyebrow="คู่มือการใช้งาน"
         title="ตั้งแต่สมัคร จนเริ่มใช้งานจริง"

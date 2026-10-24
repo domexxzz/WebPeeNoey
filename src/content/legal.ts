@@ -1,5 +1,6 @@
 import { legalConfig } from "@/config/legal";
 import { formatContactLine, siteConfig } from "@/config/site";
+import { analyticsDisclosure, INTEGRATIONS } from "@/config/integrations";
 import { RISK_DISCLAIMER } from "@/config/marketing";
 import { BROKER_IB_RULES } from "@/config/broker-ib";
 
@@ -20,6 +21,7 @@ export interface LegalDocument {
 }
 
 const contactLine = formatContactLine(siteConfig.contact);
+const cookielessAnalytics = analyticsDisclosure(INTEGRATIONS.cloudflareAnalyticsToken !== null);
 
 export const TERMS_DOCUMENT: LegalDocument = {
   slug: "terms",
@@ -225,6 +227,7 @@ export const PRIVACY_DOCUMENT: LegalDocument = {
       paragraphs: [
         "เว็บไซต์ใช้เฉพาะคุกกี้ที่จำเป็นต่อการเข้าสู่ระบบและความปลอดภัย หากในอนาคตมีการใช้คุกกี้เพื่อการวิเคราะห์หรือการตลาด เราจะขอความยินยอมจากคุณก่อน",
         "หน้าแรกแสดงกราฟราคาจาก TradingView ผ่านส่วนฝัง (widget) ของ TradingView ซึ่งโหลดจากเซิร์ฟเวอร์ของ TradingView โดยตรง TradingView อาจได้รับข้อมูลทางเทคนิค เช่น IP Address และอาจใช้คุกกี้ของตนเองตามนโยบายความเป็นส่วนตัวของ TradingView (https://www.tradingview.com/privacy-policy/) — เราไม่ได้รับหรือควบคุมข้อมูลส่วนนั้น",
+        ...(cookielessAnalytics ? [cookielessAnalytics] : []),
       ],
     },
     {

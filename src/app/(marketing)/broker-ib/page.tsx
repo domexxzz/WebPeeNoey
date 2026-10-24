@@ -3,7 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { BROKER_IB_CONTENT, BROKER_IB_FAQ } from "@/config/broker-ib";
-import { buildPageMetadata } from "@/lib/seo";
+import { buildBreadcrumbJsonLd, buildPageMetadata } from "@/lib/seo";
+import { JsonLd } from "@/components/marketing/json-ld";
 import { getCachedBrokerIbOffer } from "@/lib/broker-ib/public-offer";
 import { PageHeader } from "@/components/marketing/page-header";
 import { BrokerIbGuide } from "@/components/broker-ib/broker-ib-guide";
@@ -21,6 +22,7 @@ export default async function BrokerIbPublicPage() {
 
   return (
     <>
+      <JsonLd data={buildBreadcrumbJsonLd([{ name: "ใช้ฟรีผ่านโบรกเกอร์พาร์ทเนอร์", path: "/broker-ib" }])} />
       <PageHeader eyebrow={BROKER_IB_CONTENT.eyebrow} title={BROKER_IB_CONTENT.title} description={BROKER_IB_CONTENT.description} />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 space-y-14">
         <section aria-labelledby="ib-steps-heading" className="border border-line bg-surface p-6 sm:p-10 rounded-2xl">

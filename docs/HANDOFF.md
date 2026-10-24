@@ -1,5 +1,16 @@
 # เอกสารส่งต่องาน (Project Handoff & Session Log)
 
+## เซสชัน: ฐาน SEO / GEO / AEO (llms.txt, WebSite + Breadcrumb schema, ช่อง env ยืนยันเว็บและสถิติ)
+**วันที่:** 24 ตุลาคม 2026  
+**สถานะ:** unit 373/373 (เพิ่ม `tests/seo-groundwork.test.tsx` 14 ข้อ), `tsc` ผ่าน, `next build` ผ่าน (ใส่ `experimental.cpus: 1` ชั่วคราวแล้วเอาออก) — ตรวจบน `next start` ด้วยค่าทดสอบ: หน้าแรกมี meta `google-site-verification` / `msvalidate.01` + สคริปต์ Cloudflare beacon + JSON-LD Organization/WebSite/Product/FAQPage, `/features` มี BreadcrumbList, `/llms.txt` = `text/plain; charset=utf-8` 70 บรรทัด, `/privacy` ข้อ 8 มีข้อความ Cloudflare Web Analytics — ยังไม่ commit / ยังไม่ deploy
+
+- `src/config/integrations.ts`: `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`, `NEXT_PUBLIC_BING_SITE_VERIFICATION` (ตัวอักษร A-Z 0-9 _ - 10–100 ตัว), `NEXT_PUBLIC_CF_ANALYTICS_TOKEN` (hex 32 ตัว) — ไม่ตั้ง/ผิดรูปแบบ = ไม่ใส่แท็ก/ไม่โหลดสคริปต์; ประกาศใน `render.yaml`, `.env.example`, หน้าสถานะหลังบ้าน
+- สถิติเลือก **Cloudflare Web Analytics (ไม่ใช้คุกกี้)** เพราะนโยบายความเป็นส่วนตัวข้อ 8 สัญญาว่าจะขอความยินยอมก่อนใช้คุกกี้วิเคราะห์ — ถ้าจะใช้ GA4 ต้องทำแบนเนอร์ขอความยินยอม (PDPA) ก่อน; สคริปต์โหลดเฉพาะหน้าบ้าน (layout marketing) ไม่โหลดในหน้าสมาชิก/หลังบ้าน; นโยบายความเป็นส่วนตัวเพิ่มย่อหน้าเปิดเผยเฉพาะเมื่อตั้ง token (`analyticsDisclosure`)
+- `src/lib/seo.ts`: Organization มี `@id` (`<url>/#organization`), เพิ่ม `buildWebSiteJsonLd` (ไม่มี SearchAction เพราะไม่มีหน้าค้นหา) ใน layout หน้าบ้าน, `buildBreadcrumbJsonLd` ใน `/features`, `/guide`, `/broker-ib` และหน้ากฎหมาย (ผ่าน `LegalPage`)
+- `/llms.txt` (`src/app/llms.txt/route.ts` + `src/lib/llms.ts`, force-static): สร้างจาก config จริง — คำอธิบาย, หน้าหลัก, ราคาแพ็กเกจ, สิทธิ์, FAQ, คำเตือนความเสี่ยง, ช่องทางติดต่อ (ถ้าตั้ง), หน้ากฎหมายเฉพาะเมื่อไม่ใช่ฉบับร่าง — เทสต์กันตัวเลข %/Win Rate/กำไร
+- **กับดัก:** ใส่ token Cloudflare ปลอม/ของโดเมนอื่น beacon จะยิง CORS error ใน console (เห็นตอนทดสอบบน localhost) → คะแนน Best Practices ตก — ใช้ token ที่สร้างให้โดเมนจริงเท่านั้น
+- `.next` ในเครื่องตอนนี้ build ด้วยค่าทดสอบ (ไม่ได้ deploy ไม่มีผลกับเว็บจริง)
+
 ## เซสชัน: ตรวจความพร้อมก่อนเปิดขาย (อ่านอย่างเดียว ไม่แก้โค้ด)
 **วันที่:** 22 ตุลาคม 2026  
 **สถานะ:** ตรวจเว็บจริง + GitHub Actions แล้ว — ไม่ได้ล็อกอินหลังบ้าน (ค่าใน `/admin/settings` และ `/admin/status` ยังไม่ได้ดูจากหน้าจริง)
@@ -18,6 +29,10 @@
 - หน้าแรก (`ContactChannels` ใน `contact-section.tsx`) แสดงเฉพาะช่องทางที่ตั้ง ไม่มีเลย = ไม่แสดงรายการ; เอกสารกฎหมายใช้ `formatContactLine()` (ไม่มีเลย = "ยังไม่ได้ระบุช่องทางติดต่อ …"); JSON-LD ใส่ email เฉพาะเมื่อมี
 - เพิ่มทั้ง 3 ตัวใน `render.yaml`, `.env.example` และหน้าสถานะหลังบ้าน (`MONITORED_ENV`, ไม่บังคับ)
 - **หลัง deploy โดยยังไม่ตั้ง env ทั้ง 3 ตัว หน้าแรกจะไม่มีช่องทางติดต่อเลย** — ต้องกรอกใน Render แล้ว deploy ใหม่ (NEXT_PUBLIC_* ฝังตอน build)
+- commit `15af4ba` push แล้ว (22 ต.ค. 22:19) + เจ้าของตั้ง `NEXT_PUBLIC_CONTACT_EMAIL=zoritananabi@gmail.com` ใน Render แล้ว — **แต่ ~35 นาทีหลัง push เว็บจริงยังเป็นโค้ดเก่า** (หน้าแรก/`/terms` ยังมีลิงก์ peenoey ไม่มีอีเมลใหม่) และ deploy ล่าสุดที่เห็นใน Render เป็น "Manually deployed" จาก `63304f6` → น่าจะปิด Auto-Deploy อยู่ ต้องกด Manual Deploy → Deploy latest commit แล้วตรวจซ้ำ (เอกสารที่บอกว่า push = deploy อัตโนมัติ อาจไม่จริง)
+- GitHub Actions ยังไม่มี variables/secrets (ตรวจซ้ำ 22 ต.ค. 22:55) — workflow ใช้: `vars.APP_URL`, `vars.BACKUP_GPG_PUBLIC_KEY`, `secrets.CRON_SECRET`, `secrets.BACKUP_DATABASE_URL`, `secrets.TELEGRAM_BOT_TOKEN`, `secrets.TELEGRAM_ADMIN_CHAT_ID`
+- 24 ต.ค.: `15af4ba` ขึ้นเว็บจริงแล้ว (หน้าแรกมีอีเมลใหม่ ไม่มีลิงก์ peenoey)
+- 24 ต.ค. PageSpeed (มือถือ): Performance 90 / Accessibility 100 / Best Practices 77 (deprecated API + error ใน console — น่าจะมาจาก widget TradingView ยังไม่ได้ยืนยัน) / SEO 100 — LCP 2.9s, CLS 0.014, TBT 150ms; ยังไม่มี analytics, ไม่มี Search Console/Bing verification, ไม่มี `/llms.txt`, sitemap มี 3 URL (หน้ากฎหมายถูกตัดออกเพราะยังเป็นฉบับร่าง)
 - ยังไม่แตะ: `siteConfig.supportTelegram` (ไม่มีที่ใช้ ค่าเริ่มต้นเป็น t.me/peenoey_support ที่ไม่มีจริง), `NEXT_PUBLIC_SUPPORT_TELEGRAM` (ลิงก์กลุ่ม VIP ในหน้าสมาชิก), `domain`/`adminEmail` ค่าเริ่มต้น peenoey
 
 ## เซสชัน: ภาพหน้าจอจริงในการ์ดฟีเจอร์หน้าแรก

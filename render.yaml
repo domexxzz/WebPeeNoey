@@ -68,6 +68,13 @@ services:
         sync: false
       - key: NEXT_PUBLIC_CONTACT_TELEGRAM
         sync: false
+      # SEO / สถิติ — ไม่ตั้ง = ไม่ใส่แท็กยืนยัน / ไม่โหลดสคริปต์สถิติ
+      - key: NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+        sync: false
+      - key: NEXT_PUBLIC_BING_SITE_VERIFICATION
+        sync: false
+      - key: NEXT_PUBLIC_CF_ANALYTICS_TOKEN
+        sync: false
       - key: NEXT_PUBLIC_LEGAL_OPERATOR_NAME
         sync: false
       - key: NEXT_PUBLIC_LEGAL_OPERATOR_ADDRESS

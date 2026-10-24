@@ -3,7 +3,8 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2, ShieldAlert } from "lucide-react";
 import { FEATURES, HOME_SECTION_IDS, IMAGE_SLOTS, RISK_DISCLAIMER } from "@/config/marketing";
 import { FEATURE_DETAILS } from "@/content/features";
-import { buildPageMetadata } from "@/lib/seo";
+import { buildBreadcrumbJsonLd, buildPageMetadata } from "@/lib/seo";
+import { JsonLd } from "@/components/marketing/json-ld";
 import { FEATURE_ICONS } from "@/components/marketing/features-section";
 import { ImageSlot } from "@/components/marketing/image-slot";
 import { PageHeader } from "@/components/marketing/page-header";
@@ -21,6 +22,7 @@ const OTHER_FEATURES = FEATURES.filter((feature) => !detailedIds.has(feature.id)
 export default function FeaturesPage() {
   return (
     <>
+      <JsonLd data={buildBreadcrumbJsonLd([{ name: "ฟีเจอร์และสิ่งที่ได้รับ", path: "/features" }])} />
       <PageHeader
         eyebrow="ฟีเจอร์"
         title="ทุกสิ่ง ที่รวมอยู่ในสมาชิก"

@@ -1,10 +1,13 @@
 import { AlertTriangle } from "lucide-react";
 import { formatThaiDate, legalConfig } from "@/config/legal";
 import type { LegalDocument } from "@/content/legal";
+import { buildBreadcrumbJsonLd } from "@/lib/seo";
+import { JsonLd } from "./json-ld";
 
 export function LegalPage({ document }: { document: LegalDocument }) {
   return (
     <article className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
+      <JsonLd data={buildBreadcrumbJsonLd([{ name: document.title, path: `/${document.slug}` }])} />
       <header className="max-w-3xl">
         <p className="text-sm font-semibold text-gold-ink">นโยบายและข้อกำหนด</p>
         <h1 className="mt-3 font-display text-3xl sm:text-4xl font-bold text-fg">{document.title}</h1>
