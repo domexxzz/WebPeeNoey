@@ -1,6 +1,7 @@
-import type { OrderStatus, SubscriptionStatus } from "@prisma/client";
+import type { OrderStatus, SlipCheckStatus, SlipQrIntegrity, SubscriptionStatus } from "@prisma/client";
 import { OrderStatusBadge } from "@/components/checkout/order-status-badge";
 import type { OrderPhase } from "@/lib/orders/phase";
+import { SLIP_CHECK_LABELS } from "@/lib/orders/slip-notification";
 
 /** สถานะออเดอร์ในฐานข้อมูล → ป้ายเดียวกับที่ลูกค้าเห็น */
 export function AdminOrderBadge({ status }: { status: OrderStatus }) {
@@ -19,6 +20,33 @@ const SUBSCRIPTION_LABELS: Record<SubscriptionStatus, { label: string; className
 export function SubscriptionBadge({ status }: { status: SubscriptionStatus }) {
   const { label, className } = SUBSCRIPTION_LABELS[status];
   return <span className={`inline-flex items-center whitespace-nowrap border px-2.5 py-1 text-xs font-semibold rounded-full ${className}`}>{label}</span>;
+}
+
+/** ผลตรวจสลิปอัตโนมัติ: เขียว = ธนาคารยืนยัน, ฟ้า = รอตรวจซ้ำ, เทา = ไม่ได้ตรวจ, แดง/ส้ม = ต้องดูให้ละเอียดก่อนอนุมัติ */
+const SLIP_CHECK_TONES: Record<SlipCheckStatus, string> = {
+  VERIFIED: "border-emerald-600/40 bg-emerald-50 text-emerald-800",
+  PENDING: "border-sky-600/40 text-sky-800",
+  DISABLED: "border-line-soft text-fg-subtle",
+  AMOUNT_MISMATCH: "border-red-500/40 text-red-700",
+  WRONG_RECEIVER: "border-red-500/40 text-red-700",
+  RECEIVER_UNVERIFIED: "border-orange-500/50 text-orange-700",
+  STALE: "border-red-500/40 text-red-700",
+  DUPLICATE: "border-red-500/40 text-red-700",
+  UNREADABLE: "border-orange-500/50 text-orange-700",
+  ERROR: "border-orange-500/50 text-orange-700",
+};
+
+export function SlipCheckBadge({ status, qrIntegrity }: { status: SlipCheckStatus; qrIntegrity?: SlipQrIntegrity | null }) {
+  return (
+    <span className="inline-flex flex-wrap items-center gap-1">
+      <span className={`inline-flex items-center whitespace-nowrap border px-2.5 py-1 text-xs font-semibold rounded-full ${SLIP_CHECK_TONES[status]}`}>
+        {SLIP_CHECK_LABELS[status]}
+      </span>
+      {qrIntegrity === "INVALID" && (
+        <span className="inline-flex items-center whitespace-nowrap border border-red-500/40 px-2.5 py-1 text-xs font-semibold text-red-700 rounded-full">QR ถูกแก้?</span>
+      )}
+    </span>
+  );
 }
 
 export function AdminPageHeader({ title, description, children }: { title: string; description?: string; children?: React.ReactNode }) {

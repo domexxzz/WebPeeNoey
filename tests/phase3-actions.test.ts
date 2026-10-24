@@ -132,7 +132,16 @@ describe("Phase 3: submitSlipAction", () => {
     expect(await submitSlipAction(idle, slipForm(pngFile()))).toEqual({ status: "error", message: CHECKOUT_ERROR_MESSAGES.DUPLICATE_SLIP });
   });
 
-  const accepted = { ok: true as const, orderId: "order-1", orderNumber: "ORD-1", amount: 989.5, planName: "แพ็กเกจ", uploadId: "up-1" };
+  const accepted = {
+    ok: true as const,
+    orderId: "order-1",
+    orderNumber: "ORD-1",
+    amount: 989.5,
+    planName: "แพ็กเกจ",
+    uploadId: "up-1",
+    check: { status: "VERIFIED" as const, note: "ธนาคารยืนยันแล้ว" },
+    qrIntegrity: "VALID" as const,
+  };
 
   it("notifies admins, records the notification and refreshes the pages on success", async () => {
     vi.mocked(submitSlip).mockResolvedValue(accepted);
@@ -141,8 +150,17 @@ describe("Phase 3: submitSlipAction", () => {
 
     expect(state.status).toBe("success");
     expect(sendAdminTelegram).toHaveBeenCalledWith(expect.stringContaining("ORD-1"));
+    expect(sendAdminTelegram).toHaveBeenCalledWith(expect.stringContaining("ธนาคารยืนยันแล้ว"));
     expect(markAdminNotified).toHaveBeenCalledWith(expect.anything(), { orderId: "order-1" });
     expect(revalidatePath).toHaveBeenCalledWith("/checkout/order/order-1");
+  });
+
+  it("raises a separate alert when the slip checker itself is broken (bad token / quota)", async () => {
+    vi.mocked(submitSlip).mockResolvedValue({ ...accepted, check: { status: "ERROR", note: "token ผิด", alertAdmins: true } });
+
+    expect((await submitSlipAction(idle, slipForm(pngFile()))).status).toBe("success");
+    expect(sendAdminTelegram).toHaveBeenCalledWith(expect.stringContaining("🚨 ระบบตรวจสลิปอัตโนมัติใช้งานไม่ได้"));
+    expect(sendAdminTelegram).toHaveBeenCalledWith(expect.stringContaining("ORD-1"));
   });
 
   it("keeps the slip accepted when Telegram fails, leaving it unmarked for a retry", async () => {

@@ -5,7 +5,7 @@ import { BellOff, Search } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { formatBaht, formatDateTime, parsePage } from "@/lib/format";
 import { ADMIN_ORDER_TABS, listAdminOrders, parseAdminOrderTab, type AdminOrderTab } from "@/lib/admin/orders-query";
-import { AdminOrderBadge, AdminPageHeader, inputClass, Pagination } from "@/components/admin/admin-ui";
+import { AdminOrderBadge, AdminPageHeader, inputClass, Pagination, SlipCheckBadge } from "@/components/admin/admin-ui";
 
 export const metadata: Metadata = { title: "จัดการคำสั่งซื้อ", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -98,7 +98,10 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                   )}
                 </td>
                 <td className="px-4 py-3">
-                  <AdminOrderBadge status={order.status} />
+                  <div className="flex flex-col items-start gap-1.5">
+                    <AdminOrderBadge status={order.status} />
+                    {order.slipCheckStatus && <SlipCheckBadge status={order.slipCheckStatus} qrIntegrity={order.slipQrIntegrity} />}
+                  </div>
                 </td>
               </tr>
             ))}

@@ -5,6 +5,7 @@ import { redactSensitive } from "@/lib/redact";
 export const JOB_NAMES = {
   CHECK_EXPIRY: "check-expiry",
   WATCHDOG: "watchdog",
+  SLIP_RECHECK: "slip-recheck",
 } as const;
 
 export type JobName = (typeof JOB_NAMES)[keyof typeof JOB_NAMES];

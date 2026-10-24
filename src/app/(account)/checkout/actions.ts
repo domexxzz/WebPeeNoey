@@ -13,6 +13,7 @@ import { createOrder, markAdminNotified, submitSlip, type SubmitSlipResult } fro
 import { checkoutErrorMessage, type CheckoutErrorCode } from "@/lib/orders/messages";
 import { sendAdminTelegram } from "@/lib/notify/telegram";
 import { buildNewSlipMessage } from "@/lib/orders/slip-notification";
+import { shouldAlertProviderProblem } from "@/lib/orders/slip-inspection";
 import { getClientIp } from "@/lib/request";
 
 const RATE_WINDOW_SECONDS = 10 * 60;
@@ -81,7 +82,12 @@ type AcceptedSlip = Extract<SubmitSlipResult, { ok: true }>;
 
 /** แจ้งแอดมินเรื่องสลิปใหม่ — ส่งไม่สำเร็จจะไม่บันทึก adminNotifiedAt เพื่อให้ Watchdog ส่งซ้ำได้ */
 async function notifyNewSlip(slip: AcceptedSlip): Promise<void> {
-  const sent = await sendAdminTelegram(buildNewSlipMessage(slip, siteConfig.url));
+  if (slip.check.alertAdmins && shouldAlertProviderProblem(new Date())) {
+    const alerted = await sendAdminTelegram(`🚨 ระบบตรวจสลิปอัตโนมัติใช้งานไม่ได้ — ${slip.check.note}\nสลิปที่เข้ามาช่วงนี้ต้องตรวจด้วยตา (ล่าสุด: ${slip.orderNumber})`);
+    if (!alerted.ok) console.error("[checkout] แจ้งปัญหาระบบตรวจสลิปไม่สำเร็จ", { orderNumber: slip.orderNumber, reason: alerted.reason });
+  }
+  const check = { status: slip.check.status, note: slip.check.note, qrIntegrity: slip.qrIntegrity };
+  const sent = await sendAdminTelegram(buildNewSlipMessage(slip, siteConfig.url, { check }));
   if (!sent.ok) {
     console.error("[checkout] ยังไม่ได้แจ้งแอดมินเรื่องสลิปใหม่ (adminNotifiedAt = null)", { orderNumber: slip.orderNumber, reason: sent.reason });
     return;

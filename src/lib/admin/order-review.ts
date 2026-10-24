@@ -36,6 +36,14 @@ export function isUniqueViolation(error: unknown): boolean {
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
 }
 
+/** แอดมินตัดสินแล้ว — สลิปที่ยังรอคำตอบจากธนาคารไม่ต้องตรวจซ้ำต่อ (ไม่งั้นป้าย "รอตรวจซ้ำ" ค้างตลอดไป) */
+async function stopPendingSlipChecks(tx: Tx, orderId: string): Promise<void> {
+  await tx.slipUpload.updateMany({
+    where: { orderId, checkStatus: "PENDING" },
+    data: { checkStatus: "DISABLED", checkNote: "แอดมินตัดสินก่อนได้คำตอบจากธนาคาร — ไม่ตรวจซ้ำต่อ" },
+  });
+}
+
 /** ล็อกแถวออเดอร์ (SELECT ... FOR UPDATE) — คำขอซ้ำ/พร้อมกันจะรอแล้วเห็นสถานะล่าสุด */
 export async function lockOrder(tx: Tx, orderId: string): Promise<{ id: string; status: OrderStatus; kind: AccessKind; userId: string } | null> {
   const [row] = await tx.$queryRaw<{ id: string; status: OrderStatus; kind: AccessKind; userId: string }[]>`
@@ -74,6 +82,11 @@ export async function approveOrder(
         if (order.userId === input.actor.id) return { ok: false, code: "SELF_APPROVAL" };
         const reused = await tx.payment.findUnique({ where: { referenceNo }, select: { orderId: true } });
         if (reused && reused.orderId !== order.id) return { ok: false, code: "DUPLICATE_REFERENCE" };
+        // ธนาคารยืนยันแล้วว่ารายการโอนของสลิปนี้ถูกสลิปอื่นในระบบใช้ไปแล้ว — ห้ามอนุมัติไม่ว่าจะกรอกเลขอ้างอิงอะไร
+        if (order.slipHash) {
+          const slip = await tx.slipUpload.findUnique({ where: { hash: order.slipHash }, select: { checkStatus: true } });
+          if (slip?.checkStatus === "DUPLICATE") return { ok: false, code: "DUPLICATE_REFERENCE" };
+        }
 
         await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`membership:${order.userId}`}))`;
         const period = await nextPeriodFor(tx, { userId: order.userId, now, durationDays: order.plan.durationDays });
@@ -105,6 +118,7 @@ export async function approveOrder(
           },
         });
         await tx.order.update({ where: { id: order.id }, data: { status: "APPROVED", approvedAt: now, approvedByUserId: input.actor.id } });
+        await stopPendingSlipChecks(tx, order.id);
         await writeAudit(tx, {
           actor: input.actor,
           action: "ORDER_APPROVE",
@@ -163,6 +177,7 @@ export async function rejectOrder(
         data: { status: "REJECTED", rejectedAt: now, rejectionReason: reason },
         select: { orderNumber: true, user: { select: { email: true } } },
       });
+      await stopPendingSlipChecks(tx, input.orderId);
       await writeAudit(tx, {
         actor: input.actor,
         action: "ORDER_REJECT",

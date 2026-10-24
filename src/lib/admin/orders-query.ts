@@ -1,4 +1,4 @@
-import type { OrderStatus, Prisma, PrismaClient } from "@prisma/client";
+import type { OrderStatus, Prisma, PrismaClient, SlipCheckStatus, SlipQrIntegrity } from "@prisma/client";
 import { expireStaleOrders } from "@/lib/orders/create-order";
 import { SYSTEM_ACTOR_LABEL } from "./audit";
 
@@ -31,6 +31,9 @@ export interface AdminOrderListItem {
   createdAt: Date;
   slipUploadedAt: Date | null;
   adminNotifiedAt: Date | null;
+  /** ผลตรวจอัตโนมัติของสลิปล่าสุด (null = ยังไม่มีสลิป) */
+  slipCheckStatus: SlipCheckStatus | null;
+  slipQrIntegrity: SlipQrIntegrity | null;
 }
 
 export async function listAdminOrders(
@@ -75,6 +78,7 @@ export async function listAdminOrders(
         adminNotifiedAt: true,
         plan: { select: { name: true } },
         user: { select: { email: true, name: true } },
+        slipUploads: { orderBy: { createdAt: "desc" }, take: 1, select: { checkStatus: true, qrIntegrity: true } },
       },
     }),
     db.order.count({ where }),
@@ -101,6 +105,8 @@ export async function listAdminOrders(
       createdAt: order.createdAt,
       slipUploadedAt: order.slipUploadedAt,
       adminNotifiedAt: order.adminNotifiedAt,
+      slipCheckStatus: order.slipUploads[0]?.checkStatus ?? null,
+      slipQrIntegrity: order.slipUploads[0]?.qrIntegrity ?? null,
     })),
     total,
     counts,
@@ -119,7 +125,26 @@ export async function getAdminOrderDetail(db: PrismaClient, orderId: string) {
       payment: { select: { promptpayTarget: true, promptpayAccountName: true, amount: true, referenceNo: true, verifiedAt: true } },
       subscription: { select: { id: true, status: true, currentPeriodStart: true, currentPeriodEnd: true, isPriceLocked: true, tradingViewGranted: true, discordRoleGranted: true, telegramGranted: true } },
       refund: { select: { amount: true, reason: true, transferReference: true, createdAt: true } },
-      slipUploads: { orderBy: { createdAt: "desc" }, select: { id: true, mimeType: true, sizeBytes: true, hash: true, createdAt: true } },
+      slipUploads: {
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          mimeType: true,
+          sizeBytes: true,
+          hash: true,
+          createdAt: true,
+          qrReference: true,
+          qrIntegrity: true,
+          checkStatus: true,
+          checkNote: true,
+          checkAttempts: true,
+          checkedAt: true,
+          transRef: true,
+          slipAmount: true,
+          slipDate: true,
+          receiverName: true,
+        },
+      },
     },
   });
   if (!order) return null;
@@ -134,7 +159,7 @@ export async function getAdminOrderDetail(db: PrismaClient, orderId: string) {
     basePrice: order.basePrice?.toNumber() ?? null,
     payment: order.payment ? { ...order.payment, amount: order.payment.amount.toNumber() } : null,
     refund: order.refund ? { ...order.refund, amount: order.refund.amount.toNumber() } : null,
-    slips: order.slipUploads,
+    slips: order.slipUploads.map((slip) => ({ ...slip, slipAmount: slip.slipAmount?.toNumber() ?? null })),
     auditLogs: auditLogs.map((log) => ({ id: log.id, action: log.action, details: log.details, actorEmail: log.actor?.email ?? SYSTEM_ACTOR_LABEL, createdAt: log.createdAt })),
   };
 }

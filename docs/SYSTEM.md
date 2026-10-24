@@ -23,7 +23,7 @@
 | โค้ด | GitHub `domexxzz/WebPeeNoey` สาขา `main` — push แล้ว Render deploy อัตโนมัติ |
 | ฐานข้อมูล | Neon PostgreSQL `webpeenoey-db` (ap-southeast-1) ใช้ pooled URL |
 | เว็บเก่า | `goldhybridshot.vercel.app` (Vercel ทีม `domezzxxs-projects`) — **ถูกพักถึง 19 พ.ย. 2026** เพราะโปรเจกต์อื่นในทีม (tradepulse) ใช้โควตา CPU ฟรีของทีมหมด — ย้ายมา Render แล้ว |
-| งานตั้งเวลา | GitHub Actions: `watchdog.yml` (ทุกชั่วโมง), `check-expiry.yml` (ทุกวัน 02:05 UTC), `backup.yml` (สำรองฐานข้อมูลรายวัน เข้ารหัส GPG) |
+| งานตั้งเวลา | GitHub Actions: `watchdog.yml` (ทุกชั่วโมง), `check-expiry.yml` (ทุกวัน 02:05 UTC), `slip-recheck.yml` (ทุก 10 นาที), `backup.yml` (สำรองฐานข้อมูลรายวัน เข้ารหัส GPG) |
 | ความลับบนเครื่องเจ้าของ | `.env.vercel-secrets.local` (gitignored) — `NEXTAUTH_SECRET`, `CRON_SECRET`, `PROD_ADMIN_PASSWORD` |
 
 ## 3. เทคโนโลยี
@@ -83,6 +83,9 @@ render.yaml  vercel.json  .github/workflows/
 
 1. **สั่งซื้อ** (`lib/orders/create-order.ts`): advisory lock ต่อผู้ใช้ กันกดซ้ำ, ออเดอร์เดิมที่ยังไม่หมดเวลาถูกใช้ซ้ำ, ยอดเงินบวกเศษสตางค์สุ่มเพื่อแยกยอดโอน
 2. **แนบสลิป** (`lib/orders/submit-slip.ts`, `lib/payments/slip.ts`): ตรวจชนิดไฟล์จาก magic bytes, ไม่เกิน 4MB, hash ไฟล์กันสลิปซ้ำ, แจ้งกลุ่มแอดมินทาง Telegram
+   - **ตรวจสลิปอัตโนมัติ** (พอร์ตจาก Tradepulse): อ่าน QR ในสลิปในเซิร์ฟเวอร์ (`lib/payments/slip-qr.ts` — sharp + jsqr) → checksum CRC16 + กันสลิปเดิมที่ถ่าย/ครอปใหม่ด้วย `SlipUpload.qrPayload` (unique) → ถ้าตั้ง `EASYSLIP_TOKEN` ส่ง payload ให้ EasySlip API v2 ยืนยันกับธนาคาร (`lib/payments/easyslip.ts`): ยอดตรงถึงสตางค์, บัญชีผู้รับ (เลขพร้อมเพย์ของออเดอร์ + `SLIP_RECEIVER_ACCOUNTS`), โอนหลังสร้างออเดอร์, `transRef` unique
+   - **ไม่มีการอนุมัติ/ปฏิเสธอัตโนมัติ** — ผลตรวจเป็นป้ายในหน้า `/admin/orders` + ข้อความ Telegram; สลิปซ้ำ (hash/QR/transRef) ถูกปฏิเสธตั้งแต่ตอนแนบ; สลิปที่ธนาคารยืนยันว่า transRef ถูกใช้แล้ว (`DUPLICATE`) อนุมัติไม่ได้
+   - สลิปกรุงเทพที่โอนไม่ถึง 5 นาที (`SLIP_PENDING`) / ผู้ให้บริการขัดข้อง = `PENDING` → `lib/jobs/slip-recheck.ts` ตรวจซ้ำทุก 10 นาที (`.github/workflows/slip-recheck.yml` → `/api/cron/slip-recheck`) สูงสุด 12 ครั้ง
 3. **อนุมัติ** (`lib/admin/order-review.ts`): ต้องกรอกเลขอ้างอิงธนาคาร (unique กันสลิปแก้ไฟล์), `SELECT … FOR UPDATE` + advisory lock `membership:<userId>` กันอนุมัติซ้ำ/ช่วงซ้อน, ต่ออายุทบวัน, AuditLog ใน transaction เดียว
 4. **หมดอายุ** (`lib/jobs/expiry.ts`): เตือนก่อนหมด → เปลี่ยนเป็น EXPIRED → รายชื่อที่ต้องถอดสิทธิ์ช่องทางด้วยมือ (แสดงในหลังบ้าน)
 5. **คืนเงิน / ปิดสิทธิ์ฉุกเฉิน**: คืนได้ครั้งเดียว ไม่เกินยอดที่จ่าย, ปิดช่วงสิทธิ์ทันที, เลื่อนช่วงที่ยังไม่เริ่มมาต่อกัน

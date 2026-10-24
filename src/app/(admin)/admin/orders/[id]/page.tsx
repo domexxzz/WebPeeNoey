@@ -10,12 +10,42 @@ import { getAdminOrderDetail, type AdminOrderDetail } from "@/lib/admin/orders-q
 import { REJECTION_PRESETS } from "@/lib/admin/messages";
 import { AUDIT_ACTIONS, type AuditAction } from "@/lib/admin/audit";
 import { ActionForm } from "@/components/admin/action-form";
-import { AdminCard, AdminOrderBadge, DefinitionList, inputClass, labelClass, SubscriptionBadge } from "@/components/admin/admin-ui";
+import { AdminCard, AdminOrderBadge, DefinitionList, inputClass, labelClass, SlipCheckBadge, SubscriptionBadge } from "@/components/admin/admin-ui";
+import { QR_INTEGRITY_LABELS, SLIP_CHECK_LABELS } from "@/lib/orders/slip-notification";
 import { ProvisioningPanel } from "@/components/admin/provisioning-panel";
 import { approveOrderAction, refundOrderAction, rejectOrderAction } from "../../actions";
 
 export const metadata: Metadata = { title: "ตรวจสอบคำสั่งซื้อ", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
+
+type AdminSlip = AdminOrderDetail["slips"][number];
+
+/** ผลตรวจอัตโนมัติ — ช่วยตัดสินใจเท่านั้น การอนุมัติ/ปฏิเสธยังเป็นของแอดมินเสมอ */
+function SlipCheckPanel({ slip }: { slip: AdminSlip }) {
+  const verified = slip.checkStatus === "VERIFIED";
+  return (
+    <div className={`space-y-2 border px-3.5 py-3 text-sm rounded-xl ${verified ? "border-emerald-600/40 bg-emerald-50" : "border-line-soft"}`}>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-xs text-fg-subtle">ตรวจอัตโนมัติ</span>
+        <SlipCheckBadge status={slip.checkStatus} qrIntegrity={slip.qrIntegrity} />
+      </div>
+      {slip.checkNote && <p className="text-fg-muted">{slip.checkNote}</p>}
+      <dl className="grid gap-x-4 gap-y-1 text-xs text-fg-subtle sm:grid-cols-2">
+        <div>QR: {slip.qrIntegrity ? QR_INTEGRITY_LABELS[slip.qrIntegrity] : "อ่านไม่ได้"}</div>
+        {slip.transRef && <div>เลขอ้างอิง (ธนาคาร): <span className="font-mono text-fg">{slip.transRef}</span></div>}
+        {!slip.transRef && slip.qrReference && (
+          <div>
+            เลขจาก QR (ยังไม่ยืนยัน): <span className="font-mono text-fg">{slip.qrReference}</span>
+          </div>
+        )}
+        {slip.slipAmount !== null && <div>ยอดในสลิป: {formatBaht(slip.slipAmount)} บาท</div>}
+        {slip.slipDate && <div>เวลาโอน: {formatDateTime(slip.slipDate)}</div>}
+        {slip.receiverName && <div>ผู้รับ: {slip.receiverName}</div>}
+        {slip.checkedAt && <div>ตรวจล่าสุด: {formatDateTime(slip.checkedAt)} (ครั้งที่ {slip.checkAttempts})</div>}
+      </dl>
+    </div>
+  );
+}
 
 function SlipViewer({ order }: { order: AdminOrderDetail }) {
   const [latest, ...older] = order.slips;
@@ -34,6 +64,10 @@ function SlipViewer({ order }: { order: AdminOrderDetail }) {
       <p className="text-xs text-fg-subtle">
         อัปโหลด {formatDateTime(latest.createdAt)} · {formatFileSize(latest.sizeBytes)} · SHA-256 {latest.hash.slice(0, 12)}…
       </p>
+      <SlipCheckPanel slip={latest} />
+      {older.length > 0 && (
+        <p className="text-xs text-fg-subtle">ผลตรวจด้านบนเป็นของสลิปล่าสุดเท่านั้น</p>
+      )}
       {older.length > 0 && (
         <details className="text-xs text-fg-subtle">
           <summary className="cursor-pointer">สลิปก่อนหน้า ({older.length})</summary>
@@ -53,14 +87,25 @@ function SlipViewer({ order }: { order: AdminOrderDetail }) {
 }
 
 function ReviewForms({ order }: { order: AdminOrderDetail }) {
+  const latest = order.slips[0];
+  // เติมเฉพาะเลขที่ธนาคารยืนยัน — เลขที่แกะจาก QR ลูกค้าปลอมได้ (CRC ไม่มีกุญแจลับ) จึงไม่เติมให้
+  const suggestedReference = latest?.transRef ?? "";
+  const flagged = latest && latest.checkStatus !== "VERIFIED" && latest.checkStatus !== "DISABLED" && latest.checkStatus !== "PENDING";
   return (
     <div className="grid gap-4">
       <AdminCard title="อนุมัติ">
+        {flagged && (
+          <p className="flex items-start gap-2 text-sm text-red-700">
+            <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
+            ผลตรวจอัตโนมัติไม่ผ่าน ({SLIP_CHECK_LABELS[latest.checkStatus]}) — ตรวจกับแอปธนาคารให้แน่ใจก่อนอนุมัติ
+          </p>
+        )}
         <ActionForm action={approveOrderAction} submitLabel="อนุมัติและเปิดสิทธิ์" pendingLabel="กำลังอนุมัติ...">
           <input type="hidden" name="orderId" value={order.id} />
           <div>
             <label className={labelClass} htmlFor="referenceNo">เลขอ้างอิงธุรกรรม (จากสลิป/แอปธนาคาร)</label>
-            <input id="referenceNo" name="referenceNo" required autoComplete="off" className={inputClass} placeholder="เช่น 2026101112345678" />
+            <input id="referenceNo" name="referenceNo" required autoComplete="off" defaultValue={suggestedReference} className={inputClass} placeholder="เช่น 2026101112345678" />
+            {suggestedReference && <p className="mt-1 text-xs text-fg-subtle">เติมจากเลขที่ธนาคารยืนยันผ่าน EasySlip — เทียบกับแอปธนาคารก่อนกดอนุมัติ</p>}
           </div>
           <label className="flex items-start gap-2 text-sm text-fg-muted">
             <input type="checkbox" name="confirmReceived" required className="mt-1 accent-[#B8860B]" />

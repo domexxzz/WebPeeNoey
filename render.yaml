@@ -52,6 +52,11 @@ services:
       # งานอัตโนมัติ (ค่าเดียวกับ secrets.CRON_SECRET ของ GitHub Actions)
       - key: CRON_SECRET
         sync: false
+      # ตรวจสลิปกับธนาคาร (ไม่บังคับ) — ไม่ตั้ง token = แอดมินตรวจด้วยตา; บัญชีผู้รับใส่ตามที่โชว์บนสลิป เช่น xxx-x-x1234-x
+      - key: EASYSLIP_TOKEN
+        sync: false
+      - key: SLIP_RECEIVER_ACCOUNTS
+        sync: false
       # ค่าสาธารณะ — NEXT_PUBLIC_* ถูกฝังตอน build: แก้แล้วต้อง deploy ใหม่
       - key: NEXT_PUBLIC_APP_URL
         sync: false

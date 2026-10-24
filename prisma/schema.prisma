@@ -248,11 +248,46 @@ model SlipUpload {
   sizeBytes           Int
   data                Bytes
 
+  // QR ที่ธนาคารฝังในสลิป (อ่านในเซิร์ฟเวอร์เรา) — payload ผูกกับรายการโอน จึงกันสลิปเดิมที่ถ่าย/ครอปใหม่ได้
+  qrPayload           String?        @unique
+  qrReference         String?        // เลขอ้างอิงที่แกะจาก QR (best effort ใช้เติมช่องตอนอนุมัติ)
+  qrIntegrity         SlipQrIntegrity? // null = อ่าน QR ไม่ได้
+
+  // ผลตรวจกับธนาคารผ่าน EasySlip (ไม่อนุมัติ/ปฏิเสธเอง — แค่ติดป้ายให้แอดมิน)
+  checkStatus         SlipCheckStatus @default(DISABLED)
+  checkNote           String?
+  checkAttempts       Int            @default(0)
+  checkedAt           DateTime?
+  transRef            String?        @unique // เลขอ้างอิงรายการที่ธนาคารยืนยัน — สลิปหนึ่งใบใช้ได้ครั้งเดียว
+  slipAmount          Decimal?       @db.Decimal(10, 2)
+  slipDate            DateTime?
+  receiverName        String?
+
   order               Order          @relation(fields: [orderId], references: [id], onDelete: Restrict)
 
   createdAt           DateTime       @default(now())
 
   @@index([orderId])
+  @@index([checkStatus])
+}
+
+enum SlipQrIntegrity {
+  VALID
+  INVALID
+  ABSENT
+}
+
+enum SlipCheckStatus {
+  DISABLED
+  PENDING
+  VERIFIED
+  AMOUNT_MISMATCH
+  WRONG_RECEIVER
+  RECEIVER_UNVERIFIED
+  STALE
+  UNREADABLE
+  ERROR
+  DUPLICATE
 }
 
 model Payment {
