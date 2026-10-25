@@ -21,6 +21,11 @@ describe("Render deploy config (render.yaml)", () => {
     expect(yaml).toMatch(/startCommand: npm start/);
   });
 
+  it("deploys automatically on every push to main", () => {
+    expect(yaml).toMatch(/branch: main/);
+    expect(yaml).toMatch(/autoDeployTrigger: commit/);
+  });
+
   it("declares every environment variable the status page monitors", () => {
     const declared = envVars.map((entry) => entry.key);
     MONITORED_ENV.forEach(({ key }) => expect(declared).toContain(key));

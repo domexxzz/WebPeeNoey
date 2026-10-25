@@ -1,5 +1,18 @@
 # เอกสารส่งต่องาน (Project Handoff & Session Log)
 
+## เซสชัน: โดเมนจริง goldhybridshot.com
+**วันที่:** 25 ตุลาคม 2026  
+**สถานะ:** ออนไลน์แล้วที่ **https://goldhybridshot.com** — ตรวจจากเครื่อง: หน้าแรก 200 + `X-Frame-Options: DENY`, canonical/sitemap/NextAuth callback = `https://goldhybridshot.com`, `/llms.txt` 200 (commit `59b2bfc` ขึ้นแล้ว), `/admin` 307, อีเมลติดต่อใหม่แสดงบนหน้าแรก
+
+- เจ้าของซื้อโดเมนที่ GoDaddy (DNS `ns13/ns14.domaincontrol.com`) — แก้ `A @` จาก Parked เป็น `216.24.57.1`, `CNAME www` เป็น `goldhybridshot.onrender.com`; เพิ่ม Custom Domain ใน Render → apex ยืนยันแล้ว ใบรับรองออกแล้ว; **`www` ยัง Waiting for Verification** (DNS สาธารณะบางที่ยังจำ record เดิม) — ถ้ายังไม่ผ่านให้กด 🔄 ใน Render ภายหลัง ตอนนี้ `https://www.goldhybridshot.com` ยังไม่มีใบรับรอง
+- Render Subdomain (`goldhybridshot.onrender.com`) **เปิดไว้** — health check ภายในของ Render ยิงที่ URL นี้; canonical ชี้โดเมนใหม่แล้ว
+- env production 3 ตัว (`NEXT_PUBLIC_APP_URL`, `NEXTAUTH_URL`, `NEXT_PUBLIC_SITE_DOMAIN`) เจ้าของตั้งเป็นโดเมนใหม่แล้วก่อน deploy รอบนี้ — สมาชิก/แอดมินต้องล็อกอินใหม่หนึ่งครั้ง
+- ~~push ขึ้น main ไม่ deploy เอง~~ → **แก้แล้ว:** `render.yaml` ตั้ง `autoDeployTrigger: commit` (push ขึ้น main = deploy อัตโนมัติ) — **มี migration ใหม่ต้องรันกับ Neon (direct URL) ก่อน push เสมอ**
+- `20261024120000_slip_check` รันกับ Neon แล้ว (25 ต.ค. — เพิ่มคอลัมน์อย่างเดียว เว็บเดิมยังตอบ 200) ก่อน push `3b6dbd4`: unit 403/403, integration 186/186 (PostgreSQL จริง), `tsc` ผ่าน
+- GitHub `secrets.CRON_SECRET` ตั้งแล้ว (ค่าเดียวกับ Render) → รัน Check expiry + Watchdog ด้วยมือผ่าน (HTTP 200, `problems: []`)
+- Telegram: บอท `@GHSAdmin_bot`, กลุ่มแอดมิน "AdminGHS" (supergroup) ส่งข้อความทดสอบได้; Resend: โดเมนเชื่อมผ่าน GoDaddy Domain Connect (DKIM/SPF/DMARC ขึ้นแล้ว), API key แบบ Sending access — ค่าทั้งหมดอยู่ใน `.env.vercel-secrets.local` รอเจ้าของกรอก 6 ค่าใน Render แล้วลงทะเบียน webhook (`npm run telegram:webhook`) + ทดสอบอีเมล
+- (ข้อความเดิมก่อนแก้) ค้าง: `3b6dbd4` (ตรวจสลิป) ยังไม่ push — รอเจ้าของรัน migration `20261024120000_slip_check` กับ Neon; GitHub `vars.APP_URL` = `https://goldhybridshot.com` ตั้งแล้ว (25 ต.ค.) แต่ `secrets.CRON_SECRET` ยังไม่ได้ตั้ง → watchdog/check-expiry/slip-recheck ยังล้มทุกรอบ; ตอนนี้ทำได้แล้ว: ยืนยันโดเมนกับ Resend (SPF/DKIM ใน GoDaddy), Search Console แบบ Domain property (TXT), อีเมล `support@goldhybridshot.com` ผ่าน GoDaddy Email Forwarding
+
 ## เซสชัน: ตรวจสลิปอัตโนมัติ (พอร์ตจาก Tradepulse — Phase A + B, ไม่มีอนุมัติอัตโนมัติ)
 **วันที่:** 24 ตุลาคม 2026  
 **สถานะ:** unit 403/403 (เพิ่ม `tests/slip-check.test.ts`), integration 186/186 กับ PostgreSQL จริง (เพิ่ม `tests/integration/slip-check.test.ts` 15 ข้อ), `tsc` ผ่าน, `next build` ผ่าน — รีวิวโค้ด + รีวิวความปลอดภัยแล้ว แก้ HIGH/MEDIUM ตามด้านล่าง — **ยังไม่ commit / ยังไม่ deploy / ยังไม่ได้รัน migration กับ Neon**

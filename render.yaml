@@ -1,7 +1,8 @@
 # Render Blueprint — เว็บหลักบน Render (ย้ายจาก Vercel Hobby ที่แชร์โควตา CPU กับโปรเจกต์อื่นในทีม ดู docs/HANDOFF.md)
 # - Starter = เครื่องเปิดตลอด (ไม่หลับแบบแพ็กเกจฟรี) CPU/RAM คงที่ ไม่มีโควตาให้ถูกพัก
 # - singapore = ภูมิภาคเดียวกับ Neon (ap-southeast-1)
-# - migration ยังรันเองก่อน deploy เหมือนเดิม (prisma migrate deploy ด้วย Neon direct URL) — ไม่รันอัตโนมัติตอน deploy
+# - push ขึ้น main = deploy อัตโนมัติ (autoDeployTrigger: commit) — migration ไม่รันตอน deploy:
+#   มี migration ใหม่ต้องรัน prisma migrate deploy กับ Neon (direct URL) "ก่อน" push เสมอ
 # - งานประจำวัน check-expiry เรียกจาก GitHub Actions (.github/workflows/check-expiry.yml) แทน Vercel Cron
 # - IP ผู้ใช้อ่านจาก cf-connecting-ip เมื่อ RENDER=true (src/lib/request.ts) — อย่าเปิด proxy (เมฆส้ม) ของ Cloudflare ซ้อนบนโดเมนเอง
 # ค่าที่ sync: false ต้องกรอกเองใน Render dashboard (ห้ามใส่ค่าลับในไฟล์นี้)
@@ -12,6 +13,7 @@ services:
     region: singapore
     plan: starter
     branch: main
+    autoDeployTrigger: commit
     # --include=dev: prisma CLI / typescript / tailwind อยู่ใน devDependencies และต้องใช้ตอน build
     buildCommand: npm ci --include=dev && npx prisma generate && npm run build
     # next start ฟังพอร์ตจาก PORT ที่ Render ตั้งให้
