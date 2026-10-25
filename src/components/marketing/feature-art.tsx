@@ -16,7 +16,7 @@ type PhotoEffect = "chart" | "chat" | "channels";
 const FEATURE_PHOTOS: Record<string, { src: string; alt: string; effect: PhotoEffect; backdrop: string }> = {
   indicator: {
     src: "/images/features/indicator-chart.webp",
-    alt: "กราฟทองคำ 1 นาทีบน TradingView ที่เปิดอินดิเคเตอร์ Gold HybridShot Signals แสดงจุด BUY พร้อมเส้น TP1, TP2 และ SL",
+    alt: "กราฟทองคำ 5 นาทีบน TradingView ที่เปิดอินดิเคเตอร์ Gold HybridShot Signals แสดงจุด SELL พร้อมเส้น TP1, TP2 และ SL",
     effect: "chart",
     backdrop: "bg-[#0f0f0f]",
   },
@@ -34,12 +34,12 @@ const FEATURE_PHOTOS: Record<string, { src: string; alt: string; effect: PhotoEf
   },
 };
 
-/** ตำแหน่งป้าย BUY, TP1, TP2, SL ในภาพกราฟ (% ของภาพ 1200×750) — กระพริบตามลำดับนี้ */
+/** ตำแหน่งป้าย SELL, TP1, TP2, SL ในภาพกราฟ (% ของภาพ 1200×750) — กระพริบตามลำดับนี้ */
 const CHART_MARKERS = [
-  { x: 82.3, y: 56.3 },
-  { x: 93.7, y: 38.8 },
-  { x: 93.4, y: 31.1 },
-  { x: 93.3, y: 72.1 },
+  { x: 66.7, y: 34.9 },
+  { x: 91.6, y: 61.5 },
+  { x: 91.6, y: 74.3 },
+  { x: 91.1, y: 5.5 },
 ];
 
 function markerStyle(index: number, x: number, y: number): CSSProperties {

@@ -10,10 +10,12 @@ describe("Real indicator screenshot section", () => {
   const { image } = INDICATOR_SHOWCASE;
 
   it("ships a real screenshot whose file matches the declared size (no layout shift, correct next/image ratio)", () => {
-    const png = readFileSync(join(process.cwd(), "public", image.src));
-    expect(png.subarray(1, 4).toString()).toBe("PNG");
-    expect(png.readUInt32BE(16)).toBe(image.width);
-    expect(png.readUInt32BE(20)).toBe(image.height);
+    // WebP แบบ lossy (RIFF/VP8): ขนาดอยู่ที่ไบต์ 26–29 ฝั่งละ 14 บิต
+    const file = readFileSync(join(process.cwd(), "public", image.src));
+    expect(file.subarray(0, 4).toString()).toBe("RIFF");
+    expect(file.subarray(8, 16).toString()).toBe("WEBPVP8 ");
+    expect(file.readUInt16LE(26) & 0x3fff).toBe(image.width);
+    expect(file.readUInt16LE(28) & 0x3fff).toBe(image.height);
   });
 
   it("renders the screenshot through next/image with sizes and a descriptive Thai alt text", () => {
