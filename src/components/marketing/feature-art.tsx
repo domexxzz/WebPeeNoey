@@ -8,7 +8,8 @@ type PhotoEffect = "chart" | "chat" | "channels";
 
 /**
  * ภาพหน้าจอจริงจากเจ้าของ (ตัดแล้ว): กราฟตัดตาราง Win Rate/สถิติออก, แชตเหลือเฉพาะข้อความสัญญาณ + เบลอชื่อสมาชิก,
- * Discord เหลือรายชื่อห้อง (ตัดรายชื่อ/จำนวนสมาชิกออก + เบลอตาราง Win Rate ในภาพคู่มือ)
+ * Discord = ห้องสัญญาณจริง เลือกเฉพาะการ์ดที่เป็น "แผนเทรด" (เข้า/SL/TP) ไม่เอาการ์ดผลลัพธ์ที่มีตัวเลขกำไร-ขาดทุน
+ * และตัดรายชื่อ/จำนวนสมาชิกออก
  * ห้ามใส่ภาพที่มีกำไร/สถิติผลงาน หรือชื่อ/รูปของสมาชิกคนอื่น (CLAUDE.md ข้อ 3)
  * backdrop = สีพื้นของภาพ (เห็นระหว่างที่ภาพเลื่อนเข้า)
  */
@@ -26,8 +27,8 @@ const FEATURE_PHOTOS: Record<string, { src: string; alt: string; effect: PhotoEf
     backdrop: "bg-[#17212b]",
   },
   discord: {
-    src: "/images/features/discord-channels.webp",
-    alt: "เซิร์ฟเวอร์ Discord Noble Gold Society แสดงห้องการใช้เครื่องมือ, e-book, คลิปเรียนย้อนหลัง และไลฟ์เทรดสด",
+    src: "/images/features/discord-signals.webp",
+    alt: "ห้อง signal-goldhybridshot ในเซิร์ฟเวอร์ Discord แสดงสัญญาณ SELL และ BUY ของทองคำ พร้อมราคาเข้า จุดตัดขาดทุน และเป้าหมาย TP1, TP2",
     effect: "channels",
     backdrop: "bg-[#1e1f22]",
   },

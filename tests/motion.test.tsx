@@ -154,7 +154,7 @@ describe("animated markup", () => {
 
   it("shows real screenshots for the indicator, Telegram and Discord rows with the pop-in animation", () => {
     const html = renderToStaticMarkup(<FeaturesSection />);
-    ["indicator-chart.webp", "telegram-alert.webp", "discord-channels.webp"].forEach((file) => {
+    ["indicator-chart.webp", "telegram-alert.webp", "discord-signals.webp"].forEach((file) => {
       expect(html).toMatch(new RegExp(`<div class="fa-pop fa-center"><div class="fa-photo[^"]*">(?:<div[^>]*>)?<img[^>]*alt="[^"]+"[^>]*${file.replace(".", "\\.")}`));
     });
     expect(html).toMatch(/sizes="\(min-width: 1024px\) 560px, 100vw"/);
