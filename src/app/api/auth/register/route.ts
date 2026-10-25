@@ -4,6 +4,9 @@ import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/security";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { rateLimitIp } from "@/lib/request";
+import { siteConfig } from "@/config/site";
+import { sendAdminTelegram } from "@/lib/notify/telegram";
+import { buildNewMemberMessage } from "@/lib/notify/member-signup";
 
 const registerSchema = z.object({
   name: z.string().min(2, "ชื่อต้องมีความยาวอย่างน้อย 2 ตัวอักษร").max(100),
@@ -76,6 +79,13 @@ export async function POST(req: NextRequest) {
         createdAt: true,
       },
     });
+
+    // แจ้งกลุ่มแอดมิน — ล้มเหลวได้โดยไม่กระทบการสมัคร (sendAdminTelegram log ความล้มเหลวเอง; ดักเพิ่มกรณี throw)
+    try {
+      await sendAdminTelegram(buildNewMemberMessage(user, siteConfig.url));
+    } catch (error) {
+      console.error("[Register] แจ้งสมาชิกใหม่เข้า Telegram ไม่สำเร็จ", { userId: user.id, error });
+    }
 
     return NextResponse.json(
       { message: "สมัครสมาชิกสำเร็จ", user },
