@@ -1,7 +1,8 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
 import type { ActorContext } from "./guard";
 
-type Tx = Prisma.TransactionClient;
+/** เขียนได้ทั้งใน transaction (กรณีที่ต้องล้มพร้อมการเปลี่ยนแปลง) และนอก transaction (กรณีที่ไม่มีอะไรให้ย้อนกลับ) */
+type Tx = Prisma.TransactionClient | PrismaClient;
 
 export const AUDIT_ACTIONS = {
   ORDER_APPROVE: "อนุมัติคำสั่งซื้อ",
@@ -18,6 +19,7 @@ export const AUDIT_ACTIONS = {
   BROKER_IB_REVOKE: "ปิดสิทธิ์ผ่าน IB",
   BROKER_ACCOUNT_RELEASE: "ปลดการผูกบัญชีโบรกเกอร์",
   BROKER_REPORT_IMPORT: "นำเข้ารายงานโบรกเกอร์ (อนุมัติอัตโนมัติ)",
+  ADMIN_ACTION_REFUSED: "คำสั่งหลังบ้านถูกปฏิเสธ",
 } as const;
 
 /** ชื่อที่แสดงแทนผู้กระทำเมื่อเป็นงานอัตโนมัติ (actorId = null) */
@@ -25,12 +27,16 @@ export const SYSTEM_ACTOR_LABEL = "ระบบอัตโนมัติ";
 
 export type AuditAction = keyof typeof AUDIT_ACTIONS;
 
-interface AuditEntry {
+/** สิ่งที่ถูกกระทำ — แยกออกมาเพื่อส่งต่อได้เป็นก้อนเดียว */
+export interface AuditTarget {
+  targetType: "Order" | "Subscription" | "User" | "System" | "BrokerAccount";
+  targetId: string;
+}
+
+interface AuditEntry extends AuditTarget {
   /** null = งานอัตโนมัติของระบบ (Cron) */
   actor: ActorContext | null;
   action: AuditAction;
-  targetType: "Order" | "Subscription" | "User" | "System" | "BrokerAccount";
-  targetId: string;
   details: Prisma.InputJsonValue;
 }
 

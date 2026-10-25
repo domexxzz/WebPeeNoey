@@ -23,9 +23,10 @@ function refreshOrder(orderId: string): void {
 export async function approveOrderAction(_previous: AdminActionState, formData: FormData): Promise<AdminActionState> {
   return runAdminAction("approveOrder", async (actor) => {
     const orderId = field(formData, "orderId");
-    if (!checked(formData, "confirmReceived")) return fail("CONFIRM_REQUIRED");
+    const order = { targetType: "Order", targetId: orderId } as const;
+    if (!checked(formData, "confirmReceived")) return fail("CONFIRM_REQUIRED", order);
     const result = await approveOrder(prisma, { orderId, actor, referenceNo: field(formData, "referenceNo") });
-    if (!result.ok) return fail(result.code);
+    if (!result.ok) return fail(result.code, order);
 
     const sent = await sendReceiptEmail(result.email, result.orderNumber, result.planName, result.amount, result.periodEnd);
     if (!sent) console.error("[admin] ส่งอีเมลใบเสร็จไม่สำเร็จ", { orderNumber: result.orderNumber });
@@ -49,7 +50,7 @@ export async function rejectOrderAction(_previous: AdminActionState, formData: F
     const orderId = field(formData, "orderId");
     const reason = [field(formData, "reasonPreset"), field(formData, "reasonDetail")].filter(Boolean).join(" — ");
     const result = await rejectOrder(prisma, { orderId, actor, reason });
-    if (!result.ok) return fail(result.code);
+    if (!result.ok) return fail(result.code, { targetType: "Order", targetId: orderId });
 
     const sent = await sendSlipRejectedEmail(result.email, result.orderNumber, result.reason, `${siteConfig.url}/checkout/order/${orderId}`);
     if (!sent) console.error("[admin] ส่งอีเมลแจ้งสลิปไม่ผ่านไม่สำเร็จ", { orderNumber: result.orderNumber });
@@ -61,7 +62,8 @@ export async function rejectOrderAction(_previous: AdminActionState, formData: F
 export async function refundOrderAction(_previous: AdminActionState, formData: FormData): Promise<AdminActionState> {
   return runAdminAction("refundOrder", async (actor) => {
     const orderId = field(formData, "orderId");
-    if (!checked(formData, "confirmRefund")) return fail("CONFIRM_REQUIRED");
+    const order = { targetType: "Order", targetId: orderId } as const;
+    if (!checked(formData, "confirmRefund")) return fail("CONFIRM_REQUIRED", order);
     const result = await refundOrder(prisma, {
       orderId,
       actor,
@@ -69,7 +71,7 @@ export async function refundOrderAction(_previous: AdminActionState, formData: F
       reason: field(formData, "reason"),
       transferReference: field(formData, "transferReference"),
     });
-    if (!result.ok) return fail(result.code);
+    if (!result.ok) return fail(result.code, order);
     refreshOrder(orderId);
     return done(
       result.continuing
@@ -109,9 +111,10 @@ PromptPay: ${field(formData, "promptpayNumber") || "-"}
 export async function revokeMemberAction(_previous: AdminActionState, formData: FormData): Promise<AdminActionState> {
   return runAdminAction("revokeMember", async (actor) => {
     const userId = field(formData, "userId");
-    if (!checked(formData, "confirmRevoke")) return fail("CONFIRM_REQUIRED");
+    const member = { targetType: "User", targetId: userId } as const;
+    if (!checked(formData, "confirmRevoke")) return fail("CONFIRM_REQUIRED", member);
     const result = await revokeMemberAccess(prisma, { userId, actor, reason: field(formData, "reason") });
-    if (!result.ok) return fail(result.code);
+    if (!result.ok) return fail(result.code, member);
     revalidatePath(`/admin/members/${userId}`);
     revalidatePath("/admin/members");
     return done(`ปิดสิทธิ์แล้ว ${result.revoked} ช่วง — อย่าลืมถอดสิทธิ์ใน TradingView / Discord / Telegram`);
@@ -121,14 +124,16 @@ export async function revokeMemberAction(_previous: AdminActionState, formData: 
 export async function setProvisioningAction(_previous: AdminActionState, formData: FormData): Promise<AdminActionState> {
   return runAdminAction("setProvisioning", async (actor) => {
     const channel = field(formData, "channel");
-    if (!Object.prototype.hasOwnProperty.call(PROVISIONING_CHANNELS, channel)) return fail("UNEXPECTED");
+    const subscriptionId = field(formData, "subscriptionId");
+    const subscription = { targetType: "Subscription", targetId: subscriptionId } as const;
+    if (!Object.prototype.hasOwnProperty.call(PROVISIONING_CHANNELS, channel)) return fail("UNEXPECTED", subscription);
     const result = await setProvisioning(prisma, {
-      subscriptionId: field(formData, "subscriptionId"),
+      subscriptionId,
       channel: channel as ProvisioningChannel,
       granted: field(formData, "granted") === "true",
       actor,
     });
-    if (!result.ok) return fail("UNEXPECTED");
+    if (!result.ok) return fail("UNEXPECTED", subscription);
     // คำนวณหน้าที่ต้องรีเฟรชจากข้อมูลฝั่ง server เอง ไม่รับ path จากฟอร์ม
     revalidatePath(`/admin/orders/${result.orderId}`);
     revalidatePath(`/admin/broker-claims/${result.orderId}`);

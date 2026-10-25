@@ -17,7 +17,8 @@ class RedirectSignal extends Error {
 
 vi.mock("next-auth", () => ({ getServerSession: vi.fn() }));
 vi.mock("@/lib/auth", () => ({ authOptions: {} }));
-vi.mock("@/lib/prisma", () => ({ prisma: {} }));
+// auditLog ต้องมีจริง: runAdminAction บันทึกทุกครั้งที่คำสั่งถูกปฏิเสธ
+vi.mock("@/lib/prisma", () => ({ prisma: { auditLog: { create: vi.fn() } } }));
 vi.mock("next/navigation", () => ({
   redirect: vi.fn((url: string) => {
     throw new RedirectSignal(url);

@@ -19,9 +19,11 @@ export type AdminErrorCode =
   | FailureCode<ReleaseBrokerAccountResult>
   | "FORBIDDEN"
   | "CONFIRM_REQUIRED"
+  | "INVALID_REPORT_FILE"
   | "UNEXPECTED";
 
 export const ADMIN_ERROR_MESSAGES: Record<AdminErrorCode, string> = {
+  INVALID_REPORT_FILE: "ไฟล์รายงานที่อัปโหลดใช้ไม่ได้",
   ORDER_NOT_FOUND: "ไม่พบคำสั่งซื้อนี้",
   NOT_PENDING_REVIEW: "รายการนี้ไม่ได้อยู่ในสถานะรอตรวจแล้ว (อาจมีแอดมินคนอื่นดำเนินการไปแล้ว) — รีเฟรชหน้าเพื่อดูสถานะล่าสุด",
   REFERENCE_REQUIRED: "กรุณากรอกเลขอ้างอิงธุรกรรมจากสลิป",

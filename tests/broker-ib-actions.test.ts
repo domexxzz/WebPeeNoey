@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { getAdminActor } from "@/lib/admin/guard";
+import { prisma } from "@/lib/prisma";
 import { ADMIN_ERROR_MESSAGES } from "@/lib/admin/messages";
 import { sendAdminTelegram } from "@/lib/notify/telegram";
 import { updateBrokerIbSettings } from "@/lib/broker-ib/settings";
@@ -17,7 +18,8 @@ import {
 
 vi.mock("next-auth", () => ({ getServerSession: vi.fn(async () => ({ user: { id: "admin-1" }, expires: "2099" })) }));
 vi.mock("@/lib/auth", () => ({ authOptions: {} }));
-vi.mock("@/lib/prisma", () => ({ prisma: {} }));
+// auditLog ต้องมีจริง: runAdminAction บันทึกทุกครั้งที่คำสั่งถูกปฏิเสธ
+vi.mock("@/lib/prisma", () => ({ prisma: { auditLog: { create: vi.fn() } } }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn(), revalidateTag: vi.fn(), unstable_cache: (fn: unknown) => fn }));
 vi.mock("next/headers", () => ({ headers: vi.fn(() => new Headers({ "x-forwarded-for": "203.0.113.9" })) }));
 vi.mock("@/lib/admin/guard", () => ({ getAdminActor: vi.fn() }));
@@ -76,7 +78,7 @@ describe("broker IB admin actions: settings", () => {
     );
 
     expect(result).toEqual({ status: "success", message: "บันทึกการตั้งค่าสิทธิ์ผ่าน IB แล้ว" });
-    expect(updateBrokerIbSettings).toHaveBeenCalledWith({}, { actor, ibClaimsEnabled: true, xmLink: XM_LINK, exnessLink: "", xmMinDepositThb: "1000", exnessMinDepositThb: "", usdThbRate: "33.5" });
+    expect(updateBrokerIbSettings).toHaveBeenCalledWith(prisma, { actor, ibClaimsEnabled: true, xmLink: XM_LINK, exnessLink: "", xmMinDepositThb: "1000", exnessMinDepositThb: "", usdThbRate: "33.5" });
     const alert = vi.mocked(sendAdminTelegram).mock.calls[0][0];
     expect(alert).toContain(XM_LINK);
     expect(alert).toContain("ปิด → เปิด");
@@ -128,7 +130,7 @@ describe("broker IB admin actions: review", () => {
 
     const result = await approveBrokerClaimAction(idle, form({ orderId: "o1", checkUnderIb: "on", checkEmail: "on", checkQualifies: "on", note: "ตรวจแล้ว" }));
 
-    expect(approveBrokerClaim).toHaveBeenCalledWith({}, { orderId: "o1", actor, checks: { underIb: true, emailMatches: true, qualifies: true }, note: "ตรวจแล้ว" });
+    expect(approveBrokerClaim).toHaveBeenCalledWith(prisma, { orderId: "o1", actor, checks: { underIb: true, emailMatches: true, qualifies: true }, note: "ตรวจแล้ว" });
     expect(sendBrokerClaimApprovedEmail).toHaveBeenCalledWith("m@example.com", expect.objectContaining({ orderNumber: "IB-20261015-ABC123", isRenewal: false }));
     expect(result).toEqual({ status: "success", message: expect.stringContaining("IB-20261015-ABC123") });
     expect(result.status === "success" && result.message).toMatch(/TradingView/);
@@ -138,7 +140,7 @@ describe("broker IB admin actions: review", () => {
   it("passes unticked checks through so the service refuses them", async () => {
     vi.mocked(approveBrokerClaim).mockResolvedValue({ ok: false, code: "CHECKS_REQUIRED" });
     const result = await approveBrokerClaimAction(idle, form({ orderId: "o1", checkUnderIb: "on" }));
-    expect(approveBrokerClaim).toHaveBeenCalledWith({}, expect.objectContaining({ checks: { underIb: true, emailMatches: false, qualifies: false } }));
+    expect(approveBrokerClaim).toHaveBeenCalledWith(prisma, expect.objectContaining({ checks: { underIb: true, emailMatches: false, qualifies: false } }));
     expect(result).toEqual({ status: "error", message: ADMIN_ERROR_MESSAGES.CHECKS_REQUIRED });
     expect(sendBrokerClaimApprovedEmail).not.toHaveBeenCalled();
   });
@@ -156,7 +158,7 @@ describe("broker IB admin actions: review", () => {
 
     const result = await rejectBrokerClaimAction(idle, form({ orderId: "o2", reasonPreset: "ไม่พบบัญชีภายใต้ IB ของเรา", reasonDetail: "ลองยื่นบัญชีอื่น", releaseAccount: "on" }));
 
-    expect(rejectBrokerClaim).toHaveBeenCalledWith({}, { orderId: "o2", actor, reason: "ไม่พบบัญชีภายใต้ IB ของเรา — ลองยื่นบัญชีอื่น", releaseAccount: true });
+    expect(rejectBrokerClaim).toHaveBeenCalledWith(prisma, { orderId: "o2", actor, reason: "ไม่พบบัญชีภายใต้ IB ของเรา — ลองยื่นบัญชีอื่น", releaseAccount: true });
     expect(sendBrokerClaimRejectedEmail).toHaveBeenCalledWith("m@example.com", expect.objectContaining({ orderNumber: "IB-2", pageUrl: expect.stringMatching(/\/account\/broker-ib$/) }));
     expect(result).toEqual({ status: "success", message: expect.stringContaining("ปลดการผูก") });
   });
@@ -179,7 +181,7 @@ describe("broker IB admin actions: revoke and release", () => {
   it("revokes IB access with the release choice and tells the admin whether channels must be removed", async () => {
     vi.mocked(revokeBrokerAccess).mockResolvedValue({ ok: true, revoked: 1, continuing: false, rejectedClaims: 1 });
     const result = await revokeBrokerAccessAction(idle, form({ userId: "u1", reason: "บัญชีออกจาก IB", releaseAccount: "on", confirmRevoke: "on" }));
-    expect(revokeBrokerAccess).toHaveBeenCalledWith({}, { userId: "u1", actor, reason: "บัญชีออกจาก IB", releaseAccount: true });
+    expect(revokeBrokerAccess).toHaveBeenCalledWith(prisma, { userId: "u1", actor, reason: "บัญชีออกจาก IB", releaseAccount: true });
     expect(result).toEqual({ status: "success", message: expect.stringContaining("ถอดสิทธิ์") });
     expect(revalidatePath).toHaveBeenCalledWith("/admin/members/u1");
   });
@@ -187,7 +189,7 @@ describe("broker IB admin actions: revoke and release", () => {
   it("releases an account and refreshes the owner's page computed on the server (not from the form)", async () => {
     vi.mocked(releaseBrokerAccount).mockResolvedValue({ ok: true, rejectedClaims: 0, userId: "owner-1" });
     const result = await releaseBrokerAccountAction(idle, form({ brokerAccountId: "b1", reason: "เจ้าของจริงแสดงหลักฐาน", confirmRelease: "on", userId: "someone-else" }));
-    expect(releaseBrokerAccount).toHaveBeenCalledWith({}, { brokerAccountId: "b1", actor, reason: "เจ้าของจริงแสดงหลักฐาน" });
+    expect(releaseBrokerAccount).toHaveBeenCalledWith(prisma, { brokerAccountId: "b1", actor, reason: "เจ้าของจริงแสดงหลักฐาน" });
     expect(result.status).toBe("success");
     expect(revalidatePath).toHaveBeenCalledWith("/admin/members/owner-1");
     expect(revalidatePath).not.toHaveBeenCalledWith("/admin/members/someone-else");

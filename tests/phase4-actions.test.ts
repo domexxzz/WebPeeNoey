@@ -19,7 +19,8 @@ import {
 
 vi.mock("next-auth", () => ({ getServerSession: vi.fn() }));
 vi.mock("@/lib/auth", () => ({ authOptions: {} }));
-vi.mock("@/lib/prisma", () => ({ prisma: {} }));
+// auditLog ต้องมีจริง: runAdminAction บันทึกทุกครั้งที่คำสั่งถูกปฏิเสธ
+vi.mock("@/lib/prisma", () => ({ prisma: { auditLog: { create: vi.fn() } } }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn(), revalidateTag: vi.fn(), unstable_cache: (fn: unknown) => fn }));
 vi.mock("next/headers", () => ({ headers: vi.fn(() => new Headers({ "x-forwarded-for": "203.0.113.9" })) }));
 vi.mock("@/lib/admin/guard", () => ({ getAdminActor: vi.fn() }));

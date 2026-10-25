@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { prisma } from "@/lib/prisma";
 import { sendAdminTelegram } from "@/lib/notify/telegram";
 import { markAdminNotified } from "@/lib/orders/checkout";
 import { createBrokerClaim } from "@/lib/broker-ib/claims";
@@ -10,7 +11,8 @@ import { submitBrokerClaimAction } from "@/app/(account)/account/broker-ib/actio
 
 vi.mock("next-auth", () => ({ getServerSession: vi.fn() }));
 vi.mock("@/lib/auth", () => ({ authOptions: {} }));
-vi.mock("@/lib/prisma", () => ({ prisma: {} }));
+// auditLog ต้องมีจริง: runAdminAction บันทึกทุกครั้งที่คำสั่งถูกปฏิเสธ
+vi.mock("@/lib/prisma", () => ({ prisma: { auditLog: { create: vi.fn() } } }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/navigation", () => ({
   redirect: vi.fn(() => {
@@ -87,7 +89,7 @@ describe("Member action: submit a broker IB claim", () => {
 
     expect(result).toEqual({ status: "success", message: BROKER_CLAIM_SUCCESS_MESSAGE });
     expect(createBrokerClaim).toHaveBeenCalledWith(
-      {},
+      prisma,
       expect.objectContaining({
         userId: "user-1",
         ipAddress: "198.51.100.4",
@@ -96,7 +98,7 @@ describe("Member action: submit a broker IB claim", () => {
     );
     expect(sendAdminTelegram).toHaveBeenCalledTimes(1);
     expect(vi.mocked(sendAdminTelegram).mock.calls[0][0]).not.toContain("12345678");
-    expect(markAdminNotified).toHaveBeenCalledWith({}, { orderId: "o1" });
+    expect(markAdminNotified).toHaveBeenCalledWith(prisma, { orderId: "o1" });
   });
 
   it("does not alert admins again for a repeated submit", async () => {

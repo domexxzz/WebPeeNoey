@@ -7,7 +7,8 @@ import { GET as checkExpiry } from "@/app/api/cron/check-expiry/route";
 import { GET as watchdog } from "@/app/api/cron/watchdog/route";
 import { POST as telegramWebhook } from "@/app/api/telegram/webhook/route";
 
-vi.mock("@/lib/prisma", () => ({ prisma: {} }));
+// auditLog ต้องมีจริง: runAdminAction บันทึกทุกครั้งที่คำสั่งถูกปฏิเสธ
+vi.mock("@/lib/prisma", () => ({ prisma: { auditLog: { create: vi.fn() } } }));
 vi.mock("@/lib/jobs/expiry", () => ({ runExpiryJob: vi.fn() }));
 vi.mock("@/lib/jobs/reminder-sender", () => ({ createReminderSender: vi.fn(() => vi.fn()) }));
 vi.mock("@/lib/jobs/watchdog", () => ({ runWatchdog: vi.fn() }));

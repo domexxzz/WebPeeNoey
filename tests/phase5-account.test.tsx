@@ -9,7 +9,8 @@ import { TelegramConnect } from "@/components/account/telegram-connect";
 vi.mock("next-auth", () => ({ getServerSession: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/auth", () => ({ authOptions: {} }));
-vi.mock("@/lib/prisma", () => ({ prisma: {} }));
+// auditLog ต้องมีจริง: runAdminAction บันทึกทุกครั้งที่คำสั่งถูกปฏิเสธ
+vi.mock("@/lib/prisma", () => ({ prisma: { auditLog: { create: vi.fn() } } }));
 vi.mock("@/lib/rate-limit", () => ({ checkRateLimit: vi.fn() }));
 vi.mock("@/lib/telegram/link", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/telegram/link")>()),

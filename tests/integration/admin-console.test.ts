@@ -9,7 +9,8 @@ import { getMembershipSummary } from "@/lib/admin/membership";
 import { getMemberDetail, revokeMemberAccess, searchMembers, setProvisioning } from "@/lib/admin/members";
 import { updatePaymentSettings } from "@/lib/admin/settings";
 import { getAdminOrderDetail, listAdminOrders } from "@/lib/admin/orders-query";
-import { listAuditLogs } from "@/lib/admin/audit";
+import { AUDIT_ACTIONS, listAuditLogs, writeAudit } from "@/lib/admin/audit";
+import { ADMIN_ERROR_MESSAGES } from "@/lib/admin/messages";
 import { getSystemHealth } from "@/lib/admin/health";
 import { getDashboardStats } from "@/lib/admin/dashboard";
 import { createTestPrisma, resetDatabase } from "./helpers";
@@ -178,6 +179,31 @@ describe("Integration: audit log listing", () => {
     expect(all.items[0].action).toBe("SETTINGS_UPDATE");
     expect((await listAuditLogs(prisma, { action: "ORDER_APPROVE" })).items.every((item) => item.action === "ORDER_APPROVE")).toBe(true);
     expect(all.items[0].actorEmail).toBe("admin@example.com");
+  });
+
+  /** คำสั่งที่ถูกปฏิเสธต้องค้นย้อนหลังได้จริง ไม่ใช่แค่ขึ้นข้อความบนหน้าจอแล้วหายไป (CLAUDE.md ข้อ 5) */
+  it("keeps a searchable row when an admin action is refused", async () => {
+    const order = await activeMember();
+    await writeAudit(prisma, {
+      actor: actor(),
+      action: "ADMIN_ACTION_REFUSED",
+      targetType: "Order",
+      targetId: order.orderId,
+      details: { action: "approveBrokerClaim", code: "CHECKS_REQUIRED", message: ADMIN_ERROR_MESSAGES.CHECKS_REQUIRED },
+    });
+
+    const refused = await listAuditLogs(prisma, { action: "ADMIN_ACTION_REFUSED" });
+    expect(refused.total).toBe(1);
+    expect(refused.items[0]).toMatchObject({
+      action: "ADMIN_ACTION_REFUSED",
+      actionLabel: AUDIT_ACTIONS.ADMIN_ACTION_REFUSED,
+      targetType: "Order",
+      targetId: order.orderId,
+      ipAddress: "203.0.113.9",
+      actorEmail: "admin@example.com",
+    });
+    expect(refused.items[0].details).toMatchObject({ action: "approveBrokerClaim", code: "CHECKS_REQUIRED" });
+    expect((await listAuditLogs(prisma, { targetId: order.orderId })).items.map((item) => item.action)).toContain("ADMIN_ACTION_REFUSED");
   });
 });
 

@@ -54,7 +54,7 @@ export async function approveBrokerClaimAction(_previous: AdminActionState, form
       checks: { underIb: checked(formData, "checkUnderIb"), emailMatches: checked(formData, "checkEmail"), qualifies: checked(formData, "checkQualifies") },
       note: field(formData, "note"),
     });
-    if (!result.ok) return fail(result.code);
+    if (!result.ok) return fail(result.code, { targetType: "Order", targetId: orderId });
 
     const sent = await sendBrokerClaimApprovedEmail(result.email, { orderNumber: result.orderNumber, periodEnd: result.periodEnd, isRenewal: result.isRenewal });
     if (!sent) console.error("[admin] ส่งอีเมลอนุมัติสิทธิ์ผ่าน IB ไม่สำเร็จ", { orderNumber: result.orderNumber });
@@ -70,7 +70,7 @@ export async function rejectBrokerClaimAction(_previous: AdminActionState, formD
     const orderId = field(formData, "orderId");
     const reason = [field(formData, "reasonPreset"), field(formData, "reasonDetail")].filter(Boolean).join(" — ");
     const result = await rejectBrokerClaim(prisma, { orderId, actor, reason, releaseAccount: checked(formData, "releaseAccount") });
-    if (!result.ok) return fail(result.code);
+    if (!result.ok) return fail(result.code, { targetType: "Order", targetId: orderId });
 
     const sent = await sendBrokerClaimRejectedEmail(result.email, { orderNumber: result.orderNumber, reason: result.reason, pageUrl: `${siteConfig.url}/account/broker-ib` });
     if (!sent) console.error("[admin] ส่งอีเมลแจ้งคำขอ IB ไม่ผ่านไม่สำเร็จ", { orderNumber: result.orderNumber });
@@ -90,9 +90,10 @@ function refreshMember(userId: string): void {
 export async function revokeBrokerAccessAction(_previous: AdminActionState, formData: FormData): Promise<AdminActionState> {
   return runAdminAction("revokeBrokerAccess", async (actor) => {
     const userId = field(formData, "userId");
-    if (!checked(formData, "confirmRevoke")) return fail("CONFIRM_REQUIRED");
+    const member = { targetType: "User", targetId: userId } as const;
+    if (!checked(formData, "confirmRevoke")) return fail("CONFIRM_REQUIRED", member);
     const result = await revokeBrokerAccess(prisma, { userId, actor, reason: field(formData, "reason"), releaseAccount: checked(formData, "releaseAccount") });
-    if (!result.ok) return fail(result.code);
+    if (!result.ok) return fail(result.code, member);
     refreshMember(userId);
     const claims = result.rejectedClaims > 0 ? ` · ปฏิเสธคำขอที่รอตรวจ ${result.rejectedClaims} รายการ` : "";
     return done(
@@ -105,9 +106,11 @@ export async function revokeBrokerAccessAction(_previous: AdminActionState, form
 
 export async function releaseBrokerAccountAction(_previous: AdminActionState, formData: FormData): Promise<AdminActionState> {
   return runAdminAction("releaseBrokerAccount", async (actor) => {
-    if (!checked(formData, "confirmRelease")) return fail("CONFIRM_REQUIRED");
-    const result = await releaseBrokerAccount(prisma, { brokerAccountId: field(formData, "brokerAccountId"), actor, reason: field(formData, "reason") });
-    if (!result.ok) return fail(result.code);
+    const brokerAccountId = field(formData, "brokerAccountId");
+    const account = { targetType: "BrokerAccount", targetId: brokerAccountId } as const;
+    if (!checked(formData, "confirmRelease")) return fail("CONFIRM_REQUIRED", account);
+    const result = await releaseBrokerAccount(prisma, { brokerAccountId, actor, reason: field(formData, "reason") });
+    if (!result.ok) return fail(result.code, account);
     // คำนวณหน้าที่ต้องรีเฟรชจากข้อมูลฝั่ง server เอง ไม่รับ path จากฟอร์ม
     refreshMember(result.userId);
     const claims = result.rejectedClaims > 0 ? ` (ปฏิเสธคำขอที่รอตรวจ ${result.rejectedClaims} รายการ)` : "";

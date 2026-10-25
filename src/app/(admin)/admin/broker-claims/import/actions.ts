@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { sendBrokerClaimApprovedEmail } from "@/lib/email";
 import { sendAdminTelegram } from "@/lib/notify/telegram";
-import { requireAdmin } from "@/lib/admin/run-admin-action";
+import { recordActionRefusal, requireAdmin } from "@/lib/admin/run-admin-action";
 import { adminErrorMessage, type AdminErrorCode } from "@/lib/admin/messages";
 import { extractReportEvidence, mergeReportEvidence, parseCsv } from "@/lib/broker-ib/report-import";
 import { approveQualifyingClaims, previewReportMatches, type EvidenceByBroker, type ReportMatchRow } from "@/lib/broker-ib/report-review";
@@ -84,7 +84,11 @@ export async function importBrokerReportsAction(_previous: ReportImportState, fo
   const mode = formData.get("mode") === "approve" ? "approve" : "preview";
   try {
     const read = await readReports(formData);
-    if ("error" in read) return { status: "error", message: read.error };
+    if ("error" in read) {
+      // action นี้คืนผลเป็นตารางจึงไม่ได้ห่อด้วย runAdminAction — ต้องบันทึกการปฏิเสธเองไม่ให้เงียบ
+      await recordActionRefusal("importBrokerReports", actor, { code: "INVALID_REPORT_FILE", note: read.error });
+      return { status: "error", message: read.error };
+    }
     const { files, evidence } = read;
 
     if (mode === "preview") {
