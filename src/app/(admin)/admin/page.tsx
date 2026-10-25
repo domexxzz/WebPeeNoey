@@ -3,6 +3,8 @@ import { Users, ClipboardCheck, ArrowRight, PowerOff, Activity, DollarSign, Cloc
 import { requireAdminPage } from "@/lib/admin/page-guard";
 import { getDashboardStats } from "@/lib/admin/dashboard";
 import { countPendingBrokerClaims } from "@/lib/broker-ib/admin-query";
+import { getLatestReportImport } from "@/lib/broker-ib/report-review";
+import { ReportImportSummary } from "@/components/admin/report-import-summary";
 import { prisma } from "@/lib/prisma";
 import { formatBaht } from "@/lib/format";
 import { PAYMENT_RULES } from "@/config/payment";
@@ -41,7 +43,11 @@ const outlineLink =
 
 export default async function AdminDashboardPage() {
   const admin = await requireAdminPage();
-  const [stats, pendingBrokerClaims] = await Promise.all([getDashboardStats(prisma), countPendingBrokerClaims(prisma)]);
+  const [stats, pendingBrokerClaims, latestReportImport] = await Promise.all([
+    getDashboardStats(prisma),
+    countPendingBrokerClaims(prisma),
+    getLatestReportImport(prisma),
+  ]);
   const { revenue, members, payments } = stats;
 
   return (
@@ -89,7 +95,7 @@ export default async function AdminDashboardPage() {
         >
           <Handshake className="w-5 h-5 shrink-0 text-gold-ink" aria-hidden="true" />
           <span>
-            มีคำขอสิทธิ์ผ่าน IB รอตรวจ <strong>{pendingBrokerClaims}</strong> รายการ — ตรวจบัญชีใน Partner Portal ของโบรกเกอร์
+            มีคำขอสิทธิ์ผ่าน IB รอตรวจ <strong>{pendingBrokerClaims}</strong> รายการ — นำเข้ารายงานจาก Partner Portal เพื่ออนุมัติอัตโนมัติ หรือตรวจทีละคำขอ
           </span>
           <ArrowRight className="w-4 h-4 ml-auto shrink-0" aria-hidden="true" />
         </Link>
@@ -127,6 +133,8 @@ export default async function AdminDashboardPage() {
           <span className="mt-2 block text-xs text-fg-subtle">นับรายคน — คนที่ต่ออายุทบวันไว้แล้วไม่นับ</span>
         </StatCard>
       </div>
+
+      <ReportImportSummary latest={latestReportImport} pendingClaims={pendingBrokerClaims} />
 
       <div className="grid gap-px border border-line bg-line md:grid-cols-2 rounded-2xl overflow-hidden">
         <div className="bg-surface p-6">

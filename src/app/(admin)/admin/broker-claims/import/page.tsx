@@ -3,12 +3,17 @@ import Link from "next/link";
 import { requireAdminPage } from "@/lib/admin/page-guard";
 import { AdminPageHeader } from "@/components/admin/admin-ui";
 import { BrokerReportImport } from "@/components/admin/broker-report-import";
+import { ReportImportSummary } from "@/components/admin/report-import-summary";
+import { prisma } from "@/lib/prisma";
+import { countPendingBrokerClaims } from "@/lib/broker-ib/admin-query";
+import { getLatestReportImport } from "@/lib/broker-ib/report-review";
 
 export const metadata: Metadata = { title: "นำเข้ารายงานโบรกเกอร์", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 export default async function AdminBrokerReportImportPage() {
   await requireAdminPage();
+  const [latest, pendingClaims] = await Promise.all([getLatestReportImport(prisma), countPendingBrokerClaims(prisma)]);
   return (
     <div className="space-y-6">
       <AdminPageHeader
@@ -26,6 +31,7 @@ export default async function AdminBrokerReportImportPage() {
         <li>หลังอนุมัติ เปิดสิทธิ์ TradingView / Discord / Telegram ให้สมาชิกในหน้าคำขอตามเดิม</li>
       </ol>
       <BrokerReportImport />
+      <ReportImportSummary latest={latest} pendingClaims={pendingClaims} />
     </div>
   );
 }

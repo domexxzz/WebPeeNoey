@@ -55,6 +55,39 @@ export async function previewReportMatches(db: PrismaClient, evidenceByBroker: E
   });
 }
 
+export interface LatestReportImport {
+  at: Date;
+  actorEmail: string | null;
+  files: string[];
+  approved: number;
+  skipped: number;
+  failed: number;
+  approvedOrders: string[];
+}
+
+const toCount = (value: unknown) => (typeof value === "number" ? value : 0);
+const toStrings = (value: unknown) => (Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : []);
+
+/** ผลการนำเข้ารายงานครั้งล่าสุด (จาก Audit Log) สำหรับหน้าแอดมิน — null = ยังไม่เคยนำเข้า */
+export async function getLatestReportImport(db: PrismaClient): Promise<LatestReportImport | null> {
+  const row = await db.auditLog.findFirst({
+    where: { action: "BROKER_REPORT_IMPORT" },
+    orderBy: { createdAt: "desc" },
+    select: { createdAt: true, details: true, actor: { select: { email: true } } },
+  });
+  if (!row) return null;
+  const details = (row.details ?? {}) as Record<string, unknown>;
+  return {
+    at: row.createdAt,
+    actorEmail: row.actor?.email ?? null,
+    files: toStrings(details.files),
+    approved: toCount(details.approved),
+    skipped: toCount(details.skipped),
+    failed: toCount(details.failed),
+    approvedOrders: toStrings(details.approvedOrders),
+  };
+}
+
 export interface ApproveFromReportResult {
   approved: (ReportMatchRow & { periodEnd: Date; isRenewal: boolean })[];
   /** ไม่ผ่านเงื่อนไขอัตโนมัติ — แอดมินตรวจเองในหน้าคำขอ */
