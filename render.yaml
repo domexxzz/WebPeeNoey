@@ -59,6 +59,11 @@ services:
         sync: false
       - key: SLIP_RECEIVER_ACCOUNTS
         sync: false
+      # ล็อกลิงก์พาร์ทเนอร์ IB (ไม่ใช่ความลับ) — ตั้งแล้วหน้าแอดมินแก้ลิงก์นั้นไม่ได้ (src/lib/broker-ib/link-lock.ts)
+      - key: XM_PARTNER_LINK
+        sync: false
+      - key: EXNESS_PARTNER_LINK
+        sync: false
       # ค่าสาธารณะ — NEXT_PUBLIC_* ถูกฝังตอน build: แก้แล้วต้อง deploy ใหม่
       - key: NEXT_PUBLIC_APP_URL
         sync: false

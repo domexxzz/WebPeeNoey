@@ -2,6 +2,7 @@ import type { Broker, PrismaClient } from "@prisma/client";
 import { BROKERS, BROKER_ORDER } from "@/config/broker-ib";
 import { SYSTEM_SETTING_ID } from "@/lib/db/constants";
 import { normalizeBrokerLink } from "./validation";
+import { readLockedLinks, type LockedLinks } from "./link-lock";
 
 export interface BrokerOffer {
   broker: Broker;
@@ -42,14 +43,15 @@ export function computeBrokerIbAvailability(setting: BrokerIbSettingValues | nul
   return { open: true, minDepositUsd: setting.ibMinDepositUsd, brokers };
 }
 
-export async function readBrokerIbSettingValues(db: PrismaClient): Promise<BrokerIbSettingValues | null> {
+/** ลิงก์ที่ล็อกด้วย env มาก่อนค่าในฐานข้อมูลเสมอ (ค่าในฐานข้อมูลถูกแก้ตรง ๆ ก็ไม่ถูกแสดง) */
+export async function readBrokerIbSettingValues(db: PrismaClient, lockedLinks: LockedLinks = readLockedLinks()): Promise<BrokerIbSettingValues | null> {
   const setting = await db.systemSetting.findUnique({ where: { id: SYSTEM_SETTING_ID } });
   if (!setting) return null;
   return {
     ibClaimsEnabled: setting.ibClaimsEnabled,
     maintenanceMode: setting.maintenanceMode,
-    ibXmLink: setting.ibXmLink,
-    ibExnessLink: setting.ibExnessLink,
+    ibXmLink: lockedLinks.XM ?? setting.ibXmLink,
+    ibExnessLink: lockedLinks.EXNESS ?? setting.ibExnessLink,
     ibMinDepositUsd: setting.ibMinDepositUsd?.toNumber() ?? null,
   };
 }

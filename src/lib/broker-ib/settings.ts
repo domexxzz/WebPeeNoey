@@ -4,6 +4,7 @@ import { SYSTEM_SETTING_ID } from "@/lib/db/constants";
 import type { ActorContext } from "@/lib/admin/guard";
 import { writeAudit } from "@/lib/admin/audit";
 import { isKnownBrokerHost, normalizeBrokerLink, parseMinDepositUsd } from "./validation";
+import { readLockedLinks, type LockedLinks } from "./link-lock";
 
 export interface BrokerIbSettingsSnapshot {
   ibClaimsEnabled: boolean;
@@ -22,6 +23,8 @@ interface BrokerIbSettingsInput {
   xmLink: string;
   exnessLink: string;
   minDepositUsd: string;
+  /** ลิงก์ที่ล็อกด้วย env (ค่าเริ่มต้นอ่านจาก process.env) — ลิงก์ที่ล็อกแล้วใช้ค่านี้แทนค่าที่แอดมินพิมพ์ */
+  lockedLinks?: LockedLinks;
 }
 
 function hostWarning(broker: Broker, link: string): string | null {
@@ -37,8 +40,9 @@ function hostWarning(broker: Broker, link: string): string | null {
  * - แตะเฉพาะฟิลด์ IB — ไม่ทับการตั้งค่า PromptPay
  */
 export async function updateBrokerIbSettings(db: PrismaClient, input: BrokerIbSettingsInput): Promise<BrokerIbSettingsResult> {
-  const xm = normalizeBrokerLink(input.xmLink);
-  const exness = normalizeBrokerLink(input.exnessLink);
+  const locked = input.lockedLinks ?? readLockedLinks();
+  const xm = normalizeBrokerLink(locked.XM ?? input.xmLink);
+  const exness = normalizeBrokerLink(locked.EXNESS ?? input.exnessLink);
   if (!xm.ok || !exness.ok) return { ok: false, code: "INVALID_IB_LINK" };
   const minDeposit = parseMinDepositUsd(input.minDepositUsd);
   if (!minDeposit.ok) return { ok: false, code: "INVALID_MIN_DEPOSIT" };

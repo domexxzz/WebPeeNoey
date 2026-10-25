@@ -8,6 +8,8 @@ import { AdminCard, AdminPageHeader, inputClass, labelClass } from "@/components
 import { updateSettingsAction } from "../actions";
 import { updateBrokerIbSettingsAction } from "../broker-ib-actions";
 import { computeBrokerIbAvailability, type BrokerIbAvailability } from "@/lib/broker-ib/availability";
+import { LOCKED_LINK_ENV_KEY, readLockedLinks } from "@/lib/broker-ib/link-lock";
+import { Lock } from "lucide-react";
 
 export const metadata: Metadata = { title: "ตั้งค่าระบบ", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -37,9 +39,16 @@ export default async function AdminSettingsPage() {
     prisma.order.count({ where: { kind: "BROKER_IB", status: "CLAIM_SUBMITTED" } }),
   ]);
   const ibMinDeposit = setting?.ibMinDepositUsd?.toNumber() ?? null;
+  const lockedLinks = readLockedLinks();
   const ibAvailability = computeBrokerIbAvailability(
     setting
-      ? { ibClaimsEnabled: setting.ibClaimsEnabled, maintenanceMode: setting.maintenanceMode, ibXmLink: setting.ibXmLink, ibExnessLink: setting.ibExnessLink, ibMinDepositUsd: ibMinDeposit }
+      ? {
+          ibClaimsEnabled: setting.ibClaimsEnabled,
+          maintenanceMode: setting.maintenanceMode,
+          ibXmLink: lockedLinks.XM ?? setting.ibXmLink,
+          ibExnessLink: lockedLinks.EXNESS ?? setting.ibExnessLink,
+          ibMinDepositUsd: ibMinDeposit,
+        }
       : null,
   );
 
@@ -86,14 +95,33 @@ export default async function AdminSettingsPage() {
           {pendingClaims > 0 && <span className="block text-xs">มีคำขอรอตรวจ {pendingClaims} รายการ — ยังตรวจได้แม้ปิดรับคำขอใหม่</span>}
         </p>
         <ActionForm action={updateBrokerIbSettingsAction} submitLabel="บันทึกการตั้งค่า IB" pendingLabel="กำลังบันทึก...">
-          <div>
-            <label className={labelClass} htmlFor="ibXmLink">ลิงก์พาร์ทเนอร์ XM (https://...)</label>
-            <input id="ibXmLink" name="ibXmLink" type="url" defaultValue={setting?.ibXmLink ?? ""} maxLength={500} autoComplete="off" className={inputClass} />
-          </div>
-          <div>
-            <label className={labelClass} htmlFor="ibExnessLink">ลิงก์พาร์ทเนอร์ Exness (https://...)</label>
-            <input id="ibExnessLink" name="ibExnessLink" type="url" defaultValue={setting?.ibExnessLink ?? ""} maxLength={500} autoComplete="off" className={inputClass} />
-          </div>
+          {(["XM", "EXNESS"] as const).map((broker) => {
+            const name = broker === "XM" ? "ibXmLink" : "ibExnessLink";
+            const lockedLink = lockedLinks[broker];
+            return (
+              <div key={broker}>
+                <label className={labelClass} htmlFor={name}>
+                  ลิงก์พาร์ทเนอร์ {broker === "XM" ? "XM" : "Exness"} (https://...)
+                </label>
+                <input
+                  id={name}
+                  name={name}
+                  type="url"
+                  defaultValue={lockedLink ?? (setting?.[name] ?? "")}
+                  readOnly={Boolean(lockedLink)}
+                  aria-describedby={lockedLink ? `${name}-locked` : undefined}
+                  maxLength={500}
+                  autoComplete="off"
+                  className={`${inputClass} ${lockedLink ? "cursor-not-allowed bg-surface-sunken text-fg-muted" : ""}`}
+                />
+                {lockedLink && (
+                  <p id={`${name}-locked`} className="mt-1 flex items-center gap-1 text-xs text-fg-subtle">
+                    <Lock className="w-3 h-3" aria-hidden="true" /> ล็อกด้วยค่าบนเซิร์ฟเวอร์ ({LOCKED_LINK_ENV_KEY[broker]}) — เปลี่ยนได้ที่ Render เท่านั้น
+                  </p>
+                )}
+              </div>
+            );
+          })}
           <div>
             <label className={labelClass} htmlFor="ibMinDepositUsd">ยอดฝากครั้งแรกขั้นต่ำ (USD)</label>
             <input id="ibMinDepositUsd" name="ibMinDepositUsd" inputMode="decimal" defaultValue={ibMinDeposit ?? ""} autoComplete="off" className={inputClass} />

@@ -12,6 +12,7 @@
 - ข้อสังเกตที่ยังไม่แก้ (ตั้งใจ): ช่องอีเมลว่างในรายงานที่มีคอลัมน์อีเมล = ถือว่าไม่มีอีเมล (ข้ามการเทียบ); หลายไฟล์ธุรกรรมคนละช่วงเวลา = ใช้ยอดสูงสุดไม่รวมกัน (นับขาดได้ ไม่นับเกิน)
 - ไฟล์ไม่ถูกเก็บ — Audit Log `BROKER_REPORT_IMPORT` เก็บแค่ชื่อไฟล์ จำนวน และเลขคำขอที่อนุมัติ
 - export `requireAdmin` จาก `run-admin-action.ts` (action นี้คืน state แบบตารางจึงใช้ `runAdminAction` ตรง ๆ ไม่ได้)
+- ล็อกลิงก์พาร์ทเนอร์ด้วย env `XM_PARTNER_LINK` / `EXNESS_PARTNER_LINK` (`src/lib/broker-ib/link-lock.ts`): ตั้งแล้วช่องในหน้าตั้งค่าเป็นอ่านอย่างเดียว, ค่าที่พิมพ์ถูกแทนด้วยค่าล็อก และหน้าเว็บใช้ค่าล็อกแม้ DB ถูกแก้ — ลิงก์ที่เจ้าของเลือก (อ่านจากพอร์ทัลกับเจ้าของ 25 ต.ค.): XM แคมเปญ "คืนยอดนักเทรด (AR)" `https://clicks.pipaffiliates.com/c?c=1263598&l=th&p=1`, Exness partner code `00awo0516g` `https://one.exnessonelink.com/a/00awo0516g` (เพิ่ม `exnessonelink.com` ในโดเมนที่รู้จัก)
 - ขั้นถัดไป: ขอไฟล์ export จริงจากเจ้าของ (XM รายชื่อเทรดเดอร์ + รายงานเงินฝาก, Exness Client accounts / transactions) มาทดสอบ; เฟส 2 ที่คุยไว้: เปิดสิทธิ์ TradingView อัตโนมัติ (ต้องมีบอทล็อกอิน TradingView)
 
 ---

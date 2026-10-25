@@ -37,7 +37,7 @@ export const BROKER_IB_RULES = {
 export const BROKERS: Record<Broker, { label: string; knownHosts: readonly string[] }> = {
   // โดเมนที่รู้จัก (รวมโดเมนติดตามลิงก์พาร์ทเนอร์) — ใช้แค่เตือนแอดมินเมื่อลิงก์ไม่ใช่โดเมนเหล่านี้ ไม่บล็อก
   XM: { label: "XM", knownHosts: ["xm.com", "xmglobal.com", "xmtrading.com", "pipaffiliates.com"] },
-  EXNESS: { label: "Exness", knownHosts: ["exness.com", "exness.link", "exnesstrack.org", "exnesstrack.net", "exness-track.com", "exnessaffiliates.com"] },
+  EXNESS: { label: "Exness", knownHosts: ["exness.com", "exness.link", "exnesstrack.org", "exnesstrack.net", "exness-track.com", "exnessaffiliates.com", "exnessonelink.com"] },
 };
 
 /** ลำดับแสดงผล */
