@@ -50,14 +50,26 @@ export function isKnownBrokerHost(broker: Broker, link: string): boolean {
   return BROKERS[broker].knownHosts.some((known) => host === known || host.endsWith(`.${known}`));
 }
 
-/** ยอดฝากขั้นต่ำ (USD): ว่าง = ยังไม่ตั้ง, ทศนิยมไม่เกิน 2 ตำแหน่ง, อยู่ในช่วงที่กำหนด */
-export function parseMinDepositUsd(raw: string): { ok: true; value: number | null } | { ok: false } {
-  const value = raw.trim();
-  if (!value) return { ok: true, value: null };
+/** จำนวนเงิน/อัตรา: ว่าง = ยังไม่ตั้ง, ทศนิยมไม่เกิน 2 ตำแหน่ง, ต้องอยู่ในช่วงที่กำหนด (รับจุลภาคคั่นหลักพัน) */
+function parseAmountInRange(raw: string, { min, max }: { min: number; max: number }): { ok: true; value: number | null } | { ok: false } {
+  const typed = raw.trim();
+  if (!typed) return { ok: true, value: null };
+  // รับจุลภาคเฉพาะตำแหน่งหลักพันที่ถูกต้อง ("1,500" ผ่าน แต่ "1,0,0,0" ไม่ผ่าน)
+  if (typed.includes(",") && !/^\d{1,3}(,\d{3})+(\.\d{1,2})?$/.test(typed)) return { ok: false };
+  const value = typed.replace(/,/g, "");
   if (!MONEY_PATTERN.test(value)) return { ok: false };
   const amount = Number(value);
-  const { min, max } = BROKER_IB_RULES.minDepositUsd;
   return amount >= min && amount <= max ? { ok: true, value: amount } : { ok: false };
+}
+
+/** ยอดฝากขั้นต่ำเป็นเงินบาท (ตั้งแยกรายโบรกเกอร์) */
+export function parseMinDepositThb(raw: string): { ok: true; value: number | null } | { ok: false } {
+  return parseAmountInRange(raw, BROKER_IB_RULES.minDepositThb);
+}
+
+/** อัตราแลกเปลี่ยน USD/THB ที่ใช้แปลงขั้นต่ำไปเทียบกับรายงานโบรกเกอร์ */
+export function parseUsdThbRate(raw: string): { ok: true; value: number | null } | { ok: false } {
+  return parseAmountInRange(raw, BROKER_IB_RULES.usdThbRate);
 }
 
 /** เลขบัญชีเทรดแบบปิดบัง (แจ้งเตือน Telegram / หน้าสมาชิก) */

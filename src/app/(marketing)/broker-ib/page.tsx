@@ -28,7 +28,7 @@ export default async function BrokerIbPublicPage() {
         <section aria-labelledby="ib-steps-heading" className="border border-line bg-surface p-6 sm:p-10 rounded-2xl">
           <h2 id="ib-steps-heading" className="font-display text-2xl font-bold text-fg">ขั้นตอนรับสิทธิ์</h2>
           <div className="mt-8">
-            <BrokerIbGuide brokers={offer.brokers} minDepositUsd={offer.minDepositUsd} />
+            <BrokerIbGuide brokers={offer.brokers} />
           </div>
           <Link
             href="/account/broker-ib"

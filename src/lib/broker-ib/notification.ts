@@ -31,7 +31,9 @@ interface IbSettingsSnapshot {
   ibClaimsEnabled: boolean;
   ibXmLink: string;
   ibExnessLink: string;
-  ibMinDepositUsd: number | null;
+  ibMinDepositXmThb: number | null;
+  ibMinDepositExnessThb: number | null;
+  ibUsdThbRate: number | null;
 }
 
 const hostOf = (link: string) => {
@@ -60,8 +62,12 @@ export function buildIbSettingsChangedMessage(before: IbSettingsSnapshot | null,
       lines.push(`⚠️ โดเมนลิงก์ ${label} เปลี่ยน: ${hostOf(previous)} → ${hostOf(after[key])} — ตรวจว่าเป็นลิงก์พาร์ทเนอร์ของเราจริง`);
     }
   }
-  if ((before?.ibMinDepositUsd ?? null) !== after.ibMinDepositUsd) {
-    lines.push(`ฝากขั้นต่ำ (USD): ${show(before?.ibMinDepositUsd ?? null)} → ${show(after.ibMinDepositUsd)}`);
+  for (const [label, key] of [
+    ["ฝากขั้นต่ำ XM (บาท)", "ibMinDepositXmThb"],
+    ["ฝากขั้นต่ำ Exness (บาท)", "ibMinDepositExnessThb"],
+    ["อัตรา USD/THB", "ibUsdThbRate"],
+  ] as const) {
+    if ((before?.[key] ?? null) !== after[key]) lines.push(`${label}: ${show(before?.[key] ?? null)} → ${show(after[key])}`);
   }
   lines.push(`โดยแอดมิน: ${actorId}`);
   return lines.join("\n");

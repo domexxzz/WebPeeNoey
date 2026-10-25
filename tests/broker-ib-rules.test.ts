@@ -6,7 +6,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const NOW = new Date("2026-10-15T03:00:00Z");
 const inDays = (n: number) => new Date(NOW.getTime() + n * DAY_MS);
 
-const OPEN: BrokerIbAvailability = { open: true, minDepositUsd: 100, brokers: [{ broker: "XM", label: "XM", link: "https://clicks.pipaffiliates.com/c?c=1" }] };
+const OPEN: BrokerIbAvailability = { open: true, usdThbRate: 33.5, brokers: [{ broker: "XM", label: "XM", link: "https://clicks.pipaffiliates.com/c?c=1", minDepositThb: 1000, minDepositUsd: 29.85 }] };
 const verified = { broker: "XM", platform: "MT5", accountMasked: "****5678", status: "VERIFIED" } as const;
 const base: MemberStateInput = {
   now: NOW,

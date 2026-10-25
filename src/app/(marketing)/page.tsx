@@ -33,7 +33,7 @@ export default async function HomePage() {
       <IndicatorShowcaseSection />
       <HowItWorksSection />
       <PricingSection />
-      {brokerOffer.open && <BrokerIbSection brokers={brokerOffer.brokers} minDepositUsd={brokerOffer.minDepositUsd} />}
+      {brokerOffer.open && <BrokerIbSection brokers={brokerOffer.brokers} />}
       <FaqSection />
       <ContactSection />
     </>

@@ -3,26 +3,30 @@ import { BROKERS } from "@/config/broker-ib";
 import { SYSTEM_SETTING_ID } from "@/lib/db/constants";
 import type { ActorContext } from "@/lib/admin/guard";
 import { writeAudit } from "@/lib/admin/audit";
-import { isKnownBrokerHost, normalizeBrokerLink, parseMinDepositUsd } from "./validation";
+import { isKnownBrokerHost, normalizeBrokerLink, parseMinDepositThb, parseUsdThbRate } from "./validation";
 import { readLockedLinks, type LockedLinks } from "./link-lock";
 
 export interface BrokerIbSettingsSnapshot {
   ibClaimsEnabled: boolean;
   ibXmLink: string;
   ibExnessLink: string;
-  ibMinDepositUsd: number | null;
+  ibMinDepositXmThb: number | null;
+  ibMinDepositExnessThb: number | null;
+  ibUsdThbRate: number | null;
 }
 
 export type BrokerIbSettingsResult =
   | { ok: true; warnings: string[]; changed: boolean; before: BrokerIbSettingsSnapshot | null; after: BrokerIbSettingsSnapshot }
-  | { ok: false; code: "INVALID_IB_LINK" | "INVALID_MIN_DEPOSIT" | "IB_NOT_CONFIGURED" };
+  | { ok: false; code: "INVALID_IB_LINK" | "INVALID_MIN_DEPOSIT" | "INVALID_USD_THB_RATE" | "IB_NOT_CONFIGURED" };
 
 interface BrokerIbSettingsInput {
   actor: ActorContext;
   ibClaimsEnabled: boolean;
   xmLink: string;
   exnessLink: string;
-  minDepositUsd: string;
+  xmMinDepositThb: string;
+  exnessMinDepositThb: string;
+  usdThbRate: string;
   /** ลิงก์ที่ล็อกด้วย env (ค่าเริ่มต้นอ่านจาก process.env) — ลิงก์ที่ล็อกแล้วใช้ค่านี้แทนค่าที่แอดมินพิมพ์ */
   lockedLinks?: LockedLinks;
 }
@@ -44,18 +48,25 @@ export async function updateBrokerIbSettings(db: PrismaClient, input: BrokerIbSe
   const xm = normalizeBrokerLink(locked.XM ?? input.xmLink);
   const exness = normalizeBrokerLink(locked.EXNESS ?? input.exnessLink);
   if (!xm.ok || !exness.ok) return { ok: false, code: "INVALID_IB_LINK" };
-  const minDeposit = parseMinDepositUsd(input.minDepositUsd);
-  if (!minDeposit.ok) return { ok: false, code: "INVALID_MIN_DEPOSIT" };
-  if (input.ibClaimsEnabled && (minDeposit.value === null || (!xm.url && !exness.url))) {
-    return { ok: false, code: "IB_NOT_CONFIGURED" };
-  }
+  const xmMin = parseMinDepositThb(input.xmMinDepositThb);
+  const exnessMin = parseMinDepositThb(input.exnessMinDepositThb);
+  const rate = parseUsdThbRate(input.usdThbRate);
+  if (!xmMin.ok || !exnessMin.ok) return { ok: false, code: "INVALID_MIN_DEPOSIT" };
+  if (!rate.ok) return { ok: false, code: "INVALID_USD_THB_RATE" };
 
   const after: BrokerIbSettingsSnapshot = {
     ibClaimsEnabled: input.ibClaimsEnabled,
     ibXmLink: xm.url,
     ibExnessLink: exness.url,
-    ibMinDepositUsd: minDeposit.value,
+    ibMinDepositXmThb: xmMin.value,
+    ibMinDepositExnessThb: exnessMin.value,
+    ibUsdThbRate: rate.value,
   };
+  // เปิดรับคำขอได้เมื่อมีอัตราแลกเปลี่ยน และมีโบรกเกอร์ที่พร้อมใช้งานจริง (ลิงก์ + ขั้นต่ำ) อย่างน้อย 1 ราย
+  const offered = [xm.url && after.ibMinDepositXmThb !== null, exness.url && after.ibMinDepositExnessThb !== null].some(Boolean);
+  if (input.ibClaimsEnabled && (after.ibUsdThbRate === null || !offered)) {
+    return { ok: false, code: "IB_NOT_CONFIGURED" };
+  }
 
   const before = await db.$transaction(async (tx): Promise<BrokerIbSettingsSnapshot | null> => {
     await tx.$queryRaw`SELECT id FROM "SystemSetting" WHERE id = ${SYSTEM_SETTING_ID} FOR UPDATE`;
@@ -65,7 +76,9 @@ export async function updateBrokerIbSettings(db: PrismaClient, input: BrokerIbSe
           ibClaimsEnabled: current.ibClaimsEnabled,
           ibXmLink: current.ibXmLink,
           ibExnessLink: current.ibExnessLink,
-          ibMinDepositUsd: current.ibMinDepositUsd?.toNumber() ?? null,
+          ibMinDepositXmThb: current.ibMinDepositXmThb?.toNumber() ?? null,
+          ibMinDepositExnessThb: current.ibMinDepositExnessThb?.toNumber() ?? null,
+          ibUsdThbRate: current.ibUsdThbRate?.toNumber() ?? null,
         }
       : null;
     await tx.systemSetting.upsert({ where: { id: SYSTEM_SETTING_ID }, create: { id: SYSTEM_SETTING_ID, ...after }, update: after });

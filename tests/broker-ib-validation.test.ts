@@ -6,7 +6,7 @@ import {
   normalizeAccountNumber,
   normalizeBrokerEmail,
   normalizeBrokerLink,
-  parseMinDepositUsd,
+  parseMinDepositThb,
 } from "@/lib/broker-ib/validation";
 import { computeBrokerIbAvailability, type BrokerIbSettingValues } from "@/lib/broker-ib/availability";
 import { BROKER_IB_PLAN } from "@/config/broker-ib";
@@ -64,12 +64,12 @@ describe("broker IB input validation", () => {
     expect(isKnownBrokerHost("EXNESS", "https://www.xmglobal.com/ref")).toBe(false);
   });
 
-  it("parses the minimum deposit in USD (blank = not set)", () => {
-    expect(parseMinDepositUsd("")).toEqual({ ok: true, value: null });
-    expect(parseMinDepositUsd(" 100 ")).toEqual({ ok: true, value: 100 });
-    expect(parseMinDepositUsd("49.50")).toEqual({ ok: true, value: 49.5 });
-    for (const bad of ["0", "-5", "99.999", "1e6", "abc", "100000.01"]) {
-      expect(parseMinDepositUsd(bad)).toEqual({ ok: false });
+  it("parses the minimum deposit in baht (blank = not set)", () => {
+    expect(parseMinDepositThb("")).toEqual({ ok: true, value: null });
+    expect(parseMinDepositThb(" 1000 ")).toEqual({ ok: true, value: 1000 });
+    expect(parseMinDepositThb("1,500.50")).toEqual({ ok: true, value: 1500.5 });
+    for (const bad of ["0", "-5", "99.999", "1e6", "abc", "1000000.01"]) {
+      expect(parseMinDepositThb(bad)).toEqual({ ok: false });
     }
   });
 
@@ -86,7 +86,9 @@ describe("broker IB availability", () => {
     maintenanceMode: false,
     ibXmLink: "https://clicks.pipaffiliates.com/c?c=1",
     ibExnessLink: "https://one.exnesstrack.org/a/abc",
-    ibMinDepositUsd: 100,
+    ibMinDepositXmThb: 1000,
+    ibMinDepositExnessThb: 1500,
+    ibUsdThbRate: 33.5,
   };
 
   it("is closed when there is no setting row or the switch is off", () => {
@@ -98,18 +100,18 @@ describe("broker IB availability", () => {
     expect(computeBrokerIbAvailability({ ...base, maintenanceMode: true })).toEqual({ open: false, reason: "MAINTENANCE" });
   });
 
-  it("is not configured without a minimum deposit or a usable link", () => {
-    expect(computeBrokerIbAvailability({ ...base, ibMinDepositUsd: null })).toEqual({ open: false, reason: "NOT_CONFIGURED" });
+  it("is not configured without an exchange rate or a usable link", () => {
+    expect(computeBrokerIbAvailability({ ...base, ibUsdThbRate: null })).toEqual({ open: false, reason: "NOT_CONFIGURED" });
     expect(computeBrokerIbAvailability({ ...base, ibXmLink: "", ibExnessLink: "" })).toEqual({ open: false, reason: "NOT_CONFIGURED" });
   });
 
   it("offers each broker only when its own link is valid (a tampered value in the database is ignored)", () => {
     expect(computeBrokerIbAvailability(base)).toEqual({
       open: true,
-      minDepositUsd: 100,
+      usdThbRate: 33.5,
       brokers: [
-        { broker: "XM", label: "XM", link: "https://clicks.pipaffiliates.com/c?c=1" },
-        { broker: "EXNESS", label: "Exness", link: "https://one.exnesstrack.org/a/abc" },
+        { broker: "XM", label: "XM", link: "https://clicks.pipaffiliates.com/c?c=1", minDepositThb: 1000, minDepositUsd: 29.85 },
+        { broker: "EXNESS", label: "Exness", link: "https://one.exnesstrack.org/a/abc", minDepositThb: 1500, minDepositUsd: 44.78 },
       ],
     });
     expect(computeBrokerIbAvailability({ ...base, ibExnessLink: "javascript:alert(1)" })).toMatchObject({
@@ -131,7 +133,7 @@ describe("broker IB plan config", () => {
 });
 
 describe("IB settings change alert", () => {
-  const before = { ibClaimsEnabled: true, ibXmLink: "https://clicks.pipaffiliates.com/c?c=1", ibExnessLink: "", ibMinDepositUsd: 100 };
+  const before = { ibClaimsEnabled: true, ibXmLink: "https://clicks.pipaffiliates.com/c?c=1", ibExnessLink: "", ibMinDepositXmThb: 1000, ibMinDepositExnessThb: null, ibUsdThbRate: 33.5 };
 
   it("lists only what changed, old → new, and flags a domain change", () => {
     const message = buildIbSettingsChangedMessage(before, { ...before, ibXmLink: "https://evil.example/ref?c=9" }, "admin-1");

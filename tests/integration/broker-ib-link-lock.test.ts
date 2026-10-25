@@ -36,7 +36,7 @@ describe("Partner links locked by server environment", () => {
       ibClaimsEnabled: true,
       xmLink: "https://clicks.pipaffiliates.com/c?c=9999999&p=1",
       exnessLink: "https://one.exnessonelink.com/a/someoneelse",
-      minDepositUsd: "100",
+      xmMinDepositThb: "1000", exnessMinDepositThb: "1500", usdThbRate: "33.5",
       lockedLinks: LOCKED,
     });
     if (!result.ok) throw new Error(result.code);
@@ -48,7 +48,7 @@ describe("Partner links locked by server environment", () => {
   it("shows the locked links on the site even if the database was changed directly", async () => {
     await prisma.systemSetting.update({
       where: { id: SYSTEM_SETTING_ID },
-      data: { ibClaimsEnabled: true, ibMinDepositUsd: 100, ibXmLink: "https://clicks.pipaffiliates.com/c?c=9999999&p=1", ibExnessLink: "" },
+      data: { ibClaimsEnabled: true, ibMinDepositXmThb: 1000, ibMinDepositExnessThb: 1500, ibUsdThbRate: 33.5, ibXmLink: "https://clicks.pipaffiliates.com/c?c=9999999&p=1", ibExnessLink: "" },
     });
     const values = await readBrokerIbSettingValues(prisma, LOCKED);
     const availability = computeBrokerIbAvailability(values);
@@ -61,7 +61,7 @@ describe("Partner links locked by server environment", () => {
       ibClaimsEnabled: false,
       xmLink: XM,
       exnessLink: "",
-      minDepositUsd: "100",
+      xmMinDepositThb: "1000", exnessMinDepositThb: "1500", usdThbRate: "33.5",
       lockedLinks: {},
     });
     if (!result.ok) throw new Error(result.code);

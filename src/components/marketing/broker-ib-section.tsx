@@ -11,7 +11,7 @@ export const BROKER_IB_SECTION_ID = "broker-ib";
  * ทางเลือกใช้งานฟรีผ่าน IB บนหน้าแรก (แสดงเฉพาะเมื่อแอดมินเปิดรับคำขอ — ผู้เรียกตรวจ offer.open แล้ว)
  * ห้ามรีวิว/ตัวเลขผลงาน, มีคำเตือนความเสี่ยงและการเปิดเผยค่าตอบแทนเสมอ
  */
-export function BrokerIbSection({ brokers, minDepositUsd }: { brokers: BrokerOffer[]; minDepositUsd: number }) {
+export function BrokerIbSection({ brokers }: { brokers: BrokerOffer[] }) {
   return (
     <section aria-labelledby={`${BROKER_IB_SECTION_ID}-heading`} id={BROKER_IB_SECTION_ID} className="scroll-mt-20 border-b border-line">
       <div className="px-4 sm:px-6 lg:px-10 py-20 sm:py-28">
@@ -19,7 +19,7 @@ export function BrokerIbSection({ brokers, minDepositUsd }: { brokers: BrokerOff
 
         <div className="mt-12 grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
           <div data-reveal="up" className="border border-line bg-surface p-6 sm:p-8 rounded-2xl">
-            <BrokerIbSteps minDepositUsd={minDepositUsd} />
+            <BrokerIbSteps brokers={brokers} />
           </div>
           <div data-reveal="up" className="flex flex-col gap-6">
             <BrokerLinks brokers={brokers} />

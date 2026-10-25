@@ -36,7 +36,7 @@ beforeEach(async () => {
     ibClaimsEnabled: true,
     xmLink: "https://clicks.pipaffiliates.com/c?c=1",
     exnessLink: "https://one.exnesstrack.org/a/abc",
-    minDepositUsd: "100",
+    xmMinDepositThb: "1000", exnessMinDepositThb: "1500", usdThbRate: "33.5",
   });
   if (!settings.ok) throw new Error(settings.code);
 });

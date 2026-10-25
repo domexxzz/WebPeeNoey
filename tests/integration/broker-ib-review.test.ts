@@ -41,7 +41,7 @@ async function setIb(enabled: boolean, overrides: Partial<Parameters<typeof upda
     ibClaimsEnabled: enabled,
     xmLink: "https://clicks.pipaffiliates.com/c?c=1",
     exnessLink: "",
-    minDepositUsd: "100",
+    xmMinDepositThb: "1000", exnessMinDepositThb: "1500", usdThbRate: "33.5",
     ...overrides,
   });
   if (!result.ok) throw new Error(result.code);
@@ -93,7 +93,7 @@ describe("Integration: approve a broker IB claim", () => {
       broker: "XM",
       platform: "MT5",
       accountNumber: "12345678",
-      minDepositUsd: 100,
+      minDepositUsd: 29.85,
       checks: ALL_CHECKS,
       method: "MANUAL",
       isRenewal: false,
@@ -215,12 +215,12 @@ describe("Integration: approve a broker IB claim", () => {
   it("pending claims stay reviewable after IB is switched off, against the minimum deposit promised at submission", async () => {
     const user = await member();
     const orderId = await claimFor(user.id);
-    await setIb(false, { xmLink: "", minDepositUsd: "" });
+    await setIb(false, { xmLink: "", xmMinDepositThb: "", exnessMinDepositThb: "" });
 
     const result = await approve(orderId);
     expect(result).toMatchObject({ ok: true });
     const audit = await prisma.auditLog.findFirstOrThrow({ where: { action: "BROKER_CLAIM_APPROVE" } });
-    expect(audit.details).toMatchObject({ minDepositUsd: 100 });
+    expect(audit.details).toMatchObject({ minDepositUsd: 29.85 });
   });
 
   it("free grants never count as revenue or use promo seats", async () => {

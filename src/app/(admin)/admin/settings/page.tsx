@@ -9,6 +9,7 @@ import { updateSettingsAction } from "../actions";
 import { updateBrokerIbSettingsAction } from "../broker-ib-actions";
 import { computeBrokerIbAvailability, type BrokerIbAvailability } from "@/lib/broker-ib/availability";
 import { LOCKED_LINK_ENV_KEY, readLockedLinks } from "@/lib/broker-ib/link-lock";
+import { BROKER_IB_RULES } from "@/config/broker-ib";
 import { Lock } from "lucide-react";
 
 export const metadata: Metadata = { title: "ตั้งค่าระบบ", robots: { index: false, follow: false } };
@@ -28,7 +29,8 @@ const IB_STATUS_TEXT = {
 
 function ibStatusText(availability: BrokerIbAvailability): string {
   if (!availability.open) return IB_STATUS_TEXT[availability.reason];
-  return `เปิดรับคำขอ — ${availability.brokers.map((offer) => offer.label).join(", ")} · ฝากขั้นต่ำ $${availability.minDepositUsd}`;
+  const offers = availability.brokers.map((offer) => `${offer.label} ${offer.minDepositThb.toLocaleString("th-TH")} บาท (≈ $${offer.minDepositUsd})`);
+  return `เปิดรับคำขอ — ${offers.join(" · ")} · อัตรา ${availability.usdThbRate} บาท/USD`;
 }
 
 export default async function AdminSettingsPage() {
@@ -38,8 +40,9 @@ export default async function AdminSettingsPage() {
     getPaymentAvailability(prisma),
     prisma.order.count({ where: { kind: "BROKER_IB", status: "CLAIM_SUBMITTED" } }),
   ]);
-  const ibMinDeposit = setting?.ibMinDepositUsd?.toNumber() ?? null;
   const lockedLinks = readLockedLinks();
+  const ibMinThb = { XM: setting?.ibMinDepositXmThb?.toNumber() ?? null, EXNESS: setting?.ibMinDepositExnessThb?.toNumber() ?? null };
+  const ibRate = setting?.ibUsdThbRate?.toNumber() ?? null;
   const ibAvailability = computeBrokerIbAvailability(
     setting
       ? {
@@ -47,7 +50,9 @@ export default async function AdminSettingsPage() {
           maintenanceMode: setting.maintenanceMode,
           ibXmLink: lockedLinks.XM ?? setting.ibXmLink,
           ibExnessLink: lockedLinks.EXNESS ?? setting.ibExnessLink,
-          ibMinDepositUsd: ibMinDeposit,
+          ibMinDepositXmThb: ibMinThb.XM,
+          ibMinDepositExnessThb: ibMinThb.EXNESS,
+          ibUsdThbRate: ibRate,
         }
       : null,
   );
@@ -122,9 +127,23 @@ export default async function AdminSettingsPage() {
               </div>
             );
           })}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className={labelClass} htmlFor="ibMinDepositXmThb">ยอดฝากครั้งแรกขั้นต่ำ — XM (บาท)</label>
+              <input id="ibMinDepositXmThb" name="ibMinDepositXmThb" inputMode="decimal" defaultValue={ibMinThb.XM ?? ""} autoComplete="off" className={inputClass} />
+            </div>
+            <div>
+              <label className={labelClass} htmlFor="ibMinDepositExnessThb">ยอดฝากครั้งแรกขั้นต่ำ — Exness (บาท)</label>
+              <input id="ibMinDepositExnessThb" name="ibMinDepositExnessThb" inputMode="decimal" defaultValue={ibMinThb.EXNESS ?? ""} autoComplete="off" className={inputClass} />
+            </div>
+          </div>
           <div>
-            <label className={labelClass} htmlFor="ibMinDepositUsd">ยอดฝากครั้งแรกขั้นต่ำ (USD)</label>
-            <input id="ibMinDepositUsd" name="ibMinDepositUsd" inputMode="decimal" defaultValue={ibMinDeposit ?? ""} autoComplete="off" className={inputClass} />
+            <label className={labelClass} htmlFor="ibUsdThbRate">อัตราแลกเปลี่ยน (บาทต่อ 1 USD)</label>
+            <input id="ibUsdThbRate" name="ibUsdThbRate" inputMode="decimal" defaultValue={ibRate ?? ""} autoComplete="off" className={inputClass} />
+            <p className="mt-1 text-xs text-fg-subtle">
+              ใช้แปลงยอดบาทไปเทียบกับรายงานโบรกเกอร์ซึ่งเป็น USD — ระบบผ่อนผันให้ {Math.round(BROKER_IB_RULES.depositTolerance * 100)}% เผื่ออัตราของโบรกเกอร์ต่างจากนี้
+              {ibRate !== null && ibMinThb.XM !== null && <> · ตอนนี้ XM ≈ ${((ibMinThb.XM / ibRate) * 1).toFixed(2)}</>}
+            </p>
           </div>
           <label className="flex items-start gap-2 text-sm text-fg-muted">
             <input type="checkbox" name="ibClaimsEnabled" defaultChecked={setting?.ibClaimsEnabled ?? false} className="mt-1 accent-[#B8860B]" />

@@ -10,13 +10,13 @@ import { PRIVACY_DOCUMENT, REFUND_DOCUMENT, TERMS_DOCUMENT } from "@/content/leg
 
 vi.mock("@/app/(account)/account/broker-ib/actions", () => ({ submitBrokerClaimAction: vi.fn() }));
 
-const XM = { broker: "XM", label: "XM", link: "https://clicks.pipaffiliates.com/c?c=111&l=en" } as const;
-const EXNESS = { broker: "EXNESS", label: "Exness", link: "https://one.exnesstrack.org/a/abc123" } as const;
-const OPEN: BrokerIbAvailability = { open: true, minDepositUsd: 100, brokers: [XM, EXNESS] };
+const XM = { broker: "XM", label: "XM", link: "https://clicks.pipaffiliates.com/c?c=111&l=en", minDepositThb: 1000, minDepositUsd: 29.85 } as const;
+const EXNESS = { broker: "EXNESS", label: "Exness", link: "https://one.exnesstrack.org/a/abc123", minDepositThb: 1500, minDepositUsd: 44.78 } as const;
+const OPEN: BrokerIbAvailability = { open: true, usdThbRate: 33.5, brokers: [XM, EXNESS] };
 const visibleText = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&");
 
 describe("Public broker IB section", () => {
-  const html = renderToStaticMarkup(<BrokerIbSection brokers={[XM, EXNESS]} minDepositUsd={100} />);
+  const html = renderToStaticMarkup(<BrokerIbSection brokers={[XM, EXNESS]} />);
 
   it("links to each partner exactly, in a new tab, marked as sponsored", () => {
     for (const offer of [XM, EXNESS]) {
@@ -32,13 +32,14 @@ describe("Public broker IB section", () => {
   });
 
   it("shows only the brokers it is given", () => {
-    const onlyXm = renderToStaticMarkup(<BrokerIbSection brokers={[XM]} minDepositUsd={100} />);
+    const onlyXm = renderToStaticMarkup(<BrokerIbSection brokers={[XM]} />);
     expect(onlyXm).not.toContain("exnesstrack");
   });
 
   it("states the minimum deposit, the risks and the affiliate disclosure, and sends members to the claim page", () => {
     const text = visibleText(html);
-    expect(text).toContain("100 USD");
+    expect(text).toContain("1,000 บาท (XM)");
+    expect(text).toContain("1,500 บาท (Exness)");
     for (const risk of BROKER_IB_CONTENT.risks) expect(text).toContain(risk);
     expect(text).toContain(BROKER_IB_CONTENT.disclosure);
     expect(html).toContain('href="/account/broker-ib"');

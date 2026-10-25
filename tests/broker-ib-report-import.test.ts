@@ -127,7 +127,9 @@ describe("Deciding whether a pending IB claim qualifies from report evidence", (
   it("leaves the claim for manual review when the account is missing, the amount is unknown or below the minimum", () => {
     expect(evaluateClaimAgainstReport(claim, new Map()).verdict).toBe("NOT_IN_REPORT");
     expect(evaluateClaimAgainstReport(claim, new Map([["81234567", { emails: [], depositUsd: null }]])).verdict).toBe("DEPOSIT_UNKNOWN");
-    expect(evaluateClaimAgainstReport(claim, new Map([["81234567", { emails: [], depositUsd: 99.99 }]])).verdict).toBe("DEPOSIT_BELOW");
+    // ผ่อนผัน 5%: 99.99 ยังผ่าน แต่ต่ำกว่านั้นมากไม่ผ่าน
+    expect(evaluateClaimAgainstReport(claim, new Map([["81234567", { emails: [], depositUsd: 99.99 }]])).verdict).toBe("QUALIFIES");
+    expect(evaluateClaimAgainstReport(claim, new Map([["81234567", { emails: [], depositUsd: 94.9 }]])).verdict).toBe("DEPOSIT_BELOW");
   });
 
   it("never auto-approves a claim submitted without a minimum deposit", () => {

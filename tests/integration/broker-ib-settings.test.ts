@@ -43,7 +43,7 @@ async function ibOrder(userId: string, status: OrderStatus) {
 }
 
 const save = (overrides: Partial<Parameters<typeof updateBrokerIbSettings>[1]> = {}) =>
-  updateBrokerIbSettings(prisma, { actor: actor(), ibClaimsEnabled: true, xmLink: XM_LINK, exnessLink: EXNESS_LINK, minDepositUsd: "100", ...overrides });
+  updateBrokerIbSettings(prisma, { actor: actor(), ibClaimsEnabled: true, xmLink: XM_LINK, exnessLink: EXNESS_LINK, xmMinDepositThb: "1000", exnessMinDepositThb: "1500", usdThbRate: "33.5", ...overrides });
 
 beforeEach(async () => {
   await resetDatabase(prisma);
@@ -57,20 +57,21 @@ afterAll(async () => {
 
 describe("Integration: broker IB settings", () => {
   it("saves normalized links, the minimum deposit and the switch, with a before/after audit entry", async () => {
-    const result = await save({ xmLink: `  ${XM_LINK} `, minDepositUsd: "49.50" });
+    const result = await save({ xmLink: `  ${XM_LINK} `, xmMinDepositThb: "1,500.50" });
 
     expect(result).toMatchObject({ ok: true, warnings: [], changed: true, before: { ibClaimsEnabled: false, ibXmLink: "" } });
     const setting = await prisma.systemSetting.findUniqueOrThrow({ where: { id: SYSTEM_SETTING_ID } });
     expect(setting).toMatchObject({ ibClaimsEnabled: true, ibXmLink: XM_LINK, ibExnessLink: EXNESS_LINK });
-    expect(setting.ibMinDepositUsd?.toNumber()).toBe(49.5);
+    expect(setting.ibMinDepositXmThb?.toNumber()).toBe(1500.5);
+    expect(setting.ibUsdThbRate?.toNumber()).toBe(33.5);
 
     const audit = await prisma.auditLog.findFirstOrThrow({ where: { action: "IB_SETTINGS_UPDATE" } });
     expect(audit).toMatchObject({ actorId: adminId, targetType: "System", targetId: SYSTEM_SETTING_ID, ipAddress: "203.0.113.7" });
     expect(audit.details).toMatchObject({
-      before: { ibClaimsEnabled: false, ibXmLink: "", ibExnessLink: "", ibMinDepositUsd: null },
-      after: { ibClaimsEnabled: true, ibXmLink: XM_LINK, ibExnessLink: EXNESS_LINK, ibMinDepositUsd: 49.5 },
+      before: { ibClaimsEnabled: false, ibXmLink: "", ibExnessLink: "", ibMinDepositXmThb: null, ibMinDepositExnessThb: null, ibUsdThbRate: null },
+      after: { ibClaimsEnabled: true, ibXmLink: XM_LINK, ibExnessLink: EXNESS_LINK, ibMinDepositXmThb: 1500.5, ibMinDepositExnessThb: 1500, ibUsdThbRate: 33.5 },
     });
-    expect(await getBrokerIbAvailability(prisma)).toMatchObject({ open: true, minDepositUsd: 49.5 });
+    expect(await getBrokerIbAvailability(prisma)).toMatchObject({ open: true, usdThbRate: 33.5 });
   });
 
   it("warns (but saves) when a link is not on a domain known for that broker", async () => {
@@ -82,33 +83,33 @@ describe("Integration: broker IB settings", () => {
   });
 
   it("refuses to switch on without a minimum deposit or a link, and refuses bad values — writing nothing", async () => {
-    expect(await save({ minDepositUsd: "" })).toEqual({ ok: false, code: "IB_NOT_CONFIGURED" });
+    expect(await save({ xmMinDepositThb: "", exnessMinDepositThb: "" })).toEqual({ ok: false, code: "IB_NOT_CONFIGURED" });
     expect(await save({ xmLink: "", exnessLink: "" })).toEqual({ ok: false, code: "IB_NOT_CONFIGURED" });
     expect(await save({ xmLink: "http://xm.com/ref" })).toEqual({ ok: false, code: "INVALID_IB_LINK" });
     expect(await save({ exnessLink: "javascript:alert(1)" })).toEqual({ ok: false, code: "INVALID_IB_LINK" });
-    expect(await save({ minDepositUsd: "0" })).toEqual({ ok: false, code: "INVALID_MIN_DEPOSIT" });
+    expect(await save({ xmMinDepositThb: "0" })).toEqual({ ok: false, code: "INVALID_MIN_DEPOSIT" });
 
     expect(await prisma.auditLog.count({ where: { action: "IB_SETTINGS_UPDATE" } })).toBe(0);
     expect((await prisma.systemSetting.findUniqueOrThrow({ where: { id: SYSTEM_SETTING_ID } })).ibClaimsEnabled).toBe(false);
   });
 
   it("can be saved switched off with partial values (preparing before opening)", async () => {
-    expect(await save({ ibClaimsEnabled: false, exnessLink: "", minDepositUsd: "" })).toMatchObject({ ok: true, warnings: [] });
+    expect(await save({ ibClaimsEnabled: false, exnessLink: "", xmMinDepositThb: "", exnessMinDepositThb: "" })).toMatchObject({ ok: true, warnings: [] });
     expect(await getBrokerIbAvailability(prisma)).toEqual({ open: false, reason: "DISABLED" });
   });
 
   it("reports no change when the same (normalized) values are saved again", async () => {
     await save();
-    expect(await save({ xmLink: "  https://clicks.pipaffiliates.com/c?c=111&l=en  ", minDepositUsd: "100.00" })).toMatchObject({ ok: true, changed: false });
+    expect(await save({ xmLink: "  https://clicks.pipaffiliates.com/c?c=111&l=en  ", xmMinDepositThb: "1000.00" })).toMatchObject({ ok: true, changed: false });
   });
 
   it("keeps a correct before/after chain when two admins save at the same time (row lock)", async () => {
-    await Promise.all([save({ minDepositUsd: "100" }), save({ minDepositUsd: "200" })]);
+    await Promise.all([save({ xmMinDepositThb: "1000" }), save({ xmMinDepositThb: "2000" })]);
 
     const audits = await prisma.auditLog.findMany({ where: { action: "IB_SETTINGS_UPDATE" }, orderBy: { createdAt: "asc" } });
     expect(audits).toHaveLength(2);
-    const [first, second] = audits.map((audit) => audit.details as { before: { ibMinDepositUsd: number | null }; after: { ibMinDepositUsd: number } });
-    expect(second.before.ibMinDepositUsd).toBe(first.after.ibMinDepositUsd);
+    const [first, second] = audits.map((audit) => audit.details as { before: { ibMinDepositXmThb: number | null }; after: { ibMinDepositXmThb: number } });
+    expect(second.before.ibMinDepositXmThb).toBe(first.after.ibMinDepositXmThb);
   });
 
   it("does not touch PromptPay settings, and PromptPay settings do not touch IB settings", async () => {

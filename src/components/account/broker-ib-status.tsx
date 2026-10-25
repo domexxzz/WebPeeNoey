@@ -116,7 +116,7 @@ export function BrokerIbStatus({ status, memberEmail }: { status: BrokerIbMember
           <section className={cardClass}>
             <h2 className="font-display text-xl font-bold text-fg">ขั้นตอนรับสิทธิ์</h2>
             <div className="mt-6">
-              <BrokerIbGuide brokers={availability.brokers} minDepositUsd={availability.minDepositUsd} />
+              <BrokerIbGuide brokers={availability.brokers} />
             </div>
           </section>
           <section className={`${cardClass} space-y-5`}>
@@ -124,8 +124,7 @@ export function BrokerIbStatus({ status, memberEmail }: { status: BrokerIbMember
             {state.lastRejection && <Rejection {...state.lastRejection} />}
             <BrokerClaimForm
               mode="NEW"
-              brokers={availability.brokers.map(({ broker, label }) => ({ broker, label }))}
-              minDepositUsd={availability.minDepositUsd}
+              brokers={availability.brokers.map(({ broker, label, minDepositThb }) => ({ broker, label, minDepositThb }))}
               defaultEmail={memberEmail}
               noPasswordNote={BROKER_IB_CONTENT.noPasswordNote}
             />

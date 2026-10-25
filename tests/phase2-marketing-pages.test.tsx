@@ -67,8 +67,8 @@ describe("Phase 2: Home page", () => {
     expect(html).not.toContain('id="broker-ib"');
     vi.mocked(getCachedBrokerIbOffer).mockResolvedValueOnce({
       open: true,
-      minDepositUsd: 100,
-      brokers: [{ broker: "XM", label: "XM", link: "https://clicks.pipaffiliates.com/c?c=1" }],
+      usdThbRate: 33.5,
+      brokers: [{ broker: "XM", label: "XM", link: "https://clicks.pipaffiliates.com/c?c=1", minDepositThb: 1000, minDepositUsd: 29.85 }],
     });
     const open = render(await HomePage());
     expect(open).toContain('id="broker-ib"');

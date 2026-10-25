@@ -192,6 +192,10 @@ export async function createBrokerClaim(db: PrismaClient, input: CreateBrokerCla
         const binding = normalized ? await bindingForNewClaim(tx, input.userId, normalized) : await bindingForRenewal(tx, input.userId);
         if (isFailure(binding)) return binding;
 
+        // บันทึกขั้นต่ำของโบรกเกอร์นั้น ณ เวลายื่น (บาท + อัตรา + ค่าที่แปลงเป็น USD) — ใช้ตรวจแม้ตั้งค่าเปลี่ยนภายหลัง
+        const offer = availability.brokers.find((candidate) => candidate.broker === binding.broker);
+        if (!offer) return { ok: false, code: "BROKER_NOT_OFFERED" };
+
         const order = await tx.order.create({
           data: {
             orderNumber: await uniqueOrderNumber(tx, now, "IB"),
@@ -202,7 +206,9 @@ export async function createBrokerClaim(db: PrismaClient, input: CreateBrokerCla
             status: "CLAIM_SUBMITTED",
             kind: "BROKER_IB",
             brokerAccountId: binding.id,
-            ibMinDepositUsd: availability.minDepositUsd,
+            ibMinDepositUsd: offer.minDepositUsd,
+            ibMinDepositThb: offer.minDepositThb,
+            ibUsdThbRate: availability.usdThbRate,
             // expiresAt มีผลเฉพาะออเดอร์ PENDING_PAYMENT — คำขอ IB ไม่หมดเวลาเอง
             expiresAt: now,
             termsAcceptedAt: now,

@@ -5,6 +5,11 @@ import { getBrokerIbAvailability, type BrokerIbAvailability } from "./availabili
 /** แท็กแคชของข้อเสนอสิทธิ์ผ่าน IB บนหน้าเว็บสาธารณะ — การตั้งค่าเปลี่ยนแล้วเรียก revalidateTag ทันที */
 export const BROKER_IB_OFFER_TAG = "broker-ib-offer";
 const OFFER_REVALIDATE_SECONDS = 300;
+/**
+ * เปลี่ยนเลขนี้ทุกครั้งที่รูปร่างของ BrokerIbAvailability เปลี่ยน — กันอ่านค่าแคชรูปแบบเก่า
+ * (แคชของ Next อยู่ใน .next/cache ข้ามการ build ได้ ค่าเก่าที่ไม่มีฟิลด์ใหม่ทำให้หน้าเว็บพัง)
+ */
+const OFFER_SHAPE_VERSION = "v2-thb-per-broker";
 
 /**
  * ข้อเสนอสำหรับหน้าเว็บสาธารณะ (แคชไว้ ไม่ query ทุกครั้งที่มีคนเข้าหน้าแรก)
@@ -19,6 +24,6 @@ export const getCachedBrokerIbOffer = unstable_cache(
       return { open: false, reason: "NOT_CONFIGURED" };
     }
   },
-  [BROKER_IB_OFFER_TAG],
+  [BROKER_IB_OFFER_TAG, OFFER_SHAPE_VERSION],
   { revalidate: OFFER_REVALIDATE_SECONDS, tags: [BROKER_IB_OFFER_TAG] },
 );

@@ -3,6 +3,7 @@ import { BROKER_IB_RULES } from "@/config/broker-ib";
 import { SYSTEM_ACTOR_LABEL } from "@/lib/admin/audit";
 import { nextPeriodFor } from "@/lib/admin/membership";
 import { readBrokerIbSettingValues, computeBrokerIbAvailability } from "./availability";
+import { minimumForBroker } from "./deposit";
 import { isWithinClaimWindow } from "./rules";
 
 const PAGE_SIZE = 30;
@@ -135,8 +136,11 @@ export async function getBrokerClaimDetail(db: PrismaClient, { orderId, now = ne
     user: order.user,
     brokerAccount: order.brokerAccount,
     subscription: order.subscription,
+    // ขั้นต่ำ ณ เวลายื่น (บาท + USD ที่แปลงไว้) — แอดมินตรวจเทียบค่านี้ ไม่ใช่ค่าตั้งปัจจุบัน
     minDepositAtSubmission: order.ibMinDepositUsd?.toNumber() ?? null,
-    currentMinDeposit: settingValues?.ibMinDepositUsd ?? null,
+    minDepositThbAtSubmission: order.ibMinDepositThb?.toNumber() ?? null,
+    currentMinDeposit:
+      (order.brokerAccount && settingValues ? minimumForBroker(order.brokerAccount.broker, settingValues)?.usd : null) ?? null,
     availability: computeBrokerIbAvailability(settingValues),
     isRenewal: Boolean(order.brokerAccount?.firstVerifiedAt) && pending,
     emailDiffersFromMember: Boolean(order.brokerAccount && order.brokerAccount.registeredEmail !== order.user.email.toLowerCase()),

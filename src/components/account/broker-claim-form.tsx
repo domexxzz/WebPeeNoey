@@ -17,8 +17,7 @@ const boxClass = "mt-0.5 h-4 w-4 shrink-0 accent-[#B8860B]";
 
 interface NewClaimProps {
   mode: "NEW";
-  brokers: { broker: Broker; label: string }[];
-  minDepositUsd: number;
+  brokers: { broker: Broker; label: string; minDepositThb: number }[];
   defaultEmail: string;
   noPasswordNote: string;
 }
@@ -79,7 +78,7 @@ export function BrokerClaimForm(props: NewClaimProps | RenewProps) {
               {props.brokers.map((offer, index) => (
                 <label key={offer.broker} className="inline-flex items-center gap-2 border border-line px-4 py-2 text-sm text-fg rounded-xl has-[:checked]:border-gold has-[:checked]:bg-gold-muted">
                   <input type="radio" name="broker" value={offer.broker} defaultChecked={index === 0} required className="accent-[#B8860B]" />
-                  {offer.label}
+                  {offer.label} <span className="text-fg-muted">— ขั้นต่ำ {offer.minDepositThb.toLocaleString("th-TH")} บาท</span>
                 </label>
               ))}
             </div>
@@ -107,7 +106,7 @@ export function BrokerClaimForm(props: NewClaimProps | RenewProps) {
           </label>
           <label className={checkClass}>
             <input type="checkbox" name="confirmDeposit" required className={boxClass} />
-            ฉันฝากเงินครั้งแรกในบัญชีนี้แล้วอย่างน้อย {props.minDepositUsd.toLocaleString("en-US")} USD
+            ฉันฝากเงินครั้งแรกในบัญชีนี้แล้วไม่น้อยกว่ายอดขั้นต่ำของโบรกเกอร์ที่เลือกด้านบน
           </label>
         </>
       ) : (

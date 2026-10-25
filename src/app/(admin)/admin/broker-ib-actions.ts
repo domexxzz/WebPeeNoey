@@ -25,7 +25,9 @@ export async function updateBrokerIbSettingsAction(_previous: AdminActionState, 
       ibClaimsEnabled: checked(formData, "ibClaimsEnabled"),
       xmLink: field(formData, "ibXmLink"),
       exnessLink: field(formData, "ibExnessLink"),
-      minDepositUsd: field(formData, "ibMinDepositUsd"),
+      xmMinDepositThb: field(formData, "ibMinDepositXmThb"),
+      exnessMinDepositThb: field(formData, "ibMinDepositExnessThb"),
+      usdThbRate: field(formData, "ibUsdThbRate"),
     };
     const result = await updateBrokerIbSettings(prisma, { actor, ...input });
     if (!result.ok) return fail(result.code);

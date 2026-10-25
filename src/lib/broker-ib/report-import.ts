@@ -1,4 +1,5 @@
 import { normalizeAccountNumber, normalizeBrokerEmail } from "./validation";
+import { meetsMinimumDeposit } from "./deposit";
 
 /**
  * อ่านไฟล์รายงานที่ export จาก Partner Portal (XM / Exness) เป็นหลักฐานต่อบัญชีเทรด — ฟังก์ชันล้วน ไม่แตะฐานข้อมูล
@@ -177,6 +178,9 @@ export function evaluateClaimAgainstReport(
   }
   if (claim.minDepositUsd === null) return { verdict: "NO_MIN_DEPOSIT", depositUsd: found.depositUsd, emailChecked };
   if (found.depositUsd === null) return { verdict: "DEPOSIT_UNKNOWN", depositUsd: null, emailChecked };
-  if (found.depositUsd < claim.minDepositUsd) return { verdict: "DEPOSIT_BELOW", depositUsd: found.depositUsd, emailChecked };
+  // ผ่อนผันได้เล็กน้อย — ลูกค้าฝากเป็นบาท โบรกเกอร์แปลงเป็น USD ด้วยอัตราของตัวเอง ยอดจึงคลาดจากที่คำนวณไว้
+  if (!meetsMinimumDeposit(found.depositUsd, claim.minDepositUsd)) {
+    return { verdict: "DEPOSIT_BELOW", depositUsd: found.depositUsd, emailChecked };
+  }
   return { verdict: "QUALIFIES", depositUsd: found.depositUsd, emailChecked };
 }

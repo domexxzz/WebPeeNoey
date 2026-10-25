@@ -4,11 +4,10 @@ import type { BrokerOffer } from "@/lib/broker-ib/availability";
 
 interface BrokerIbGuideProps {
   brokers: BrokerOffer[];
-  minDepositUsd: number;
 }
 
 /** ขั้นตอน + ลิงก์พาร์ทเนอร์ + คำเตือนความเสี่ยง + การเปิดเผยค่าตอบแทน (ใช้ทั้งหน้าสมาชิกและหน้าเว็บสาธารณะ) */
-export function BrokerIbSteps({ minDepositUsd }: { minDepositUsd: number }) {
+export function BrokerIbSteps({ brokers }: { brokers: BrokerOffer[] }) {
   return (
     <ol className="space-y-4">
       {BROKER_IB_CONTENT.steps.map((step, index) => (
@@ -17,7 +16,7 @@ export function BrokerIbSteps({ minDepositUsd }: { minDepositUsd: number }) {
             {index + 1}
           </span>
           <div>
-            <p className="font-semibold text-fg">{fillMinDeposit(step.title, minDepositUsd)}</p>
+            <p className="font-semibold text-fg">{fillMinDeposit(step.title, brokers)}</p>
             <p className="mt-1 text-sm leading-relaxed text-fg-muted">{step.detail}</p>
           </div>
         </li>
@@ -66,10 +65,10 @@ export function BrokerIbRiskNotes() {
   );
 }
 
-export function BrokerIbGuide({ brokers, minDepositUsd }: BrokerIbGuideProps) {
+export function BrokerIbGuide({ brokers }: BrokerIbGuideProps) {
   return (
     <div className="space-y-6">
-      <BrokerIbSteps minDepositUsd={minDepositUsd} />
+      <BrokerIbSteps brokers={brokers} />
       <BrokerLinks brokers={brokers} />
       <BrokerIbRiskNotes />
     </div>

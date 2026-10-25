@@ -40,7 +40,7 @@ async function openIb(overrides: Partial<Parameters<typeof updateBrokerIbSetting
     ibClaimsEnabled: true,
     xmLink: "https://clicks.pipaffiliates.com/c?c=1",
     exnessLink: "https://one.exnesstrack.org/a/abc",
-    minDepositUsd: "100",
+    xmMinDepositThb: "1000", exnessMinDepositThb: "1500", usdThbRate: "33.5",
     ...overrides,
   });
   if (!result.ok) throw new Error(result.code);
@@ -85,7 +85,9 @@ describe("Integration: submit a broker IB claim", () => {
     const order = await prisma.order.findUniqueOrThrow({ where: { id: result.orderId }, include: { payment: true, plan: true, brokerAccount: true } });
     expect(order).toMatchObject({ status: "CLAIM_SUBMITTED", kind: "BROKER_IB", termsVersion: TERMS, createdIp: "198.51.100.4", payment: null });
     expect(order.amount.toNumber()).toBe(0);
-    expect(order.ibMinDepositUsd?.toNumber()).toBe(100);
+    expect(order.ibMinDepositThb?.toNumber()).toBe(1000);
+    expect(order.ibUsdThbRate?.toNumber()).toBe(33.5);
+    expect(order.ibMinDepositUsd?.toNumber()).toBe(29.85); // 1,000 บาท ที่อัตรา 33.5
     expect(order.plan.slug).toBe(BROKER_IB_PLAN.slug);
     expect(order.brokerAccount).toMatchObject({
       userId: user.id,

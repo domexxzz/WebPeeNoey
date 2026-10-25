@@ -13,20 +13,20 @@ enum Role {
 }
 
 enum OrderStatus {
-  PENDING_PAYMENT    // สร้างออเดอร์ รอชำระเงิน
-  SLIP_SUBMITTED     // แนบสลิปแล้ว กำลังรอแอดมินตรวจสอบ
-  CLAIM_SUBMITTED    // คำขอสิทธิ์ผ่าน IB โบรกเกอร์ รอแอดมินตรวจใน Partner Portal (ไม่ใช่สลิป — เส้นทางสลิปไม่แตะสถานะนี้)
-  APPROVED           // อนุมัติสำเร็จ ได้รับสิทธิ์เรียบร้อย
-  REJECTED           // ปฏิเสธ (เช่น สลิปไม่ตรง / สลิปปลอม)
-  EXPIRED            // ออเดอร์หมดเวลา (ไม่ได้โอนภายในเวลา)
-  REFUNDED           // มีการคืนเงิน
+  PENDING_PAYMENT // สร้างออเดอร์ รอชำระเงิน
+  SLIP_SUBMITTED // แนบสลิปแล้ว กำลังรอแอดมินตรวจสอบ
+  CLAIM_SUBMITTED // คำขอสิทธิ์ผ่าน IB โบรกเกอร์ รอแอดมินตรวจใน Partner Portal (ไม่ใช่สลิป — เส้นทางสลิปไม่แตะสถานะนี้)
+  APPROVED // อนุมัติสำเร็จ ได้รับสิทธิ์เรียบร้อย
+  REJECTED // ปฏิเสธ (เช่น สลิปไม่ตรง / สลิปปลอม)
+  EXPIRED // ออเดอร์หมดเวลา (ไม่ได้โอนภายในเวลา)
+  REFUNDED // มีการคืนเงิน
 }
 
 enum SubscriptionStatus {
-  ACTIVE             // กำลังใช้งานปกติ
-  EXPIRING_SOON      // แจ้งเตือนแล้ว (เหลือ <= 3 วัน)
-  EXPIRED            // สิทธิ์หมดอายุแล้ว
-  REVOKED            // ถูกปิดสิทธิ์ก่อนกำหนดโดยแอดมิน
+  ACTIVE // กำลังใช้งานปกติ
+  EXPIRING_SOON // แจ้งเตือนแล้ว (เหลือ <= 3 วัน)
+  EXPIRED // สิทธิ์หมดอายุแล้ว
+  REVOKED // ถูกปิดสิทธิ์ก่อนกำหนดโดยแอดมิน
 }
 
 /// แพ็กเกจ/ออเดอร์แบบชำระเงิน หรือสิทธิ์ฟรีผ่าน IB โบรกเกอร์ (ราคา 0 — ห้ามเข้าเส้นทาง PromptPay)
@@ -46,9 +46,9 @@ enum TradingPlatform {
 }
 
 enum BrokerAccountStatus {
-  PENDING            // ยื่นครั้งแรก รอตรวจ
-  VERIFIED           // แอดมินยืนยันใน Partner Portal แล้วอย่างน้อย 1 ครั้ง
-  RELEASED           // ปลดการผูกแล้ว — สมาชิกคนใดก็ยื่นบัญชีนี้ใหม่ได้ (แถวเดิมถูกนำกลับมาใช้)
+  PENDING // ยื่นครั้งแรก รอตรวจ
+  VERIFIED // แอดมินยืนยันใน Partner Portal แล้วอย่างน้อย 1 ครั้ง
+  RELEASED // ปลดการผูกแล้ว — สมาชิกคนใดก็ยื่นบัญชีนี้ใหม่ได้ (แถวเดิมถูกนำกลับมาใช้)
 }
 
 enum PaymentMethod {
@@ -58,31 +58,31 @@ enum PaymentMethod {
 }
 
 model User {
-  id                    String         @id @default(cuid())
-  email                 String         @unique
-  name                  String?
-  passwordHash          String?
-  role                  Role           @default(USER)
-  emailVerified         DateTime?
-  image                 String?
-  
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  passwordHash  String?
+  role          Role      @default(USER)
+  emailVerified DateTime?
+  image         String?
+
   // Platform identifiers สำหรับการให้สิทธิ์
-  tradingViewUsername   String?
-  discordUserId         String?
-  telegramChatId        String?        @unique // เชื่อมผ่านบอท (/start <token>) — 1 แชตต่อ 1 บัญชี
-  telegramLinkedAt      DateTime?
-  
+  tradingViewUsername String?
+  discordUserId       String?
+  telegramChatId      String?   @unique // เชื่อมผ่านบอท (/start <token>) — 1 แชตต่อ 1 บัญชี
+  telegramLinkedAt    DateTime?
+
   // ความสัมพันธ์
-  accounts              Account[]
-  sessions              Session[]
-  orders                Order[]
-  subscriptions         Subscription[]
-  auditLogs             AuditLog[]     @relation("AdminAuditLogs")
-  telegramLinkTokens    TelegramLinkToken[]
-  brokerAccounts        BrokerAccount[]
-  
-  createdAt             DateTime       @default(now())
-  updatedAt             DateTime       @updatedAt
+  accounts           Account[]
+  sessions           Session[]
+  orders             Order[]
+  subscriptions      Subscription[]
+  auditLogs          AuditLog[]          @relation("AdminAuditLogs")
+  telegramLinkTokens TelegramLinkToken[]
+  brokerAccounts     BrokerAccount[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([email])
 }
@@ -133,76 +133,79 @@ model PasswordResetToken {
 }
 
 model Plan {
-  id                  String         @id @default(cuid())
-  slug                String         @unique // เช่น 'monthly', 'quarterly', 'biannual', 'annual'
-  name                String         // เช่น 'แพ็กเกจ 1 เดือน'
-  durationDays        Int            // เช่น 30, 90, 180, 365
-  price               Decimal        @db.Decimal(10, 2)
-  originalPrice       Decimal?       @db.Decimal(10, 2)
-  isPromo             Boolean        @default(false)
-  promoLimit          Int?           // โควต้าโปรโมชัน เช่น 300 คนแรก
-  promoEnrolledCount  Int            @default(0)
-  lockPriceForLife    Boolean        @default(false)
-  features            String[]       // ลิสต์รายการฟีเจอร์ในแพ็กเกจ
-  isActive            Boolean        @default(true)
-  sortOrder           Int            @default(0)
-  kind                AccessKind     @default(PAID) // BROKER_IB = สิทธิ์ฟรีผ่าน IB (ไม่ขายผ่าน Checkout)
-  
-  orders              Order[]
-  subscriptions       Subscription[]
-  
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
+  id                 String     @id @default(cuid())
+  slug               String     @unique // เช่น 'monthly', 'quarterly', 'biannual', 'annual'
+  name               String // เช่น 'แพ็กเกจ 1 เดือน'
+  durationDays       Int // เช่น 30, 90, 180, 365
+  price              Decimal    @db.Decimal(10, 2)
+  originalPrice      Decimal?   @db.Decimal(10, 2)
+  isPromo            Boolean    @default(false)
+  promoLimit         Int? // โควต้าโปรโมชัน เช่น 300 คนแรก
+  promoEnrolledCount Int        @default(0)
+  lockPriceForLife   Boolean    @default(false)
+  features           String[] // ลิสต์รายการฟีเจอร์ในแพ็กเกจ
+  isActive           Boolean    @default(true)
+  sortOrder          Int        @default(0)
+  kind               AccessKind @default(PAID) // BROKER_IB = สิทธิ์ฟรีผ่าน IB (ไม่ขายผ่าน Checkout)
+
+  orders        Order[]
+  subscriptions Subscription[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Order {
-  id                  String         @id @default(cuid())
-  orderNumber         String         @unique // เช่น ORD-20261010-XXXX
-  userId              String
-  planId              String
-  
-  amount              Decimal        @db.Decimal(10, 2) // ยอดเงินสุทธิ
-  basePrice           Decimal?       @db.Decimal(10, 2) // ราคาก่อนหักเศษสตางค์
-  priceReason         String?        // LOCKED | PROMO | REGULAR — ใช้ตัดสินโควตาโปรโมชันและการล็อกราคาตอนอนุมัติ
-  status              OrderStatus    @default(PENDING_PAYMENT)
-  
+  id          String @id @default(cuid())
+  orderNumber String @unique // เช่น ORD-20261010-XXXX
+  userId      String
+  planId      String
+
+  amount      Decimal     @db.Decimal(10, 2) // ยอดเงินสุทธิ
+  basePrice   Decimal?    @db.Decimal(10, 2) // ราคาก่อนหักเศษสตางค์
+  priceReason String? // LOCKED | PROMO | REGULAR — ใช้ตัดสินโควตาโปรโมชันและการล็อกราคาตอนอนุมัติ
+  status      OrderStatus @default(PENDING_PAYMENT)
+
   // ข้อมูลสลิป
-  slipUrl             String?
-  slipHash            String?        @unique // SHA-256 ป้องกันสลิปซ้ำเด็ดขาด
-  slipUploadedAt      DateTime?
-  
+  slipUrl        String?
+  slipHash       String?   @unique // SHA-256 ป้องกันสลิปซ้ำเด็ดขาด
+  slipUploadedAt DateTime?
+
   // กระบวนการตรวจสอบ
-  approvedAt          DateTime?
-  approvedByUserId    String?
-  rejectedAt          DateTime?
-  rejectionReason     String?
-  
-  expiresAt           DateTime       // กำหนดเวลาชำระเงิน (ปกติ 30 นาที)
+  approvedAt       DateTime?
+  approvedByUserId String?
+  rejectedAt       DateTime?
+  rejectionReason  String?
+
+  expiresAt DateTime // กำหนดเวลาชำระเงิน (ปกติ 30 นาที)
 
   // หลักฐานการยอมรับข้อกำหนด (ใช้เมื่อมีข้อพิพาท)
-  termsAcceptedAt     DateTime?
-  termsVersion        String?        // วันที่มีผลของข้อกำหนดที่ลูกค้ายอมรับ
-  createdIp           String?
+  termsAcceptedAt DateTime?
+  termsVersion    String? // วันที่มีผลของข้อกำหนดที่ลูกค้ายอมรับ
+  createdIp       String?
 
   // เวลาที่แจ้งแอดมินเรื่องสลิปสำเร็จ — null = ยังไม่ได้แจ้ง (Cron ส่งซ้ำได้)
-  adminNotifiedAt     DateTime?
+  adminNotifiedAt DateTime?
 
   // คำขอสิทธิ์ผ่าน IB: amount = 0, ไม่มี Payment, expiresAt ไม่ถูกใช้ (มีผลเฉพาะ PENDING_PAYMENT)
-  kind                AccessKind     @default(PAID)
-  brokerAccountId     String?
+  kind            AccessKind     @default(PAID)
+  brokerAccountId String?
   /// ยอดฝากขั้นต่ำ ณ เวลายื่น — แอดมินตรวจเทียบค่านี้แม้ตั้งค่าเปลี่ยนภายหลัง
-  ibMinDepositUsd     Decimal?       @db.Decimal(10, 2)
-  brokerAccount       BrokerAccount? @relation(fields: [brokerAccountId], references: [id], onDelete: Restrict)
-  
-  user                User           @relation(fields: [userId], references: [id], onDelete: Restrict)
-  plan                Plan           @relation(fields: [planId], references: [id], onDelete: Restrict)
-  payment             Payment?
-  subscription        Subscription?
-  refund              Refund?
-  slipUploads         SlipUpload[]
+  /// ibMinDepositUsd = ค่าที่แปลงจากบาทด้วย ibUsdThbRate ณ เวลายื่น (ใช้เทียบกับรายงานโบรกเกอร์ซึ่งเป็น USD)
+  ibMinDepositUsd Decimal?       @db.Decimal(10, 2)
+  ibMinDepositThb Decimal?       @db.Decimal(10, 2)
+  ibUsdThbRate    Decimal?       @db.Decimal(10, 4)
+  brokerAccount   BrokerAccount? @relation(fields: [brokerAccountId], references: [id], onDelete: Restrict)
 
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
+  user         User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  plan         Plan          @relation(fields: [planId], references: [id], onDelete: Restrict)
+  payment      Payment?
+  subscription Subscription?
+  refund       Refund?
+  slipUploads  SlipUpload[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId, status])
   @@index([slipHash])
@@ -218,8 +221,8 @@ model BrokerAccount {
   userId               String
   broker               Broker
   platform             TradingPlatform
-  accountNumber        String              // ตัวเลขล้วนหลัง normalize
-  registeredEmail      String              // อีเมลที่สมัครกับโบรกเกอร์ (ตัวพิมพ์เล็ก)
+  accountNumber        String // ตัวเลขล้วนหลัง normalize
+  registeredEmail      String // อีเมลที่สมัครกับโบรกเกอร์ (ตัวพิมพ์เล็ก)
   status               BrokerAccountStatus @default(PENDING)
   firstVerifiedAt      DateTime?
   lastVerifiedAt       DateTime?
@@ -227,11 +230,11 @@ model BrokerAccount {
   releasedAt           DateTime?
   releaseReason        String?
 
-  user                 User                @relation(fields: [userId], references: [id], onDelete: Restrict)
-  orders               Order[]
+  user   User    @relation(fields: [userId], references: [id], onDelete: Restrict)
+  orders Order[]
 
-  createdAt            DateTime            @default(now())
-  updatedAt            DateTime            @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([broker, accountNumber])
   @@index([userId, status])
@@ -240,32 +243,32 @@ model BrokerAccount {
 /// สลิปทุกใบที่เคยอัปโหลด (รวมใบที่ถูกปฏิเสธ) — hash unique ทำให้สลิปเดิมใช้ซ้ำกับออเดอร์ไหนไม่ได้อีก
 /// เก็บไฟล์ในฐานข้อมูลเพื่อให้ใช้ได้ทันทีบน Vercel + Neon; ถ้าปริมาณโตค่อยย้ายไป object storage
 model SlipUpload {
-  id                  String         @id @default(cuid())
-  orderId             String
-  userId              String
-  hash                String         @unique // SHA-256 ของไฟล์
-  mimeType            String
-  sizeBytes           Int
-  data                Bytes
+  id        String @id @default(cuid())
+  orderId   String
+  userId    String
+  hash      String @unique // SHA-256 ของไฟล์
+  mimeType  String
+  sizeBytes Int
+  data      Bytes
 
   // QR ที่ธนาคารฝังในสลิป (อ่านในเซิร์ฟเวอร์เรา) — payload ผูกกับรายการโอน จึงกันสลิปเดิมที่ถ่าย/ครอปใหม่ได้
-  qrPayload           String?        @unique
-  qrReference         String?        // เลขอ้างอิงที่แกะจาก QR (best effort ใช้เติมช่องตอนอนุมัติ)
-  qrIntegrity         SlipQrIntegrity? // null = อ่าน QR ไม่ได้
+  qrPayload   String?          @unique
+  qrReference String? // เลขอ้างอิงที่แกะจาก QR (best effort ใช้เติมช่องตอนอนุมัติ)
+  qrIntegrity SlipQrIntegrity? // null = อ่าน QR ไม่ได้
 
   // ผลตรวจกับธนาคารผ่าน EasySlip (ไม่อนุมัติ/ปฏิเสธเอง — แค่ติดป้ายให้แอดมิน)
-  checkStatus         SlipCheckStatus @default(DISABLED)
-  checkNote           String?
-  checkAttempts       Int            @default(0)
-  checkedAt           DateTime?
-  transRef            String?        @unique // เลขอ้างอิงรายการที่ธนาคารยืนยัน — สลิปหนึ่งใบใช้ได้ครั้งเดียว
-  slipAmount          Decimal?       @db.Decimal(10, 2)
-  slipDate            DateTime?
-  receiverName        String?
+  checkStatus   SlipCheckStatus @default(DISABLED)
+  checkNote     String?
+  checkAttempts Int             @default(0)
+  checkedAt     DateTime?
+  transRef      String?         @unique // เลขอ้างอิงรายการที่ธนาคารยืนยัน — สลิปหนึ่งใบใช้ได้ครั้งเดียว
+  slipAmount    Decimal?        @db.Decimal(10, 2)
+  slipDate      DateTime?
+  receiverName  String?
 
-  order               Order          @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
 
-  createdAt           DateTime       @default(now())
+  createdAt DateTime @default(now())
 
   @@index([orderId])
   @@index([checkStatus])
@@ -291,89 +294,89 @@ enum SlipCheckStatus {
 }
 
 model Payment {
-  id                  String         @id @default(cuid())
-  orderId             String         @unique
-  method              PaymentMethod  @default(PROMPTPAY_QR)
-  
-  promptpayTarget     String         // เบอร์โทร/เลขบัตรที่สร้าง QR
-  promptpayAccountName String        @default("") // ชื่อบัญชีผู้รับ ณ เวลาสร้าง QR (แสดงคู่กับ QR เสมอ)
-  promptpayPayload    String         @db.Text // Payload มาตรฐาน EMVCo
-  amount              Decimal        @db.Decimal(10, 2)
-  
-  referenceNo         String?        @unique // เลขอ้างอิงธุรกรรมธนาคาร — unique กันสลิปที่ถูกแก้ไฟล์แล้วนำมาใช้ซ้ำ (แอดมินกรอกตอนอนุมัติ)
-  verifiedAt          DateTime?
-  
-  order               Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  
-  createdAt           DateTime       @default(now())
+  id      String        @id @default(cuid())
+  orderId String        @unique
+  method  PaymentMethod @default(PROMPTPAY_QR)
+
+  promptpayTarget      String // เบอร์โทร/เลขบัตรที่สร้าง QR
+  promptpayAccountName String  @default("") // ชื่อบัญชีผู้รับ ณ เวลาสร้าง QR (แสดงคู่กับ QR เสมอ)
+  promptpayPayload     String  @db.Text // Payload มาตรฐาน EMVCo
+  amount               Decimal @db.Decimal(10, 2)
+
+  referenceNo String?   @unique // เลขอ้างอิงธุรกรรมธนาคาร — unique กันสลิปที่ถูกแก้ไฟล์แล้วนำมาใช้ซ้ำ (แอดมินกรอกตอนอนุมัติ)
+  verifiedAt  DateTime?
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
 }
 
 model Subscription {
-  id                  String             @id @default(cuid())
-  userId              String
-  planId              String
-  orderId             String             @unique
-  status              SubscriptionStatus @default(ACTIVE)
-  
-  currentPeriodStart  DateTime
-  currentPeriodEnd    DateTime
-  
+  id      String             @id @default(cuid())
+  userId  String
+  planId  String
+  orderId String             @unique
+  status  SubscriptionStatus @default(ACTIVE)
+
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+
   // ล็อกสิทธิ์ราคาโปรโมชันตลอดชีพ
-  isPriceLocked       Boolean            @default(false)
-  lockedPrice         Decimal?           @db.Decimal(10, 2)
-  
+  isPriceLocked Boolean  @default(false)
+  lockedPrice   Decimal? @db.Decimal(10, 2)
+
   // ข้อมูลสิทธิ์การเชื่อมต่อ
-  tradingViewGranted  Boolean            @default(false)
-  discordRoleGranted  Boolean            @default(false)
-  telegramGranted     Boolean            @default(false)
-  
+  tradingViewGranted Boolean @default(false)
+  discordRoleGranted Boolean @default(false)
+  telegramGranted    Boolean @default(false)
+
   // เตือนก่อนหมดอายุ (Flow 6): จองก่อนส่ง → บันทึกเวลาส่งสำเร็จ — การจองที่ค้างเกิน 30 นาที (งานถูกตัดกลางคัน) ถูกส่งใหม่ได้
   expiryReminderClaimedAt DateTime?
   expiryReminderSentAt    DateTime?
 
   // การเพิกถอนสิทธิ์
-  revokedAt           DateTime?
-  revocationReason    String?
-  
-  user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plan                Plan               @relation(fields: [planId], references: [id], onDelete: Restrict)
-  order               Order              @relation(fields: [orderId], references: [id], onDelete: Restrict)
-  
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
+  revokedAt        DateTime?
+  revocationReason String?
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan  Plan  @relation(fields: [planId], references: [id], onDelete: Restrict)
+  order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId, status])
   @@index([currentPeriodEnd])
 }
 
 model Refund {
-  id                  String         @id @default(cuid())
-  orderId             String         @unique
-  amount              Decimal        @db.Decimal(10, 2)
-  reason              String
-  processedByUserId   String
-  evidenceUrl         String?        // หลักฐานการโอนเงินคืน
-  transferReference   String?        // เลขอ้างอิงการโอนเงินคืน
-  
-  order               Order          @relation(fields: [orderId], references: [id], onDelete: Restrict)
-  
-  createdAt           DateTime       @default(now())
+  id                String  @id @default(cuid())
+  orderId           String  @unique
+  amount            Decimal @db.Decimal(10, 2)
+  reason            String
+  processedByUserId String
+  evidenceUrl       String? // หลักฐานการโอนเงินคืน
+  transferReference String? // เลขอ้างอิงการโอนเงินคืน
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
 
   @@index([orderId])
 }
 
 model AuditLog {
-  id                  String         @id @default(cuid())
-  actorId             String?        // ID แอดมินผู้กระทำ (null = ระบบอัตโนมัติ เช่น Cron)
-  action              String         // เช่น 'ORDER_APPROVE', 'ORDER_REJECT', 'SUBSCRIPTION_REVOKE', 'REFUND_ISSUE'
-  targetType          String         // 'Order', 'Subscription', 'User', 'System'
-  targetId            String
-  details             Json?          // ข้อมูลการเปลี่ยนแปลงก่อน-หลัง
-  ipAddress           String?
-  
-  actor               User?          @relation("AdminAuditLogs", fields: [actorId], references: [id], onDelete: Restrict)
-  
-  createdAt           DateTime       @default(now())
+  id         String  @id @default(cuid())
+  actorId    String? // ID แอดมินผู้กระทำ (null = ระบบอัตโนมัติ เช่น Cron)
+  action     String // เช่น 'ORDER_APPROVE', 'ORDER_REJECT', 'SUBSCRIPTION_REVOKE', 'REFUND_ISSUE'
+  targetType String // 'Order', 'Subscription', 'User', 'System'
+  targetId   String
+  details    Json? // ข้อมูลการเปลี่ยนแปลงก่อน-หลัง
+  ipAddress  String?
+
+  actor User? @relation("AdminAuditLogs", fields: [actorId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
 
   @@index([actorId])
   @@index([targetType, targetId])
@@ -381,29 +384,35 @@ model AuditLog {
 }
 
 model RateLimit {
-  id                  String         @id @default(cuid())
-  key                 String         @unique // เช่น 'ip:1.2.3.4:login' หรือ 'user:123:slip'
-  count               Int            @default(1)
-  expiresAt           DateTime
+  id        String   @id @default(cuid())
+  key       String   @unique // เช่น 'ip:1.2.3.4:login' หรือ 'user:123:slip'
+  count     Int      @default(1)
+  expiresAt DateTime
 
   @@index([key, expiresAt])
 }
 
 model SystemSetting {
-  id                  String         @id @default("default")
-  paymentsEnabled     Boolean        @default(false) // ค่าเริ่มต้น = ปิดรับเงิน ตามกติกา
+  id                    String   @id @default("default")
+  paymentsEnabled       Boolean  @default(false) // ค่าเริ่มต้น = ปิดรับเงิน ตามกติกา
   // ค่าเริ่มต้นต้องว่าง: ห้ามมีเลข PromptPay สมมติ เพราะถ้าเปิดรับเงินโดยลืมตั้งค่า เงินลูกค้าจะเข้าบัญชีคนอื่น
   // ระบบ Checkout (Phase 3) ต้องไม่ยอมเปิด paymentsEnabled จนกว่าจะกรอกเลขบัญชีจริง
-  promptpayAccountName String        @default("")
-  promptpayNumber     String         @default("")
-  supportTelegramUrl  String?
-  maintenanceMode     Boolean        @default(false)
+  promptpayAccountName  String   @default("")
+  promptpayNumber       String   @default("")
+  supportTelegramUrl    String?
+  maintenanceMode       Boolean  @default(false)
   // สิทธิ์ฟรีผ่าน IB โบรกเกอร์ — ปิดไว้จนกว่าแอดมินกรอกลิงก์พาร์ทเนอร์ + ยอดฝากขั้นต่ำ แล้วเปิดเอง
-  ibClaimsEnabled     Boolean        @default(false)
-  ibXmLink            String         @default("")
-  ibExnessLink        String         @default("")
-  ibMinDepositUsd     Decimal?       @db.Decimal(10, 2) // null = ยังไม่ได้ตั้ง
-  updatedAt           DateTime       @updatedAt
+  ibClaimsEnabled       Boolean  @default(false)
+  ibXmLink              String   @default("")
+  ibExnessLink          String   @default("")
+  /// ยอดฝากขั้นต่ำเป็นเงินบาท แยกรายโบรกเกอร์ (null = ยังไม่ได้ตั้ง → โบรกเกอร์นั้นยังไม่เปิดให้ยื่น)
+  ibMinDepositXmThb     Decimal? @db.Decimal(10, 2)
+  ibMinDepositExnessThb Decimal? @db.Decimal(10, 2)
+  /// อัตรา USD/THB ที่ใช้แปลงขั้นต่ำไปเทียบกับรายงานโบรกเกอร์ (null = ยังไม่ได้ตั้ง → ยังไม่เปิด)
+  ibUsdThbRate          Decimal? @db.Decimal(10, 4)
+  /// เลิกใช้แล้ว (เดิมเป็นขั้นต่ำค่าเดียวเป็น USD) — เก็บคอลัมน์ไว้เพื่อไม่ลบข้อมูลเก่า
+  ibMinDepositUsd       Decimal? @db.Decimal(10, 2)
+  updatedAt             DateTime @updatedAt
 }
 
 enum JobRunStatus {
@@ -414,14 +423,14 @@ enum JobRunStatus {
 
 /// บันทึกการรันงานอัตโนมัติทุกครั้ง (CLAUDE.md ข้อ 5: ห้ามล้มเงียบ) — Watchdog ใช้ตรวจว่างานรันตามรอบและไม่ค้าง
 model JobRun {
-  id                  String         @id @default(cuid())
-  job                 String         // เช่น "check-expiry", "watchdog"
-  status              JobRunStatus   @default(RUNNING)
-  startedAt           DateTime       @default(now())
-  finishedAt          DateTime?
-  summary             Json?
-  error               String?
-  alertedAt           DateTime?      // เวลาที่ส่งแจ้งเตือนแอดมินจากรอบนี้ (ใช้กันแจ้งเตือนซ้ำถี่เกินไป)
+  id         String       @id @default(cuid())
+  job        String // เช่น "check-expiry", "watchdog"
+  status     JobRunStatus @default(RUNNING)
+  startedAt  DateTime     @default(now())
+  finishedAt DateTime?
+  summary    Json?
+  error      String?
+  alertedAt  DateTime? // เวลาที่ส่งแจ้งเตือนแอดมินจากรอบนี้ (ใช้กันแจ้งเตือนซ้ำถี่เกินไป)
 
   @@index([job, startedAt])
   @@index([status, startedAt])
@@ -429,14 +438,14 @@ model JobRun {
 
 /// โทเคนใช้ครั้งเดียวสำหรับเชื่อมบัญชีกับ Telegram (เก็บเฉพาะ SHA-256 ไม่เก็บโทเคนจริง)
 model TelegramLinkToken {
-  id                  String         @id @default(cuid())
-  userId              String
-  tokenHash           String         @unique
-  expiresAt           DateTime
-  usedAt              DateTime?
-  createdAt           DateTime       @default(now())
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
 
-  user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }

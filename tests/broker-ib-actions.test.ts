@@ -66,36 +66,36 @@ describe("broker IB admin actions: settings", () => {
       ok: true,
       warnings: [],
       changed: true,
-      before: { ibClaimsEnabled: false, ibXmLink: "", ibExnessLink: "", ibMinDepositUsd: null },
-      after: { ibClaimsEnabled: true, ibXmLink: XM_LINK, ibExnessLink: "", ibMinDepositUsd: 100 },
+      before: { ibClaimsEnabled: false, ibXmLink: "", ibExnessLink: "", ibMinDepositXmThb: null, ibMinDepositExnessThb: null, ibUsdThbRate: null },
+      after: { ibClaimsEnabled: true, ibXmLink: XM_LINK, ibExnessLink: "", ibMinDepositXmThb: 1000, ibMinDepositExnessThb: null, ibUsdThbRate: 33.5 },
     });
 
     const result = await updateBrokerIbSettingsAction(
       idle,
-      form({ ibClaimsEnabled: "on", ibXmLink: XM_LINK, ibExnessLink: "", ibMinDepositUsd: "100" }),
+      form({ ibClaimsEnabled: "on", ibXmLink: XM_LINK, ibExnessLink: "", ibMinDepositXmThb: "1000", ibUsdThbRate: "33.5" }),
     );
 
     expect(result).toEqual({ status: "success", message: "บันทึกการตั้งค่าสิทธิ์ผ่าน IB แล้ว" });
-    expect(updateBrokerIbSettings).toHaveBeenCalledWith({}, { actor, ibClaimsEnabled: true, xmLink: XM_LINK, exnessLink: "", minDepositUsd: "100" });
+    expect(updateBrokerIbSettings).toHaveBeenCalledWith({}, { actor, ibClaimsEnabled: true, xmLink: XM_LINK, exnessLink: "", xmMinDepositThb: "1000", exnessMinDepositThb: "", usdThbRate: "33.5" });
     const alert = vi.mocked(sendAdminTelegram).mock.calls[0][0];
     expect(alert).toContain(XM_LINK);
     expect(alert).toContain("ปิด → เปิด");
-    expect(alert).toContain("- → 100");
+    expect(alert).toContain("ฝากขั้นต่ำ XM (บาท): - → 1000");
     expect(revalidateTag).toHaveBeenCalledWith(BROKER_IB_OFFER_TAG);
     for (const path of ["/", "/broker-ib", "/admin/settings", "/account/broker-ib"]) expect(revalidatePath).toHaveBeenCalledWith(path);
   });
 
   it("shows domain warnings next to the success message", async () => {
-    const snapshot = { ibClaimsEnabled: false, ibXmLink: "https://partners.example.net/r", ibExnessLink: "", ibMinDepositUsd: null };
+    const snapshot = { ibClaimsEnabled: false, ibXmLink: "https://partners.example.net/r", ibExnessLink: "", ibMinDepositXmThb: null, ibMinDepositExnessThb: null, ibUsdThbRate: null };
     vi.mocked(updateBrokerIbSettings).mockResolvedValue({ ok: true, warnings: ["ลิงก์ XM อยู่บนโดเมน partners.example.net"], changed: true, before: null, after: snapshot });
     const result = await updateBrokerIbSettingsAction(idle, form({ ibXmLink: "https://partners.example.net/r" }));
     expect(result).toEqual({ status: "success", message: expect.stringContaining("partners.example.net") });
   });
 
   it("sends no alert and keeps the cache when nothing changed", async () => {
-    const same = { ibClaimsEnabled: true, ibXmLink: XM_LINK, ibExnessLink: "", ibMinDepositUsd: 100 };
+    const same = { ibClaimsEnabled: true, ibXmLink: XM_LINK, ibExnessLink: "", ibMinDepositXmThb: 1000, ibMinDepositExnessThb: null, ibUsdThbRate: 33.5 };
     vi.mocked(updateBrokerIbSettings).mockResolvedValue({ ok: true, warnings: [], changed: false, before: same, after: same });
-    expect(await updateBrokerIbSettingsAction(idle, form({ ibClaimsEnabled: "on", ibXmLink: XM_LINK, ibMinDepositUsd: "100" }))).toEqual({ status: "success", message: "ไม่มีการเปลี่ยนแปลง" });
+    expect(await updateBrokerIbSettingsAction(idle, form({ ibClaimsEnabled: "on", ibXmLink: XM_LINK, ibMinDepositXmThb: "1000", ibUsdThbRate: "33.5" }))).toEqual({ status: "success", message: "ไม่มีการเปลี่ยนแปลง" });
     expect(sendAdminTelegram).not.toHaveBeenCalled();
     expect(revalidateTag).not.toHaveBeenCalled();
   });
@@ -104,7 +104,7 @@ describe("broker IB admin actions: settings", () => {
     vi.mocked(updateBrokerIbSettings).mockResolvedValue({ ok: false, code: "INVALID_IB_LINK" });
     expect(await updateBrokerIbSettingsAction(idle, form({ ibXmLink: "http://x" }))).toEqual({ status: "error", message: ADMIN_ERROR_MESSAGES.INVALID_IB_LINK });
     expect(sendAdminTelegram).not.toHaveBeenCalled();
-    expect(ADMIN_ERROR_MESSAGES.INVALID_MIN_DEPOSIT).toMatch(/USD/);
+    expect(ADMIN_ERROR_MESSAGES.INVALID_MIN_DEPOSIT).toMatch(/บาท/);
     expect(ADMIN_ERROR_MESSAGES.IB_NOT_CONFIGURED).toMatch(/ลิงก์/);
   });
 
