@@ -16,7 +16,7 @@ export const fail = (code: AdminErrorCode): AdminActionState => ({ status: "erro
 export const done = (message: string): AdminActionState => ({ status: "success", message });
 
 /** ตรวจสิทธิ์แอดมินจาก DB ทุกครั้งที่เรียก action (server action ถูกเรียกตรงได้โดยไม่ผ่านหน้าเว็บ) */
-async function requireAdmin(): Promise<ActorContext | null> {
+export async function requireAdmin(): Promise<ActorContext | null> {
   const session = await getServerSession(authOptions);
   const admin = await getAdminActor(prisma, session?.user?.id);
   return admin ? { id: admin.id, ipAddress: (await getClientIp()) ?? null } : null;

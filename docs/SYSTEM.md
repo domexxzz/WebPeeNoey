@@ -55,7 +55,7 @@ src/
     orders/        สร้างออเดอร์ (เศษสตางค์สุ่มกันยอดชน), แนบสลิป, สถานะ
     payments/      promptpay.ts (ตรวจ PromptPay ID + สร้าง payload), slip.ts (ตรวจไฟล์จาก magic bytes + hash), pricing.ts
     admin/         อนุมัติ/ปฏิเสธ/คืนเงิน (order-review.ts), ช่วงสิทธิ์ทบวัน (membership.ts), audit, guard, settings, health
-    broker-ib/     คำขอสิทธิ์ฟรีผ่าน IB ทั้งระบบ
+    broker-ib/     คำขอสิทธิ์ฟรีผ่าน IB ทั้งระบบ — report-import.ts / report-review.ts = อนุมัติอัตโนมัติจากรายงาน CSV ที่ export จาก Partner Portal (/admin/broker-claims/import)
     jobs/          expiry.ts (เตือน + หมดอายุ), watchdog.ts (ตรวจสุขภาพ), job-run.ts (บันทึกการรัน)
     telegram/      bot.ts (/start /status /stop), link.ts (โทเค็นเชื่อมบัญชี)
     notify/telegram.ts  แจ้งเตือนกลุ่มแอดมิน
@@ -139,9 +139,9 @@ npm run test:integration  # ใช้ DATABASE_URL_TEST (PostgreSQL จริง
 
 **ยังปิด / ยังไม่ได้ตั้งค่า (เจ้าของต้องทำหรือให้ค่ามา):**
 1. **รับชำระเงินยังปิด** — เจ้าของต้องผูกพร้อมเพย์กับบัญชี Bangkok Bank แล้วกรอก PromptPay ID + ชื่อบัญชี "นาย จักรพงษ์ มูลวิชา" ที่ `/admin/settings`, ทดสอบสแกน QR ก่อนติ๊กเปิดรับเงิน
-2. **GitHub `vars.APP_URL`** ต้องเป็น `https://goldhybridshot.onrender.com` (ไม่งั้น watchdog/check-expiry ยิงไป Vercel ที่ถูกพักและแจ้งเตือนว่าเว็บล่ม)
-3. ยังไม่ได้ตั้ง: `GOOGLE_CLIENT_ID/SECRET` (ปุ่ม Google), `RESEND_API_KEY` + `EMAIL_FROM` (อีเมล/ลืมรหัสผ่าน), `TELEGRAM_*` (บอท + แจ้งเตือนแอดมิน — ตั้งแล้วรัน `npm run telegram:webhook`), `NEXT_PUBLIC_LEGAL_OPERATOR_NAME/ADDRESS` (หน้าข้อกำหนดยังเป็นฉบับร่าง)
-4. **สิทธิ์ฟรีผ่าน IB** ปิดอยู่ (`ibClaimsEnabled = false`) — รอลิงก์พาร์ทเนอร์ XM/Exness และยอดฝากขั้นต่ำจากเจ้าของ
+2. ~~GitHub `vars.APP_URL`~~ — ตั้งแล้วเป็น `https://goldhybridshot.com` + `secrets.CRON_SECRET` (25 ต.ค.)
+3. ยังไม่ได้ตั้ง: `GOOGLE_CLIENT_ID/SECRET` (ปุ่ม Google), `NEXT_PUBLIC_LEGAL_OPERATOR_NAME/ADDRESS` (หน้าข้อกำหนดยังเป็นฉบับร่าง) — Resend + บอท Telegram `@GHSAdmin_bot` ตั้งแล้ว (25 ต.ค.)
+4. **สิทธิ์ฟรีผ่าน IB** ปิดอยู่ (`ibClaimsEnabled = false`) — รอลิงก์พาร์ทเนอร์ XM/Exness และยอดฝากขั้นต่ำจากเจ้าของ; อนุมัติอัตโนมัติจากรายงาน CSV พร้อมใช้ที่ `/admin/broker-claims/import` (ยังไม่ได้ลองกับไฟล์ export จริง — ถ้าหัวคอลัมน์ไม่ตรงให้ปรับ alias ใน `report-import.ts`)
 5. **หลัง Vercel ปลดพัก 19 พ.ย. 2026**: deployment เก่ายังมี Vercel Cron เรียก check-expiry กับ Neon ตัวเดียวกัน (รันซ้ำ) → ต้องแทนด้วย deployment ที่ redirect `goldhybridshot.vercel.app` → Render อย่างเดียว หรือลบโปรเจกต์
 6. แบนเนอร์ "คืน Rebate XM" ที่เจ้าของส่งมายังไม่ได้ใส่ — มี QR/รหัสพันธมิตร/LINE @todaytrader และอ้าง "มูลค่า 50,000฿" (ขัดกฎข้อ 3) รอเจ้าของยืนยัน
 7. Render Starter RAM 512MB — build ผ่าน (1–2 นาที) แต่ถ้าโตขึ้นจนล้มให้พิจารณา `output: "standalone"` หรือขยับแพ็กเกจ

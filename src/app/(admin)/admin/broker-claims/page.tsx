@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AlertTriangle, BellOff, Search } from "lucide-react";
+import { AlertTriangle, BellOff, FileUp, Search } from "lucide-react";
 import { requireAdminPage } from "@/lib/admin/page-guard";
 import { prisma } from "@/lib/prisma";
 import { formatDateTime, parsePage } from "@/lib/format";
@@ -36,6 +36,9 @@ export default async function AdminBrokerClaimsPage({ searchParams }: PageProps)
         title="คำขอสิทธิ์ผ่าน IB"
         description={`ตรวจบัญชีใน Partner Portal ของโบรกเกอร์ตามลำดับเวลาที่ยื่น (เก่าสุดก่อน) — คำขอที่รอเกิน ${BROKER_IB_RULES.claimReviewOverdueHours} ชั่วโมงถูกไฮไลต์`}
       >
+        <Link href="/admin/broker-claims/import" className="inline-flex items-center gap-2 bg-gold px-3.5 py-2 text-sm font-semibold text-fg hover:bg-gold-hover">
+          <FileUp className="w-4 h-4" aria-hidden="true" /> นำเข้ารายงานโบรกเกอร์
+        </Link>
         <form role="search" className="flex gap-2" action="/admin/broker-claims">
           <input type="hidden" name="tab" value={tab} />
           <label className="sr-only" htmlFor="claim-search">ค้นหาคำขอ</label>

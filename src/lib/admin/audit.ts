@@ -17,6 +17,7 @@ export const AUDIT_ACTIONS = {
   BROKER_CLAIM_REJECT: "ปฏิเสธคำขอสิทธิ์ผ่าน IB",
   BROKER_IB_REVOKE: "ปิดสิทธิ์ผ่าน IB",
   BROKER_ACCOUNT_RELEASE: "ปลดการผูกบัญชีโบรกเกอร์",
+  BROKER_REPORT_IMPORT: "นำเข้ารายงานโบรกเกอร์ (อนุมัติอัตโนมัติ)",
 } as const;
 
 /** ชื่อที่แสดงแทนผู้กระทำเมื่อเป็นงานอัตโนมัติ (actorId = null) */
