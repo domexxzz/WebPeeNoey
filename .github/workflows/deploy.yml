@@ -1,0 +1,103 @@
+# ทดสอบแล้วค่อย deploy — push ขึ้น main → รัน tsc + unit + integration (PostgreSQL จริงใน CI) → ผ่านแล้วสั่ง Render deploy ผ่าน Deploy Hook
+# ใช้แทน Auto-Deploy ของ Render (ซึ่งไม่ทำงานกับ repo นี้ — ทุก deploy เป็น Manual) และกันโค้ดที่เทสต์ไม่ผ่านขึ้นเว็บจริง
+# deploy เฉพาะ commit ที่ทดสอบแล้ว (?ref=<sha>) — migration ใหม่ยังต้องรันกับ Neon "ก่อน" push เหมือนเดิม
+# ต้องตั้ง: secrets.RENDER_DEPLOY_HOOK (URL จาก Render → Settings → Deploy Hook — เป็นความลับ ห้ามพิมพ์ออก log)
+#   + secrets.TELEGRAM_BOT_TOKEN, secrets.TELEGRAM_ADMIN_CHAT_ID สำหรับแจ้งเตือนเมื่อล้มเหลว (ไม่ตั้ง = อีเมลแจ้งเตือนของ GitHub)
+name: Test and deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: webpeenoey_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      # ฐานข้อมูลทดสอบชั่วคราวใน CI เท่านั้น (global-setup ยอมเฉพาะ localhost + ชื่อลงท้าย _test)
+      DATABASE_URL_TEST: postgresql://postgres:postgres@localhost:5432/webpeenoey_test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/webpeenoey_test
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - name: Type check
+        run: npx tsc --noEmit
+      - name: Unit tests
+        run: npm test
+      - name: Integration tests (PostgreSQL)
+        # เทสต์ bcrypt / rate limit ช้าบนเครื่อง CI — ขยายเวลาต่อเทสต์ กันล้มเพราะช้า (ไม่ใช่เพราะผิด)
+        run: npm run test:integration -- --testTimeout=30000
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger Render deploy
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK" ]; then
+            echo "::error::ยังไม่ได้ตั้ง secrets.RENDER_DEPLOY_HOOK — เทสต์ผ่านแล้วแต่ยังไม่ได้ deploy"
+            exit 1
+          fi
+          case "$RENDER_DEPLOY_HOOK" in
+            https://api.render.com/deploy/*) ;;
+            *) echo "::error::RENDER_DEPLOY_HOOK ต้องเป็น URL Deploy Hook ของ Render (https://api.render.com/deploy/...)"; exit 1 ;;
+          esac
+          status=$(curl -sS -o response.json -w '%{http_code}' --max-time 30 -X POST "${RENDER_DEPLOY_HOOK}&ref=${GITHUB_SHA}") || status="000"
+          echo "HTTP ${status} — สั่ง deploy commit ${GITHUB_SHA}"
+          case "$status" in
+            2*) echo "สั่ง deploy แล้ว ดูความคืบหน้าใน Render → Deploys" ;;
+            *) echo "::error::Render ไม่รับคำสั่ง deploy (HTTP ${status})"; exit 1 ;;
+          esac
+
+  alert:
+    needs: [test, deploy]
+    if: failure()
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Alert admins (independent of the app)
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_CHAT_ID }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          TEST_RESULT: ${{ needs.test.result }}
+        run: |
+          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_ADMIN_CHAT_ID" ]; then
+            echo "::warning::ไม่ได้ตั้ง Telegram secrets — ใช้อีเมลแจ้งเตือนของ GitHub แทน"
+            exit 0
+          fi
+          if [ "$TEST_RESULT" = "failure" ]; then reason="เทสต์ไม่ผ่าน — ไม่ได้ deploy (เว็บยังเป็นเวอร์ชันเดิม)"; else reason="เทสต์ผ่านแต่สั่ง deploy ไม่สำเร็จ"; fi
+          curl -sS --max-time 20 -o /dev/null -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_ADMIN_CHAT_ID}" \
+            --data-urlencode "text=🚨 Deploy: ${reason} — ${RUN_URL}"

@@ -21,9 +21,10 @@ describe("Render deploy config (render.yaml)", () => {
     expect(yaml).toMatch(/startCommand: npm start/);
   });
 
-  it("deploys automatically on every push to main", () => {
+  it("leaves deploying to the tested deploy-hook workflow (Render auto-deploy off)", () => {
     expect(yaml).toMatch(/branch: main/);
-    expect(yaml).toMatch(/autoDeployTrigger: commit/);
+    // ต้องมีเครื่องหมายคำพูด — off เปล่า ๆ ใน YAML 1.1 ถูกอ่านเป็น boolean false
+    expect(yaml).toMatch(/autoDeployTrigger: "off"/);
   });
 
   it("declares every environment variable the status page monitors", () => {
@@ -33,6 +34,29 @@ describe("Render deploy config (render.yaml)", () => {
 
   it("keeps secrets out of the file — only NODE_VERSION has a literal value", () => {
     expect(envVars.filter((entry) => entry.hasValue).map((entry) => entry.key)).toEqual(["NODE_VERSION"]);
+  });
+});
+
+describe("Test-then-deploy workflow", () => {
+  const workflow = read(".github/workflows/deploy.yml");
+
+  it("runs on every push to main and tests against a real PostgreSQL before deploying", () => {
+    expect(workflow).toMatch(/push:\s*\n\s*branches: \[main\]/);
+    expect(workflow).toMatch(/image: postgres:16/);
+    expect(workflow).toContain("npx tsc --noEmit");
+    expect(workflow).toContain("npm test");
+    expect(workflow).toContain("npm run test:integration");
+    expect(workflow).toMatch(/deploy:\s*\n\s*needs: test/);
+  });
+
+  it("deploys exactly the tested commit through the secret hook without printing it", () => {
+    expect(workflow).toContain("RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}");
+    expect(workflow).toContain('"${RENDER_DEPLOY_HOOK}&ref=${GITHUB_SHA}"');
+    expect(workflow).not.toMatch(/echo[^\n]*\$\{?RENDER_DEPLOY_HOOK/);
+  });
+
+  it("alerts admins when tests or the deploy fail (CLAUDE.md §5)", () => {
+    expect(workflow).toMatch(/needs: \[test, deploy\]\s*\n\s*if: failure\(\)[\s\S]*api\.telegram\.org/);
   });
 });
 
