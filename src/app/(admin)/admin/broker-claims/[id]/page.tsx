@@ -5,7 +5,7 @@ import { AlertTriangle, ArrowLeft } from "lucide-react";
 import { requireAdminPage } from "@/lib/admin/page-guard";
 import { prisma } from "@/lib/prisma";
 import { formatDateTime } from "@/lib/format";
-import { BROKERS, PLATFORMS } from "@/config/broker-ib";
+import { BROKERS, PLATFORMS, BROKER_IB_RULES} from "@/config/broker-ib";
 import { AUDIT_ACTIONS, type AuditAction } from "@/lib/admin/audit";
 import { getBrokerClaimDetail, type BrokerClaimDetail } from "@/lib/broker-ib/admin-query";
 import { BROKER_REJECTION_PRESETS } from "@/lib/broker-ib/messages";
@@ -23,7 +23,7 @@ const checkClass = "flex items-start gap-2 text-sm text-fg-muted";
 function Warnings({ claim }: { claim: BrokerClaimDetail }) {
   const warnings = [
     claim.windowViolation && claim.nextPeriod
-      ? `สมาชิกยังมีสิทธิ์ถึง ${formatDateTime(claim.nextPeriod.start)} (เหลือเกิน 7 วัน) — อนุมัติไม่ได้ตอนนี้`
+      ? `สมาชิกยังมีสิทธิ์ถึง ${formatDateTime(claim.nextPeriod.start)} (เหลือเกิน ${BROKER_IB_RULES.renewalWindowDays} วัน) — อนุมัติไม่ได้ตอนนี้`
       : null,
     claim.accountReleased ? "บัญชีเทรดนี้ถูกปลดการผูกหรือย้ายไปสมาชิกอื่นแล้ว — อนุมัติไม่ได้" : null,
     claim.previousClaimants.length > 0 ? `บัญชีนี้เคยถูกยื่นโดยสมาชิกอื่น: ${claim.previousClaimants.join(", ")}` : null,

@@ -8,7 +8,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const WINDOW_MS = BROKER_IB_RULES.renewalWindowDays * DAY_MS;
 
 /**
- * ยื่นขอ/อนุมัติสิทธิ์ผ่าน IB ได้เมื่อช่วงสิทธิ์ถัดไปเริ่มภายใน 7 วัน (ไม่มีสิทธิ์ หรือสิทธิ์เหลือไม่เกิน 7 วัน)
+ * ยื่นขอ/อนุมัติสิทธิ์ผ่าน IB ได้เมื่อช่วงสิทธิ์ถัดไปเริ่มภายใน BROKER_IB_RULES.renewalWindowDays (ไม่มีสิทธิ์ หรือสิทธิ์เหลือไม่เกิน BROKER_IB_RULES.renewalWindowDays)
  * กันการสะสมเดือนฟรีล่วงหน้า — ตรวจทั้งตอนยื่นและตอนอนุมัติ
  */
 export function isWithinClaimWindow(nextStart: Date, now: Date): boolean {

@@ -141,7 +141,7 @@ const isFailure = (value: BindingRow | ClaimFailure | NormalizedNew): value is C
  * ยื่นคำขอสิทธิ์ผ่าน IB (ครั้งแรก หรือต่ออายุด้วยบัญชีที่ยืนยันแล้ว)
  * - ล็อกตามลำดับคงที่: สมาชิก → บัญชีเทรด (advisory) → แถว BrokerAccount — ไม่ล็อกออเดอร์ที่มีอยู่ จึงไม่ชนกับการอนุมัติ
  * - กดซ้ำ/ส่งพร้อมกัน: คืนคำขอเดิมที่ยังรอตรวจ (Idempotent)
- * - ยื่นได้เฉพาะเมื่อสิทธิ์ที่มีอยู่เหลือไม่เกิน 7 วัน (ตรวจซ้ำตอนอนุมัติ)
+ * - ยื่นได้เฉพาะเมื่อสิทธิ์ที่มีอยู่เหลือไม่เกิน BROKER_IB_RULES.renewalWindowDays (ตรวจซ้ำตอนอนุมัติ)
  * - บันทึกยอดฝากขั้นต่ำ ณ เวลายื่นไว้ในออเดอร์ แอดมินตรวจเทียบค่านี้แม้ตั้งค่าเปลี่ยนภายหลัง
  */
 export async function createBrokerClaim(db: PrismaClient, input: CreateBrokerClaimInput): Promise<CreateBrokerClaimResult> {

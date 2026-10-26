@@ -290,7 +290,7 @@ export type ExpiryJobSummary = {
   summaryDelivered: boolean | null;
 };
 
-/** งานประจำวัน (Flow 6): ปิดออเดอร์ค้างชำระ → ทำให้สิทธิ์หมดอายุ → เตือนก่อนหมด 3 วัน → สรุปให้แอดมิน */
+/** งานประจำวัน (Flow 6): ปิดออเดอร์ค้างชำระ → ทำให้สิทธิ์หมดอายุ → เตือนก่อนหมด PAYMENT_RULES.expiryReminderDays → สรุปให้แอดมิน */
 export async function runExpiryJob(
   db: PrismaClient,
   {

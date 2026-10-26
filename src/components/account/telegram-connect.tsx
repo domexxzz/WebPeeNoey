@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { BellRing, CheckCircle2, ExternalLink } from "lucide-react";
 import { createTelegramLinkAction, unlinkTelegramAction, type TelegramLinkState } from "@/app/(account)/account/telegram-actions";
 import { SubmitButton } from "@/components/checkout/submit-button";
+import { PAYMENT_RULES } from "@/config/payment";
 
 interface TelegramConnectProps {
   enabled: boolean;
@@ -40,7 +41,7 @@ export function TelegramConnect({ enabled, linked, linkedAtLabel }: TelegramConn
         </div>
       ) : (
         <div className="space-y-3">
-          <p className="text-xs text-fg-subtle">รับแจ้งเตือนก่อนสิทธิ์หมดอายุ 3 วันผ่านแชตส่วนตัวกับบอท (นอกเหนือจากอีเมล)</p>
+          <p className="text-xs text-fg-subtle">รับแจ้งเตือนก่อนสิทธิ์หมดอายุ {PAYMENT_RULES.expiryReminderDays} วันผ่านแชตส่วนตัวกับบอท (นอกเหนือจากอีเมล)</p>
           {state.status === "ready" ? (
             <div className="space-y-2">
               <a

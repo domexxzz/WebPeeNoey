@@ -3,6 +3,7 @@ import type { RevokeResult } from "./members";
 import type { SettingsResult } from "./settings";
 import type { BrokerIbSettingsResult } from "@/lib/broker-ib/settings";
 import type { ApproveBrokerClaimResult, RejectBrokerClaimResult, ReleaseBrokerAccountResult, RevokeBrokerAccessResult } from "@/lib/broker-ib/review";
+import { BROKER_IB_RULES } from "@/config/broker-ib";
 
 type FailureCode<T> = T extends { ok: false; code: infer C } ? C : never;
 
@@ -41,7 +42,7 @@ export const ADMIN_ERROR_MESSAGES: Record<AdminErrorCode, string> = {
   INVALID_USD_THB_RATE: "อัตราแลกเปลี่ยน USD/THB ต้องเป็นตัวเลข 10–100 ทศนิยมไม่เกิน 2 ตำแหน่ง",
   CHECKS_REQUIRED: "ติ๊กยืนยันผลตรวจใน Partner Portal ให้ครบทุกข้อก่อนอนุมัติ",
   ACCOUNT_RELEASED: "บัญชีเทรดนี้ถูกปลดการผูกแล้ว — อนุมัติไม่ได้ (ให้สมาชิกยื่นใหม่)",
-  NOT_IN_RENEWAL_WINDOW: "สมาชิกยังมีสิทธิ์เหลือมากกว่า 7 วัน — อนุมัติไม่ได้ตอนนี้ (ปฏิเสธพร้อมเหตุผล หรือรอให้ถึงช่วงต่ออายุ)",
+  NOT_IN_RENEWAL_WINDOW: `สมาชิกยังมีสิทธิ์เหลือมากกว่า ${BROKER_IB_RULES.renewalWindowDays} วัน — อนุมัติไม่ได้ตอนนี้ (ปฏิเสธพร้อมเหตุผล หรือรอให้ถึงช่วงต่ออายุ)`,
   NOTHING_TO_REVOKE: "สมาชิกไม่มีสิทธิ์ผ่าน IB หรือคำขอที่รอตรวจให้ปิดแล้ว",
   BROKER_ACCOUNT_NOT_FOUND: "ไม่พบบัญชีเทรดนี้",
   ALREADY_RELEASED: "บัญชีเทรดนี้ถูกปลดการผูกไปแล้ว",

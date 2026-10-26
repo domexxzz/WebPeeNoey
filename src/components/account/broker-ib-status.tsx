@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Clock, Hourglass, XCircle } from "lucide-react";
-import { BROKERS, BROKER_IB_CONTENT, PLATFORMS } from "@/config/broker-ib";
+import { BROKERS, BROKER_IB_CONTENT, PLATFORMS, BROKER_IB_RULES} from "@/config/broker-ib";
 import { formatDate } from "@/lib/format";
 import { ORDER_PHASE_LABELS } from "@/lib/orders/messages";
 import type { BrokerIbMemberStatus } from "@/lib/broker-ib/member-status";
@@ -92,7 +92,7 @@ export function BrokerIbStatus({ status, memberEmail }: { status: BrokerIbMember
             คุณยังมีสิทธิ์ใช้งานถึง {formatDate(state.coveredUntil)}
           </h2>
           <p className="mt-3 text-sm text-fg-muted">
-            ยื่นคำขอสิทธิ์ผ่านโบรกเกอร์ได้ตั้งแต่วันที่ {formatDate(state.opensAt)} (7 วันก่อนสิทธิ์หมด) — วันใช้งานจะทบต่อจากวันหมดอายุเดิม
+            ยื่นคำขอสิทธิ์ผ่านโบรกเกอร์ได้ตั้งแต่วันที่ {formatDate(state.opensAt)} ({BROKER_IB_RULES.renewalWindowDays} วันก่อนสิทธิ์หมด) — วันใช้งานจะทบต่อจากวันหมดอายุเดิม
           </p>
         </section>
       )}

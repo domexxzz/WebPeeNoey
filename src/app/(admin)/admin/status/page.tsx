@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { formatDateTime } from "@/lib/format";
 import { getSystemHealth } from "@/lib/admin/health";
 import { AdminCard, AdminPageHeader } from "@/components/admin/admin-ui";
+import { PAYMENT_RULES } from "@/config/payment";
 
 export const metadata: Metadata = { title: "สถานะระบบ", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -24,7 +25,7 @@ export default async function AdminStatusPage() {
     { label: "สลิปรอตรวจ", value: health.queues.pendingReview, href: "/admin/orders?tab=review", warn: health.queues.pendingReview > 0 },
     { label: "สลิปที่ยังแจ้งเตือนแอดมินไม่สำเร็จ", value: health.queues.unnotifiedSlips, href: "/admin/orders?tab=review", warn: health.queues.unnotifiedSlips > 0 },
     { label: "คำสั่งซื้อรอชำระ (ยังไม่หมดเวลา)", value: health.queues.awaitingPayment, href: "/admin/orders?tab=pending", warn: false },
-    { label: "สมาชิกหมดอายุใน 3 วัน", value: health.queues.expiringSoon, href: "/admin/members", warn: false },
+    { label: `สมาชิกหมดอายุใน ${PAYMENT_RULES.expiryReminderDays} วัน`, value: health.queues.expiringSoon, href: "/admin/members", warn: false },
     { label: "สิทธิ์ที่ปิดแล้วแต่ยังต้องถอดในช่องทาง", value: health.queues.pendingDeprovision, href: "/admin/members", warn: health.queues.pendingDeprovision > 0 },
   ];
 

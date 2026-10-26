@@ -13,6 +13,7 @@ import { TelegramConnect } from "@/components/account/telegram-connect";
 import { DiscordJoinLink } from "@/components/account/discord-join-link";
 import { COMMUNITY } from "@/config/community";
 import { getBrokerIbAvailability } from "@/lib/broker-ib/availability";
+import { BROKER_IB_PLAN, BROKER_IB_RULES } from "@/config/broker-ib";
 
 export default async function AccountDashboardPage() {
   const session = await getServerSession(authOptions);
@@ -205,7 +206,9 @@ export default async function AccountDashboardPage() {
               ใช้ฟรีผ่านโบรกเกอร์พาร์ทเนอร์
             </h2>
             <p className="mt-1 text-sm text-fg-muted">
-              {viaBroker ? "ยื่นต่อสิทธิ์ผ่าน IB ได้ในช่วง 7 วันก่อนหมดอายุ" : "เปิดบัญชีเทรดผ่านลิงก์ของเราและฝากเงินครบขั้นต่ำ แล้วยื่นเลขบัญชีเพื่อรับสิทธิ์ 30 วัน"}
+              {viaBroker
+                ? `ยื่นต่อสิทธิ์ผ่าน IB ได้ในช่วง ${BROKER_IB_RULES.renewalWindowDays} วันก่อนหมดอายุ`
+                : `เปิดบัญชีเทรดผ่านลิงก์ของเราและฝากเงินครบขั้นต่ำ แล้วยื่นเลขบัญชีเพื่อรับสิทธิ์ ${BROKER_IB_PLAN.durationDays} วัน`}
             </p>
           </div>
           <Link href="/account/broker-ib" className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-gold-ink hover:text-gold-ink">

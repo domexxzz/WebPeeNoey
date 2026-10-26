@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { siteConfig } from "@/config/site";
+import { BROKER_IB_RULES } from "@/config/broker-ib";
 
 const resendApiKey = process.env.RESEND_API_KEY;
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
@@ -227,7 +228,7 @@ export async function sendBrokerClaimApprovedEmail(
         `
           <p>ทีมงานตรวจสอบบัญชีเทรดของคุณใน Partner Portal แล้ว (คำขอ <strong>${escapeHtml(claim.orderNumber)}</strong>)</p>
           <p>สิทธิ์ใช้งานถึงวันที่ <strong>${escapeHtml(endsAt)}</strong> — ทีมงานจะเปิดสิทธิ์ในแต่ละช่องทางให้ตามข้อมูลในหน้าสมาชิก</p>
-          <p>ต่ออายุได้ในช่วง 7 วันก่อนหมดอายุ ที่หน้า "สิทธิ์ผ่านโบรกเกอร์" ในแดชบอร์ดสมาชิก (ทีมงานจะตรวจบัญชีอีกครั้ง)</p>
+          <p>ต่ออายุได้ในช่วง ${BROKER_IB_RULES.renewalWindowDays} วันก่อนหมดอายุ ที่หน้า "สิทธิ์ผ่านโบรกเกอร์" ในแดชบอร์ดสมาชิก (ทีมงานจะตรวจบัญชีอีกครั้ง)</p>
           ${emailButton(`${appUrl()}/account/broker-ib`, "ดูสถานะสิทธิ์")}
         `,
       ),
