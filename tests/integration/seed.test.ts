@@ -30,11 +30,13 @@ describe("Integration: database seed (real PostgreSQL)", () => {
     });
   });
 
-  it("creates the free broker IB plan (price 0, 30 days) that checkout can never sell", async () => {
+  it("creates the free broker IB plan (price 0, duration from config) that checkout can never sell", async () => {
     await seedDatabase(prisma, OPTIONS);
 
     const plan = await prisma.plan.findUniqueOrThrow({ where: { slug: BROKER_IB_PLAN.slug } });
-    expect(plan).toMatchObject({ kind: "BROKER_IB", durationDays: 30, isActive: true, isPromo: false, lockPriceForLife: false });
+    // durationDays ต้องตรงกับ config เพราะ createBrokerClaim อ่านจากแถวนี้ ส่วนหน้าสมาชิกอ่านจาก config
+    expect(plan).toMatchObject({ kind: "BROKER_IB", durationDays: BROKER_IB_PLAN.durationDays, isActive: true, isPromo: false, lockPriceForLife: false });
+    expect(plan.name).toBe(BROKER_IB_PLAN.name);
     expect(plan.price.toNumber()).toBe(0);
     expect(plan.features).toEqual([...BROKER_IB_PLAN.features]);
   });

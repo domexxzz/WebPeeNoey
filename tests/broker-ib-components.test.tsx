@@ -4,7 +4,7 @@ import { BrokerIbSection } from "@/components/marketing/broker-ib-section";
 import { BrokerIbStatus } from "@/components/account/broker-ib-status";
 import type { BrokerIbMemberStatus } from "@/lib/broker-ib/member-status";
 import type { BrokerIbAvailability } from "@/lib/broker-ib/availability";
-import { BROKER_IB_CONTENT } from "@/config/broker-ib";
+import { BROKER_IB_CONTENT, BROKER_IB_PLAN } from "@/config/broker-ib";
 import { RISK_DISCLAIMER } from "@/config/marketing";
 import { PRIVACY_DOCUMENT, REFUND_DOCUMENT, TERMS_DOCUMENT } from "@/content/legal";
 
@@ -102,7 +102,7 @@ describe("Legal text covers the IB program", () => {
     expect(section).toBeDefined();
     const text = section?.bullets?.join(" ") ?? "";
     expect(text).toContain("1 บัญชี");
-    expect(text).toContain("30 วัน");
+    expect(text).toContain(`มีอายุ ${BROKER_IB_PLAN.durationDays} วัน`);
     expect(text).toContain("บุคคลภายนอก");
     expect(text).toContain("ค่าตอบแทน");
     // หัวข้อเรียงเลขต่อเนื่อง

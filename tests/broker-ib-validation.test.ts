@@ -123,8 +123,9 @@ describe("broker IB availability", () => {
 });
 
 describe("broker IB plan config", () => {
-  it("is a 30-day plan outside the paid price list, with the entry plan's benefits minus the price lock", () => {
-    expect(BROKER_IB_PLAN.durationDays).toBe(30);
+  it("is a short free plan outside the paid price list, with the entry plan's benefits minus the price lock", () => {
+    expect(BROKER_IB_PLAN.durationDays).toBeGreaterThan(0);
+    expect(BROKER_IB_PLAN.name).toContain(`${BROKER_IB_PLAN.durationDays} วัน`);
     expect(SITE_PLANS.some((plan) => plan.slug === BROKER_IB_PLAN.slug)).toBe(false);
     expect(BROKER_IB_PLAN.features.length).toBeGreaterThan(0);
     for (const feature of BROKER_IB_PLAN.features) expect(SITE_PLANS[0].features).toContain(feature);

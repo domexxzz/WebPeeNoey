@@ -11,6 +11,8 @@ import { runWatchdog } from "@/lib/jobs/watchdog";
 import { updateBrokerIbSettings } from "@/lib/broker-ib/settings";
 import { createBrokerClaim, type BrokerClaimInput } from "@/lib/broker-ib/claims";
 import { AUTO_REJECT_REASON, approveBrokerClaim, rejectBrokerClaim, releaseBrokerAccount, revokeBrokerAccess } from "@/lib/broker-ib/review";
+import { BROKER_IB_PLAN, BROKER_IB_RULES } from "@/config/broker-ib";
+import { PAYMENT_RULES } from "@/config/payment";
 import { createTestPrisma, resetDatabase } from "./helpers";
 
 const prisma = createTestPrisma();
@@ -98,9 +100,10 @@ describe("Integration: revoke broker IB access", () => {
 
   it("auto-rejects a waiting claim when revoking", async () => {
     const { user } = await ibMember(T0);
-    const renewal = await claimFor(user.id, { mode: "RENEW" }, day(24));
+    // ยื่นต่อขณะสิทธิ์ยังเหลือ แล้วแอดมินปิดสิทธิ์ก่อนคำขอได้รับการตรวจ
+    const renewal = await claimFor(user.id, { mode: "RENEW" }, day(BROKER_IB_PLAN.durationDays - BROKER_IB_RULES.renewalWindowDays));
 
-    const result = await revokeBrokerAccess(prisma, { userId: user.id, actor: actor(), reason: "ข้อมูลเท็จ", releaseAccount: false, now: day(25) });
+    const result = await revokeBrokerAccess(prisma, { userId: user.id, actor: actor(), reason: "ข้อมูลเท็จ", releaseAccount: false, now: day(BROKER_IB_PLAN.durationDays - 1) });
 
     expect(result).toMatchObject({ ok: true, revoked: 1, rejectedClaims: 1, continuing: false });
     // สมาชิกเห็นข้อความกลาง ๆ — เหตุผลจริงของแอดมินอยู่ใน Audit Log เท่านั้น
@@ -174,7 +177,7 @@ describe("Integration: IB grants in the automated jobs", () => {
     const { user } = await ibMember(T0);
     const targets: ReminderTarget[] = [];
 
-    await sendExpiryReminders(prisma, { now: day(28), send: async (target) => (targets.push(target), { email: true, telegram: false }) });
+    await sendExpiryReminders(prisma, { now: day(BROKER_IB_PLAN.durationDays - PAYMENT_RULES.expiryReminderDays), send: async (target) => (targets.push(target), { email: true, telegram: false }) });
 
     expect(targets).toEqual([expect.objectContaining({ userId: user.id, planKind: "BROKER_IB", planSlug: "broker-ib" })]);
   });

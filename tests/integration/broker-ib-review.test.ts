@@ -9,6 +9,7 @@ import { getRevenueSummary } from "@/lib/admin/dashboard";
 import { updateBrokerIbSettings } from "@/lib/broker-ib/settings";
 import { createBrokerClaim, type BrokerClaimInput } from "@/lib/broker-ib/claims";
 import { approveBrokerClaim, rejectBrokerClaim, type BrokerClaimChecks } from "@/lib/broker-ib/review";
+import { BROKER_IB_PLAN, BROKER_IB_RULES } from "@/config/broker-ib";
 import { createTestPrisma, resetDatabase } from "./helpers";
 
 const prisma = createTestPrisma();
@@ -16,6 +17,9 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const T0 = new Date("2026-10-15T03:00:00Z");
 const day = (n: number) => new Date(T0.getTime() + n * DAY_MS);
 const ALL_CHECKS: BrokerClaimChecks = { underIb: true, emailMatches: true, qualifies: true };
+/** อายุสิทธิ์ IB และช่วงยื่นต่อ อ่านจาก config เพื่อไม่ต้องไล่แก้ตัวเลขทุกครั้งที่เจ้าของเปลี่ยนนโยบาย */
+const IB = BROKER_IB_PLAN.durationDays;
+const WINDOW = BROKER_IB_RULES.renewalWindowDays;
 
 let adminId: string;
 let secondAdminId: string;
@@ -73,16 +77,16 @@ afterAll(async () => {
 });
 
 describe("Integration: approve a broker IB claim", () => {
-  it("grants 30 days, verifies the account and writes a full audit entry", async () => {
+  it("grants the configured number of free days, verifies the account and writes a full audit entry", async () => {
     const user = await member();
     const orderId = await claimFor(user.id);
 
     const result = await approve(orderId, day(1));
 
-    expect(result).toMatchObject({ ok: true, isRenewal: false, email: user.email, periodStart: day(1), periodEnd: day(31) });
+    expect(result).toMatchObject({ ok: true, isRenewal: false, email: user.email, periodStart: day(1), periodEnd: day(1 + IB) });
     const order = await prisma.order.findUniqueOrThrow({ where: { id: orderId }, include: { subscription: true, brokerAccount: true } });
     expect(order).toMatchObject({ status: "APPROVED", approvedByUserId: adminId, approvedAt: day(1) });
-    expect(order.subscription).toMatchObject({ status: "ACTIVE", isPriceLocked: false, lockedPrice: null, currentPeriodStart: day(1), currentPeriodEnd: day(31) });
+    expect(order.subscription).toMatchObject({ status: "ACTIVE", isPriceLocked: false, lockedPrice: null, currentPeriodStart: day(1), currentPeriodEnd: day(1 + IB) });
     expect(order.brokerAccount).toMatchObject({ status: "VERIFIED", firstVerifiedAt: day(1), lastVerifiedAt: day(1), lastVerifiedByUserId: adminId });
 
     const audit = await prisma.auditLog.findFirstOrThrow({ where: { action: "BROKER_CLAIM_APPROVE", targetId: orderId } });
@@ -156,18 +160,19 @@ describe("Integration: approve a broker IB claim", () => {
     const user = await member();
     await approve(await claimFor(user.id), T0);
 
-    const renewal = await claimFor(user.id, { mode: "RENEW" }, day(24));
-    const result = await approve(renewal, day(25));
+    // ยื่นต่อได้เมื่อสิทธิ์เหลือไม่เกินช่วงที่กำหนด
+    const renewal = await claimFor(user.id, { mode: "RENEW" }, day(IB - WINDOW));
+    const result = await approve(renewal, day(IB - WINDOW));
 
-    expect(result).toMatchObject({ ok: true, isRenewal: true, periodStart: day(30), periodEnd: day(60) });
-    expect((await getMembershipSummary(prisma, { userId: user.id, now: day(26) })).endsAt).toEqual(day(60));
+    expect(result).toMatchObject({ ok: true, isRenewal: true, periodStart: day(IB), periodEnd: day(IB * 2) });
+    expect((await getMembershipSummary(prisma, { userId: user.id, now: day(IB - 1) })).endsAt).toEqual(day(IB * 2));
   });
 
   it("a renewal after access lapsed starts at the approval time", async () => {
     const user = await member();
     await approve(await claimFor(user.id), T0);
     const renewal = await claimFor(user.id, { mode: "RENEW" }, day(40));
-    expect(await approve(renewal, day(41))).toMatchObject({ ok: true, periodStart: day(41), periodEnd: day(71) });
+    expect(await approve(renewal, day(41))).toMatchObject({ ok: true, periodStart: day(41), periodEnd: day(41 + IB) });
   });
 
   it("IB and paid periods chain without overlap in both orders", async () => {
@@ -176,12 +181,12 @@ describe("Integration: approve a broker IB claim", () => {
     const paidAfter = await paidOrderSubmitted(ibFirst.id, SITE_PLANS[0].slug, day(1));
     await approveOrder(prisma, { orderId: paidAfter, actor: actor(), referenceNo: ref(), now: day(1) });
     const paidSub = await prisma.subscription.findUniqueOrThrow({ where: { orderId: paidAfter } });
-    expect(paidSub.currentPeriodStart).toEqual(day(30));
+    expect(paidSub.currentPeriodStart).toEqual(day(IB));
 
     const paidFirst = await member();
     await approveOrder(prisma, { orderId: await paidOrderSubmitted(paidFirst.id, SITE_PLANS[0].slug, T0), actor: actor(), referenceNo: ref(), now: T0 });
-    const ibAfter = await claimFor(paidFirst.id, { ...NEW, accountNumber: "99999999" }, day(25));
-    expect(await approve(ibAfter, day(25))).toMatchObject({ ok: true, periodStart: day(30), periodEnd: day(60) });
+    const ibAfter = await claimFor(paidFirst.id, { ...NEW, accountNumber: "99999999" }, day(30 - WINDOW));
+    expect(await approve(ibAfter, day(30 - WINDOW))).toMatchObject({ ok: true, periodStart: day(30), periodEnd: day(30 + IB) });
   });
 
   it("re-checks the renewal window at approval (a paid plan approved in between)", async () => {

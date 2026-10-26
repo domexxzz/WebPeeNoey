@@ -5,6 +5,7 @@ import { updateBrokerIbSettings } from "@/lib/broker-ib/settings";
 import { createBrokerClaim, type BrokerClaimInput } from "@/lib/broker-ib/claims";
 import { approveQualifyingClaims, previewReportMatches } from "@/lib/broker-ib/report-review";
 import type { AccountEvidence } from "@/lib/broker-ib/report-import";
+import { BROKER_IB_PLAN } from "@/config/broker-ib";
 import { createTestPrisma, resetDatabase } from "./helpers";
 
 const prisma = createTestPrisma();
@@ -60,7 +61,7 @@ describe("Integration: approve IB claims from uploaded partner reports", () => {
     expect(await prisma.order.count({ where: { status: "APPROVED" } })).toBe(0);
   });
 
-  it("approves only qualifying claims, creates their 30-day access and records the report import", async () => {
+  it("approves only qualifying claims, creates their free access and records the report import", async () => {
     const userId = (await member()).id;
     const qualifying = await claim(userId);
     const mismatch = await claim((await member()).id, { broker: "EXNESS", accountNumber: "81234567", registeredEmail: "real@example.com" });
@@ -81,7 +82,7 @@ describe("Integration: approve IB claims from uploaded partner reports", () => {
     expect((await prisma.order.findUniqueOrThrow({ where: { id: mismatch } })).status).toBe("CLAIM_SUBMITTED");
 
     const subscription = await prisma.subscription.findFirstOrThrow({ where: { userId } });
-    expect(subscription.currentPeriodEnd.getTime() - subscription.currentPeriodStart.getTime()).toBe(30 * 24 * 60 * 60 * 1000);
+    expect(subscription.currentPeriodEnd.getTime() - subscription.currentPeriodStart.getTime()).toBe(BROKER_IB_PLAN.durationDays * 24 * 60 * 60 * 1000);
 
     const approval = await prisma.auditLog.findFirstOrThrow({ where: { action: "BROKER_CLAIM_APPROVE", targetId: qualifying } });
     expect(approval.actorId).toBe(adminId);

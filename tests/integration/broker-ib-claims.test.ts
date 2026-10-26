@@ -7,6 +7,7 @@ import { createOrder, submitSlip } from "@/lib/orders/checkout";
 import { approveOrder } from "@/lib/admin/order-review";
 import { updateBrokerIbSettings } from "@/lib/broker-ib/settings";
 import { createBrokerClaim, type BrokerClaimInput } from "@/lib/broker-ib/claims";
+import { BROKER_IB_RULES } from "@/config/broker-ib";
 import { createTestPrisma, resetDatabase } from "./helpers";
 
 const prisma = createTestPrisma();
@@ -186,14 +187,15 @@ describe("Integration: submit a broker IB claim", () => {
     expect(await claim(user.id, { mode: "RENEW" })).toEqual({ ok: false, code: "NO_VERIFIED_ACCOUNT" });
   });
 
-  it("stacking: a member with more than 7 days left must wait for the renewal window", async () => {
+  it("stacking: a member whose access outlasts the renewal window must wait", async () => {
     const user = await paidMember(SITE_PLANS[0].slug, T0); // 30 วัน: สิ้นสุดวันที่ 30
     const paidEnd = day(SITE_PLANS[0].durationDays);
+    const opensAt = new Date(paidEnd.getTime() - BROKER_IB_RULES.renewalWindowDays * DAY_MS);
 
     const early = await claim(user.id, newClaim(), day(10));
-    expect(early).toEqual({ ok: false, code: "NOT_IN_RENEWAL_WINDOW", opensAt: new Date(paidEnd.getTime() - 7 * DAY_MS) });
+    expect(early).toEqual({ ok: false, code: "NOT_IN_RENEWAL_WINDOW", opensAt });
 
-    expect(await claim(user.id, newClaim(), new Date(paidEnd.getTime() - 7 * DAY_MS))).toMatchObject({ ok: true });
+    expect(await claim(user.id, newClaim(), opensAt)).toMatchObject({ ok: true });
   });
 
   it("an account released by its previous holder can be claimed by someone else (same row is reused)", async () => {

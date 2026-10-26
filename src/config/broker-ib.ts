@@ -11,16 +11,20 @@ import { SITE_PLANS } from "./plans";
 export const BROKER_IB_PLAN = {
   id: "plan_broker_ib",
   slug: "broker-ib",
-  name: "สิทธิ์ใช้งานผ่านโบรกเกอร์พาร์ทเนอร์ (IB) 30 วัน",
-  durationDays: 30,
+  name: "สิทธิ์ใช้งานผ่านโบรกเกอร์พาร์ทเนอร์ (IB) 7 วัน",
+  durationDays: 7,
   // สิทธิ์เดียวกับแพ็กเกจเริ่มต้น ยกเว้นการล็อกราคา (สิทธิ์ฟรีไม่มีราคาให้ล็อก)
   features: SITE_PLANS[0].features.filter((feature) => !feature.includes("ล็อกราคา")),
   sortOrder: 100,
 } as const;
 
 export const BROKER_IB_RULES = {
-  /** ยื่นขอสิทธิ์ (ครั้งแรก/ต่ออายุ) ได้เมื่อสิทธิ์ที่มีอยู่เหลือไม่เกินกี่วัน — กันสะสมเดือนฟรีล่วงหน้า */
-  renewalWindowDays: 7,
+  /**
+   * ยื่นขอสิทธิ์ (ครั้งแรก/ต่ออายุ) ได้เมื่อสิทธิ์ที่มีอยู่เหลือไม่เกินกี่วัน — กันสะสมสิทธิ์ฟรีล่วงหน้า
+   * ต้องสั้นกว่า BROKER_IB_PLAN.durationDays เสมอ ไม่งั้นหน้าต่างเปิดค้างตั้งแต่วินาทีที่เพิ่งอนุมัติ
+   * และสมาชิกยื่นต่อซ้ำได้ไม่รู้จบจากการฝากเงินครั้งเดียว (tests/broker-ib-rules.test.ts ดักไว้)
+   */
+  renewalWindowDays: 2,
   /** MT4/MT5 Login เป็นตัวเลขล้วน */
   accountNumberPattern: /^\d{5,12}$/,
   /** ยอดฝากขั้นต่ำตั้งเป็นเงินบาทแยกรายโบรกเกอร์ (ลูกค้าไทยฝากเป็นบาท) */

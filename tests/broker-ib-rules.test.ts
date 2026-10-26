@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { claimWindowOpensAt, isWithinClaimWindow, resolveBrokerIbMemberState, type MemberStateInput } from "@/lib/broker-ib/rules";
+import { BROKER_IB_PLAN, BROKER_IB_RULES } from "@/config/broker-ib";
+import { LEGAL_DOCUMENTS } from "@/content/legal";
 import type { BrokerIbAvailability } from "@/lib/broker-ib/availability";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -19,14 +21,34 @@ const base: MemberStateInput = {
 };
 
 describe("broker IB claim window", () => {
-  it("opens when the next period starts within 7 days (or there is no coverage)", () => {
+  const WINDOW = BROKER_IB_RULES.renewalWindowDays;
+
+  it("opens when the next period starts within the renewal window (or there is no coverage)", () => {
     expect(isWithinClaimWindow(NOW, NOW)).toBe(true);
-    expect(isWithinClaimWindow(inDays(7), NOW)).toBe(true);
-    expect(isWithinClaimWindow(new Date(inDays(7).getTime() + 1), NOW)).toBe(false);
+    expect(isWithinClaimWindow(inDays(WINDOW), NOW)).toBe(true);
+    expect(isWithinClaimWindow(new Date(inDays(WINDOW).getTime() + 1), NOW)).toBe(false);
   });
 
   it("tells the member when the window opens", () => {
-    expect(claimWindowOpensAt(inDays(30))).toEqual(inDays(23));
+    expect(claimWindowOpensAt(inDays(30))).toEqual(inDays(30 - WINDOW));
+  });
+
+  /**
+   * ถ้าช่วงยื่นต่ออายุยาวเท่ากับหรือเกินอายุสิทธิ์ หน้าต่างจะเปิดค้างตลอด
+   * สมาชิกยื่นต่อได้ทันทีที่เพิ่งได้รับอนุมัติ = สะสมสิทธิ์ฟรีไม่จำกัดจากการฝากเงินครั้งเดียว
+   */
+  it("closes right after an approval, so free periods cannot be stacked", () => {
+    expect(WINDOW).toBeLessThan(BROKER_IB_PLAN.durationDays);
+    const justApprovedNextStart = inDays(BROKER_IB_PLAN.durationDays);
+    expect(isWithinClaimWindow(justApprovedNextStart, NOW)).toBe(false);
+  });
+
+  it("states the real entitlement length in the terms, not a number typed by hand", () => {
+    const ibSection = Object.values(LEGAL_DOCUMENTS)
+      .flatMap((doc) => doc.sections)
+      .flatMap((section) => section.bullets ?? []);
+    const durationLine = ibSection.find((line) => line.includes("สิทธิ์แต่ละครั้งมีอายุ"));
+    expect(durationLine).toContain(`มีอายุ ${BROKER_IB_PLAN.durationDays} วัน`);
   });
 });
 
@@ -43,15 +65,17 @@ describe("broker IB member state", () => {
     });
   });
 
-  it("asks to wait when more than 7 days of access remain (e.g. a paid plan)", () => {
-    expect(resolveBrokerIbMemberState({ ...base, nextStart: inDays(20) })).toEqual({ kind: "WAIT_WINDOW", opensAt: inDays(13), coveredUntil: inDays(20) });
+  it("asks to wait when more access remains than the renewal window (e.g. a paid plan)", () => {
+    const window = BROKER_IB_RULES.renewalWindowDays;
+    expect(resolveBrokerIbMemberState({ ...base, nextStart: inDays(20) })).toEqual({ kind: "WAIT_WINDOW", opensAt: inDays(20 - window), coveredUntil: inDays(20) });
   });
 
   it("offers renewal for a verified account inside the window", () => {
-    expect(resolveBrokerIbMemberState({ ...base, binding: verified, nextStart: inDays(5), ibActiveUntil: inDays(5) })).toEqual({
+    const nearlyOver = inDays(BROKER_IB_RULES.renewalWindowDays);
+    expect(resolveBrokerIbMemberState({ ...base, binding: verified, nextStart: nearlyOver, ibActiveUntil: nearlyOver })).toEqual({
       kind: "CAN_RENEW",
       binding: verified,
-      ibActiveUntil: inDays(5),
+      ibActiveUntil: nearlyOver,
       lastRejection: null,
     });
   });
