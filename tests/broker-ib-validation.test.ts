@@ -9,7 +9,7 @@ import {
   parseMinDepositThb,
 } from "@/lib/broker-ib/validation";
 import { computeBrokerIbAvailability, type BrokerIbSettingValues } from "@/lib/broker-ib/availability";
-import { BROKER_IB_PLAN } from "@/config/broker-ib";
+import { BROKER_IB_CONTENT, BROKER_IB_PLAN, BROKER_IB_RULES } from "@/config/broker-ib";
 import { buildIbSettingsChangedMessage } from "@/lib/broker-ib/notification";
 import { SITE_PLANS } from "@/config/plans";
 
@@ -123,6 +123,29 @@ describe("broker IB availability", () => {
 });
 
 describe("broker IB plan config", () => {
+  /**
+   * ข้อความขายบนหน้า /broker-ib เคยเขียน "30 วัน" และ "7 วันก่อนหมดอายุ" ไว้ตายตัว
+   * พอเจ้าของเปลี่ยนนโยบายเป็น 7 วัน หน้าเว็บจึงสัญญากับลูกค้าคนละอย่างกับที่ระบบให้จริง (CLAUDE.md ข้อ 3)
+   * ทุกจำนวนวันที่พูดถึงในคอนเทนต์ชุดนี้ต้องเป็นค่าที่ตั้งไว้จริงเท่านั้น
+   */
+  it("never promises a number of days that the system does not actually grant", () => {
+    const allowed = new Set([BROKER_IB_PLAN.durationDays, BROKER_IB_RULES.renewalWindowDays]);
+    const strings: string[] = [];
+    const walk = (value: unknown): void => {
+      if (typeof value === "string") strings.push(value);
+      else if (Array.isArray(value)) value.forEach(walk);
+      else if (value && typeof value === "object") Object.values(value).forEach(walk);
+    };
+    walk(BROKER_IB_CONTENT);
+
+    expect(strings.length).toBeGreaterThan(5);
+    for (const line of strings) {
+      for (const match of line.matchAll(/(\d+)\s*วัน/g)) {
+        expect(allowed, `"${match[0]}" ใน "${line.slice(0, 60)}…" ไม่ตรงกับค่าที่ตั้งไว้`).toContain(Number(match[1]));
+      }
+    }
+  });
+
   it("is a short free plan outside the paid price list, with the entry plan's benefits minus the price lock", () => {
     expect(BROKER_IB_PLAN.durationDays).toBeGreaterThan(0);
     expect(BROKER_IB_PLAN.name).toContain(`${BROKER_IB_PLAN.durationDays} วัน`);

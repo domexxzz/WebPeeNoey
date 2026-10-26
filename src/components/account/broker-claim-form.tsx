@@ -6,6 +6,7 @@ import { CheckCircle2, ShieldCheck, XCircle } from "lucide-react";
 import type { Broker } from "@prisma/client";
 import { submitBrokerClaimAction, type BrokerClaimFormState } from "@/app/(account)/account/broker-ib/actions";
 import { SubmitButton } from "@/components/checkout/submit-button";
+import { BROKER_IB_PLAN } from "@/config/broker-ib";
 
 const initialState: BrokerClaimFormState = { status: "idle" };
 
@@ -125,7 +126,7 @@ export function BrokerClaimForm(props: NewClaimProps | RenewProps) {
         <ShieldCheck className="w-4 h-4 shrink-0 text-gold-ink" aria-hidden="true" />
         {props.noPasswordNote}
       </p>
-      <SubmitButton pendingLabel="กำลังส่งคำขอ...">{props.mode === "NEW" ? "ส่งคำขอให้ทีมงานตรวจสอบ" : "ขอต่อสิทธิ์อีก 30 วัน"}</SubmitButton>
+      <SubmitButton pendingLabel="กำลังส่งคำขอ...">{props.mode === "NEW" ? "ส่งคำขอให้ทีมงานตรวจสอบ" : `ขอต่อสิทธิ์อีก ${BROKER_IB_PLAN.durationDays} วัน`}</SubmitButton>
       <FormResult state={state} />
     </form>
   );
