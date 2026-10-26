@@ -8,6 +8,7 @@ import { metadata as termsMetadata } from "@/app/(marketing)/terms/page";
 import { metadata as privacyMetadata } from "@/app/(marketing)/privacy/page";
 import { metadata as refundMetadata } from "@/app/(marketing)/refund/page";
 import { resolveSiteUrl } from "@/config/site";
+import { UNSET_LEGAL_VALUE } from "@/config/legal";
 import {
   LEGAL_PATHS,
   PRIVATE_PATH_PREFIXES,
@@ -66,6 +67,17 @@ describe("Phase 2: Navigation integrity", () => {
   it("has a page for every public route listed in the sitemap", () => {
     PUBLIC_ROUTES.forEach((route) => expect(APP_ROUTES.has(route.path), route.path).toBe(true));
   });
+
+  /**
+   * ทางกลับของข้อบน: หน้าสาธารณะที่เพิ่มใหม่ต้องถูกใส่ใน PUBLIC_ROUTES ด้วย
+   * ไม่งั้นหน้านั้นเปิดให้เก็บข้อมูลได้แต่ไม่มีใน sitemap — เคยหลุดมาแล้วกับ /broker-ib
+   */
+  it("lists every public marketing page in the sitemap table", () => {
+    const marketingPages = collectAppRoutes(path.join(APP_DIR, "(marketing)"));
+    const listed = new Set(PUBLIC_ROUTES.map((route) => route.path));
+    expect(marketingPages.length).toBeGreaterThan(1);
+    marketingPages.forEach((route) => expect(listed.has(route), `${route} ไม่อยู่ใน PUBLIC_ROUTES`).toBe(true));
+  });
 });
 
 describe("Phase 2: SEO", () => {
@@ -86,6 +98,16 @@ describe("Phase 2: SEO", () => {
 
     const publishedPaths = getIndexableRoutes(false).map((route) => route.path);
     expect(publishedPaths).toEqual(PUBLIC_ROUTES.map((route) => route.path));
+  });
+
+  /**
+   * ปลด isDraft ได้ต่อเมื่อกรอกชื่อและที่อยู่ผู้ให้บริการจริงแล้ว
+   * ไม่งั้นหน้าที่เขียนว่า "[รอระบุโดยผู้ให้บริการ]" จะถูกส่งให้ Search Engine เก็บ — เป็นเอกสารทางกฎหมายที่ไม่บอกว่าใครเป็นผู้ขาย
+   */
+  it("refuses to publish legal pages while the operator name or address is still a placeholder", () => {
+    const unset = legalConfig.operatorName === UNSET_LEGAL_VALUE || legalConfig.operatorAddress === UNSET_LEGAL_VALUE;
+    if (unset) expect(legalConfig.isDraft, "ยังไม่ได้กรอกชื่อ/ที่อยู่ผู้ให้บริการ จึงยังปลด isDraft ไม่ได้").toBe(true);
+    LEGAL_PATHS.forEach((path) => expect(getIndexableRoutes(legalConfig.isDraft).some((route) => route.path === path)).toBe(!legalConfig.isDraft));
   });
 
   it("marks draft legal pages as noindex", () => {
