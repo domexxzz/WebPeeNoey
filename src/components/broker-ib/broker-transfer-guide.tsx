@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRightLeft, Check, ChevronDown, Copy, ExternalLink, HelpCircle, ImageIcon, MessageCircle, X } from "lucide-react";
-import { BROKER_PARTNER_CODES, BROKER_TRANSFER_GUIDE, type BrokerTransferGuideItem } from "@/config/broker-ib";
+import { ArrowRightLeft, Check, ChevronDown, Copy, ExternalLink, ImageIcon, MessageCircle, X } from "lucide-react";
+import { BROKER_PARTNER_CODES, BROKER_TRANSFER_GUIDE } from "@/config/broker-ib";
 
 export function BrokerTransferGuide({ defaultOpen = false }: { defaultOpen?: boolean }) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+  const [showSteps, setShowSteps] = useState(defaultOpen);
   const [selectedBroker, setSelectedBroker] = useState<"XM" | "EXNESS">("XM");
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
@@ -50,8 +50,8 @@ export function BrokerTransferGuide({ defaultOpen = false }: { defaultOpen?: boo
 
   return (
     <div className="border border-gold/40 bg-surface rounded-2xl overflow-hidden transition-all shadow-sm">
-      {/* Header bar / Toggle */}
-      <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-gradient-to-r from-gold/10 via-gold/5 to-transparent">
+      {/* Header bar */}
+      <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-gradient-to-r from-gold/10 via-gold/5 to-transparent border-b border-line-soft">
         <div className="flex items-start gap-3">
           <div className="p-2 rounded-xl bg-gold/20 text-gold-ink shrink-0 mt-0.5">
             <ArrowRightLeft className="w-5 h-5" aria-hidden="true" />
@@ -66,34 +66,98 @@ export function BrokerTransferGuide({ defaultOpen = false }: { defaultOpen?: boo
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-          <button
-            type="button"
-            onClick={() => setIsImageModalOpen(true)}
-            className="inline-flex items-center gap-1.5 border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-fg transition-colors hover:bg-surface-sunken hover:border-gold rounded-xl"
-            aria-label="ดูรูปภาพคู่มือเปรียบเทียบโบรกเกอร์"
-          >
-            <ImageIcon className="w-3.5 h-3.5 text-gold-ink" aria-hidden="true" />
-            ดูรูปภาพคู่มือ
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsOpen(!isOpen)}
-            className="inline-flex items-center gap-1.5 bg-gold/20 hover:bg-gold/30 border border-gold/50 px-3 py-1.5 text-xs font-semibold text-gold-ink transition-colors rounded-xl"
-            aria-expanded={isOpen}
-            aria-controls="transfer-guide-content"
-          >
-            {isOpen ? "ซ่อนขั้นตอน" : "ดูขั้นตอน"}
-            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} aria-hidden="true" />
-          </button>
+        <button
+          type="button"
+          onClick={() => setShowSteps(!showSteps)}
+          className="inline-flex items-center gap-1.5 self-start sm:self-auto bg-surface hover:bg-surface-sunken border border-line px-3 py-1.5 text-xs font-semibold text-fg transition-colors rounded-xl shrink-0"
+          aria-expanded={showSteps}
+          aria-controls="transfer-guide-steps"
+        >
+          {showSteps ? "ซ่อนขั้นตอนข้อความ" : "ดูขั้นตอนข้อความ"}
+          <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showSteps ? "rotate-180" : ""}`} aria-hidden="true" />
+        </button>
+      </div>
+
+      {/* Quick Partner Codes Bar */}
+      <div className="p-4 sm:px-5 py-3 bg-surface-sunken/50 border-b border-line-soft flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+          <span className="font-semibold text-fg">รหัสพันธมิตร:</span>
+          <div className="flex items-center gap-2">
+            <span className="text-fg-muted">XM:</span>
+            <span className="font-mono font-bold text-gold-ink bg-surface px-2 py-0.5 rounded border border-gold/30 select-all">
+              {BROKER_PARTNER_CODES.XM}
+            </span>
+            <button
+              type="button"
+              onClick={() => handleCopy(BROKER_PARTNER_CODES.XM)}
+              className="p-1 text-fg-muted hover:text-gold-ink transition-colors"
+              title="คัดลอกรหัส XM"
+              aria-label="คัดลอกรหัส XM"
+            >
+              {copiedCode === BROKER_PARTNER_CODES.XM ? <Check className="w-3.5 h-3.5 text-accent-green" /> : <Copy className="w-3.5 h-3.5" />}
+            </button>
+          </div>
+          <span className="text-line-strong hidden sm:inline">|</span>
+          <div className="flex items-center gap-2">
+            <span className="text-fg-muted">Exness:</span>
+            <span className="font-mono font-bold text-gold-ink bg-surface px-2 py-0.5 rounded border border-gold/30 select-all">
+              {BROKER_PARTNER_CODES.EXNESS}
+            </span>
+            <button
+              type="button"
+              onClick={() => handleCopy(BROKER_PARTNER_CODES.EXNESS)}
+              className="p-1 text-fg-muted hover:text-gold-ink transition-colors"
+              title="คัดลอกรหัส Exness"
+              aria-label="คัดลอกรหัส Exness"
+            >
+              {copiedCode === BROKER_PARTNER_CODES.EXNESS ? <Check className="w-3.5 h-3.5 text-accent-green" /> : <Copy className="w-3.5 h-3.5" />}
+            </button>
+          </div>
+        </div>
+
+        {copiedCode && (
+          <span className="text-accent-green font-medium flex items-center gap-1 animate-fadeIn">
+            <Check className="w-3.5 h-3.5" /> คัดลอกรหัสแล้ว!
+          </span>
+        )}
+      </div>
+
+      {/* Image Displayed Directly Inline! */}
+      <div className="p-4 sm:p-5">
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => setIsImageModalOpen(true)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setIsImageModalOpen(true);
+            }
+          }}
+          aria-label="ดูรูปภาพคู่มือ (แตะเพื่อขยายเต็มจอ)"
+          className="group relative block overflow-hidden rounded-xl border border-line bg-surface-sunken hover:border-gold/60 transition-all cursor-zoom-in shadow-sm"
+        >
+          <Image
+            src={BROKER_TRANSFER_GUIDE.image.src}
+            alt={BROKER_TRANSFER_GUIDE.image.alt}
+            width={BROKER_TRANSFER_GUIDE.image.width}
+            height={BROKER_TRANSFER_GUIDE.image.height}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 480px"
+            priority
+            className="w-full h-auto object-contain transition-transform duration-200 group-hover:scale-[1.01]"
+          />
+          <div className="absolute bottom-2.5 right-2.5 bg-black/75 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 shadow-md">
+            <ImageIcon className="w-3.5 h-3.5 text-gold" aria-hidden="true" />
+            <span>ดูรูปภาพคู่มือ (แตะเพื่อขยาย)</span>
+          </div>
         </div>
       </div>
 
-      {/* Expandable Content */}
-      {isOpen && (
-        <div id="transfer-guide-content" className="p-4 sm:p-6 border-t border-line-soft space-y-6 animate-fadeIn">
+      {/* Optional Step-by-Step Text (Expandable) */}
+      {showSteps && (
+        <div id="transfer-guide-steps" className="px-4 sm:px-6 pb-6 pt-1 border-t border-line-soft space-y-4 animate-fadeIn">
           {/* Broker Tabs */}
-          <div className="flex flex-wrap items-center gap-2" role="tablist" aria-label="เลือกโบรกเกอร์ที่ต้องการย้ายสายงาน">
+          <div className="flex flex-wrap items-center gap-2 pt-3" role="tablist" aria-label="เลือกโบรกเกอร์ที่ต้องการย้ายสายงาน">
             {BROKER_TRANSFER_GUIDE.brokers.map((item) => {
               const isSelected = selectedBroker === item.broker;
               return (
@@ -124,7 +188,6 @@ export function BrokerTransferGuide({ defaultOpen = false }: { defaultOpen?: boo
 
           {/* Active Broker Content */}
           <div className="bg-surface-sunken/60 border border-line rounded-xl p-4 sm:p-5 space-y-4">
-            {/* Partner Code Box */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface border border-gold/30 p-4 rounded-xl">
               <div>
                 <span className="text-xs font-medium text-fg-muted">
@@ -159,7 +222,6 @@ export function BrokerTransferGuide({ defaultOpen = false }: { defaultOpen?: boo
               </button>
             </div>
 
-            {/* Steps */}
             <div>
               <p className="text-xs font-semibold text-fg mb-3">ขั้นตอนดำเนินการ:</p>
               <ol className="space-y-2.5">
@@ -180,44 +242,34 @@ export function BrokerTransferGuide({ defaultOpen = false }: { defaultOpen?: boo
               </p>
             )}
           </div>
-
-          {/* Support and Image preview button bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 text-xs text-fg-muted border-t border-line-soft">
-            <div className="flex items-center gap-2">
-              <MessageCircle className="w-4 h-4 text-gold-ink shrink-0" aria-hidden="true" />
-              <span>{BROKER_TRANSFER_GUIDE.supportNote}</span>
-            </div>
-            <div className="flex items-center gap-3 shrink-0">
-              <button
-                type="button"
-                onClick={() => setIsImageModalOpen(true)}
-                className="text-gold-ink underline underline-offset-4 hover:text-gold-hover font-semibold inline-flex items-center gap-1"
-              >
-                <ImageIcon className="w-3.5 h-3.5" aria-hidden="true" />
-                เปิดดูภาพคู่มือ
-              </button>
-              <Link
-                href="/#contact"
-                className="text-gold-ink underline underline-offset-4 hover:text-gold-hover font-semibold inline-flex items-center gap-1"
-              >
-                ติดต่อทีมงาน <ExternalLink className="w-3 h-3" aria-hidden="true" />
-              </Link>
-            </div>
-          </div>
         </div>
       )}
 
-      {/* Lightbox / Modal for Image */}
+      {/* Footer Support link */}
+      <div className="px-4 sm:px-5 py-3 border-t border-line-soft bg-surface-sunken/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-fg-muted">
+        <div className="flex items-center gap-2">
+          <MessageCircle className="w-4 h-4 text-gold-ink shrink-0" aria-hidden="true" />
+          <span>{BROKER_TRANSFER_GUIDE.supportNote}</span>
+        </div>
+        <Link
+          href="/#contact"
+          className="text-gold-ink underline underline-offset-4 hover:text-gold-hover font-semibold inline-flex items-center gap-1 self-start sm:self-auto shrink-0"
+        >
+          ติดต่อทีมงาน <ExternalLink className="w-3 h-3" aria-hidden="true" />
+        </Link>
+      </div>
+
+      {/* Lightbox / Modal for Image Zoom */}
       {isImageModalOpen && (
         <div
           role="dialog"
           aria-modal="true"
           aria-label="รูปภาพคู่มือเปรียบเทียบโบรกเกอร์และการย้ายสายงาน"
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-sm animate-fadeIn"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-sm animate-fadeIn"
           onClick={() => setIsImageModalOpen(false)}
         >
           <div
-            className="relative max-h-[92vh] max-w-lg w-full bg-surface border border-line rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+            className="relative max-h-[94vh] max-w-lg w-full bg-surface border border-line rounded-2xl shadow-2xl overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
@@ -236,15 +288,14 @@ export function BrokerTransferGuide({ defaultOpen = false }: { defaultOpen?: boo
               </button>
             </div>
 
-            {/* Modal Body: Next.js Image */}
+            {/* Modal Body */}
             <div className="overflow-y-auto p-2 sm:p-4 bg-black/5 flex items-center justify-center">
               <Image
                 src={BROKER_TRANSFER_GUIDE.image.src}
                 alt={BROKER_TRANSFER_GUIDE.image.alt}
                 width={BROKER_TRANSFER_GUIDE.image.width}
                 height={BROKER_TRANSFER_GUIDE.image.height}
-                sizes={BROKER_TRANSFER_GUIDE.image.sizes}
-                priority
+                sizes="100vw"
                 className="w-full h-auto rounded-xl shadow-md border border-line object-contain"
               />
             </div>
