@@ -1,10 +1,13 @@
+import { existsSync } from "node:fs";
+import path from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { BrokerIbSection } from "@/components/marketing/broker-ib-section";
+import { BrokerIbGuide, BrokerTransferGuide } from "@/components/broker-ib/broker-ib-guide";
 import { BrokerIbStatus } from "@/components/account/broker-ib-status";
 import type { BrokerIbMemberStatus } from "@/lib/broker-ib/member-status";
 import type { BrokerIbAvailability } from "@/lib/broker-ib/availability";
-import { BROKER_IB_CONTENT, BROKER_IB_PLAN } from "@/config/broker-ib";
+import { BROKER_IB_CONTENT, BROKER_IB_PLAN, BROKER_PARTNER_CODES, BROKER_TRANSFER_GUIDE } from "@/config/broker-ib";
 import { RISK_DISCLAIMER } from "@/config/marketing";
 import { PRIVACY_DOCUMENT, REFUND_DOCUMENT, TERMS_DOCUMENT } from "@/content/legal";
 
@@ -113,5 +116,42 @@ describe("Legal text covers the IB program", () => {
     expect(PRIVACY_DOCUMENT.sections.flatMap((item) => item.bullets ?? []).join(" ")).toContain("เลขบัญชีเทรด");
     expect(REFUND_DOCUMENT.sections.flatMap((item) => item.bullets ?? []).join(" ")).toContain("โปรแกรม IB");
     expect(RISK_DISCLAIMER.length).toBeGreaterThan(0);
+  });
+});
+
+describe("Broker transfer guide (ย้ายสายงาน)", () => {
+  it("renders partner codes and instructions for existing broker accounts", () => {
+    const html = renderToStaticMarkup(<BrokerTransferGuide defaultOpen />);
+    const text = visibleText(html);
+
+    expect(text).toContain(BROKER_TRANSFER_GUIDE.title);
+    expect(text).toContain(BROKER_PARTNER_CODES.XM);
+    expect(text).toContain(BROKER_PARTNER_CODES.EXNESS);
+    expect(text).toContain("เปิดบัญชีเพิ่มเติม");
+    expect(text).toContain("คัดลอกรหัส");
+    expect(html).toContain("ดูรูปภาพคู่มือ");
+  });
+
+  it("includes transfer guide in BrokerIbSection and BrokerIbGuide", () => {
+    const sectionHtml = renderToStaticMarkup(<BrokerIbSection brokers={[XM, EXNESS]} />);
+    expect(sectionHtml).toContain(BROKER_TRANSFER_GUIDE.title);
+    expect(sectionHtml).toContain(BROKER_PARTNER_CODES.XM);
+
+    const guideHtml = renderToStaticMarkup(<BrokerIbGuide brokers={[XM, EXNESS]} />);
+    expect(guideHtml).toContain(BROKER_TRANSFER_GUIDE.title);
+  });
+
+  it("has the optimized WebP asset and fallback image for the transfer guide", () => {
+    const webpPath = path.resolve(__dirname, "../public", BROKER_TRANSFER_GUIDE.image.src.replace(/^\//, ""));
+    expect(existsSync(webpPath)).toBe(true);
+
+    const fallbackPath = path.resolve(__dirname, "../public", BROKER_TRANSFER_GUIDE.image.fallbackSrc.replace(/^\//, ""));
+    expect(existsSync(fallbackPath)).toBe(true);
+  });
+
+  it("does not contain profit/performance claims in transfer guide text", () => {
+    const html = renderToStaticMarkup(<BrokerTransferGuide defaultOpen />);
+    const text = visibleText(html);
+    expect(text).not.toMatch(/รีวิว|%|Win ?Rate|กำไร\s*\d/i);
   });
 });

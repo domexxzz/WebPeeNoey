@@ -1,6 +1,9 @@
 import { AlertTriangle, ExternalLink, Info } from "lucide-react";
 import { BROKER_IB_CONTENT, fillMinDeposit } from "@/config/broker-ib";
 import type { BrokerOffer } from "@/lib/broker-ib/availability";
+import { BrokerTransferGuide } from "./broker-transfer-guide";
+
+export { BrokerTransferGuide };
 
 interface BrokerIbGuideProps {
   brokers: BrokerOffer[];
@@ -70,6 +73,7 @@ export function BrokerIbGuide({ brokers }: BrokerIbGuideProps) {
     <div className="space-y-6">
       <BrokerIbSteps brokers={brokers} />
       <BrokerLinks brokers={brokers} />
+      <BrokerTransferGuide />
       <BrokerIbRiskNotes />
     </div>
   );

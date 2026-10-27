@@ -61,6 +61,78 @@ export const PLATFORMS: Record<TradingPlatform, string> = {
   MT5: "MetaTrader 5 (MT5)",
 };
 
+/** รหัสพันธมิตร (Partner Code) สำหรับเปิดบัญชีย่อย หรือขอย้ายสายงาน */
+export const BROKER_PARTNER_CODES = {
+  XM: "YKMDC",
+  EXNESS: "00awo0516g",
+} as const;
+
+export interface BrokerTransferGuideItem {
+  broker: Broker;
+  label: string;
+  partnerCode: string;
+  tag?: string;
+  steps: readonly string[];
+  note?: string;
+}
+
+export interface BrokerTransferGuideSpec {
+  title: string;
+  shortTitle: string;
+  description: string;
+  brokers: readonly BrokerTransferGuideItem[];
+  supportNote: string;
+  image: {
+    src: string;
+    fallbackSrc: string;
+    width: number;
+    height: number;
+    sizes: string;
+    alt: string;
+  };
+}
+
+export const BROKER_TRANSFER_GUIDE: BrokerTransferGuideSpec = {
+  title: "มีบัญชีเทรดอยู่แล้ว? วิธีย้ายสายงาน / บัญชีเพิ่มเติม",
+  shortTitle: "วิธีย้ายสายงาน (กรณีมีบัญชีอยู่แล้ว)",
+  description: "สำหรับท่านที่มีบัญชีกับโบรกเกอร์อยู่แล้ว สามารถเปิดบัญชีเทรดเพิ่มเติมหรือแจ้งย้ายสายงานมาที่รหัสพันธมิตรของเราเพื่อรับสิทธิ์ใช้งานฟรีได้เช่นกัน",
+  brokers: [
+    {
+      broker: "XM",
+      label: "XM",
+      partnerCode: BROKER_PARTNER_CODES.XM,
+      tag: "แนะนำ",
+      steps: [
+        "เข้าสู่ระบบสมาชิก XM (Member Area)",
+        "เลือกเมนู 'เปิดบัญชีเพิ่มเติม' (Additional Account)",
+        `ในช่องรหัสพันธมิตร (Partner Code) ระบุ: ${BROKER_PARTNER_CODES.XM}`,
+        `หรือติดต่อฝ่ายบริการลูกค้า (Live Chat) ของ XM และแจ้งขอย้ายสายงานมาที่รหัสพันธมิตร ${BROKER_PARTNER_CODES.XM}`,
+      ],
+      note: "เมื่อเปิดบัญชีเพิ่มเติมสำเร็จแล้ว นำเลขบัญชี MT4 / MT5 มายื่นขอรับสิทธิ์ในหน้าสมาชิกได้ทันที",
+    },
+    {
+      broker: "EXNESS",
+      label: "Exness",
+      partnerCode: BROKER_PARTNER_CODES.EXNESS,
+      steps: [
+        "เข้าสู่พื้นที่ส่วนบุคคล Exness (Personal Area)",
+        "ไปที่เมนู 'การตั้งค่า' หรือติดต่อฝ่ายสนับสนุนลูกค้า (Live Chat / Support)",
+        `แจ้งเจ้าหน้าที่ขอย้ายสายงานพาร์ทเนอร์หรือเปลี่ยนผู้แนะนำ โดยระบุรหัสพาร์ทเนอร์: ${BROKER_PARTNER_CODES.EXNESS}`,
+      ],
+      note: "เมื่อระบบอนุมัติการย้ายพาร์ทเนอร์แล้ว นำเลขบัญชี MT4 / MT5 มายื่นขอรับสิทธิ์ได้ทันที",
+    },
+  ],
+  supportNote: "หากต้องการสอบถามเพิ่มเติม หรือต้องการเทรดทั้ง 2 โบรกเกอร์ สามารถติดต่อแจ้งแอดมินเพื่อช่วยแนะนำได้ตลอดเวลา",
+  image: {
+    src: "/images/broker-ib/broker-transfer-guide.webp",
+    fallbackSrc: "/images/broker-ib/broker-transfer-guide.jpg",
+    width: 682,
+    height: 1024,
+    sizes: "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 450px",
+    alt: "ตารางเปรียบเทียบโบรกเกอร์และรหัสพันธมิตรสำหรับการย้ายสายงาน XM และ Exness",
+  },
+};
+
 /**
  * ข้อความของสิทธิ์ผ่าน IB (หน้าสมาชิก + หน้าเว็บสาธารณะ) — กติกา CLAUDE.md ข้อ 3: ห้ามรีวิว/สถิติ/ตัวเลขกำไร
  * {min} ถูกแทนด้วยยอดฝากขั้นต่ำจากการตั้งค่า
@@ -70,7 +142,7 @@ export const BROKER_IB_CONTENT = {
   title: "ใช้ฟรีเมื่อเปิดบัญชีเทรด ผ่านลิงก์พาร์ทเนอร์",
   description: `เปิดบัญชีกับโบรกเกอร์พาร์ทเนอร์ผ่านลิงก์ของเรา ฝากเงินครั้งแรกครบขั้นต่ำ แล้วยื่นเลขบัญชีเทรด — ทีมงานตรวจสอบแล้วเปิดสิทธิ์ให้ ${BROKER_IB_PLAN.durationDays} วัน ต่ออายุได้เรื่อย ๆ`,
   steps: [
-    { title: "เปิดบัญชีผ่านลิงก์ของเรา", detail: "กดลิงก์โบรกเกอร์ด้านล่างแล้วสมัครบัญชีใหม่ — บัญชีที่เปิดไว้ก่อนโดยไม่ผ่านลิงก์อาจไม่ถูกนับ สอบถามทีมงานก่อนได้" },
+    { title: "เปิดบัญชีผ่านลิงก์ของเรา (หรือย้ายสายงาน)", detail: "กดลิงก์โบรกเกอร์ด้านล่างเพื่อสมัครใหม่ — หากมีบัญชีเดิมอยู่แล้ว สามารถเปิดบัญชีย่อยหรือแจ้งย้ายสายงานตามคู่มือได้" },
     { title: "ยืนยันตัวตน และฝากเงินครั้งแรกอย่างน้อย {min}", detail: "เงินฝากอยู่ในบัญชีเทรดของคุณกับโบรกเกอร์ ไม่ได้จ่ายให้เรา และถอนผ่านโบรกเกอร์ได้ตามเงื่อนไขของโบรกเกอร์" },
     { title: "ยื่นเลขบัญชี MT4 / MT5 ในหน้าสมาชิก", detail: "ใช้อีเมลเดียวกับที่สมัครกับโบรกเกอร์ — เราไม่ขอรหัสผ่านหรือ Investor Password ใด ๆ" },
     { title: "ทีมงานตรวจใน Partner Portal แล้วแจ้งผลทางอีเมล", detail: "อนุมัติแล้วทีมงานเปิดสิทธิ์อินดิเคเตอร์และช่องทางคอมมูนิตี้ให้เหมือนสมาชิกแบบชำระเงิน" },
@@ -101,7 +173,7 @@ export const BROKER_IB_FAQ = [
   },
   {
     q: "มีบัญชีกับโบรกเกอร์นี้อยู่แล้ว ใช้ได้ไหม",
-    a: "นับเฉพาะบัญชีที่อยู่ภายใต้ลิงก์พาร์ทเนอร์ของเรา บัญชีที่เปิดก่อนหน้าโดยไม่ผ่านลิงก์มักย้ายมาไม่ได้ — สอบถามทีมงานก่อนเปิดบัญชีใหม่ได้",
+    a: `ใช้ได้ โดยสามารถเปิดบัญชีเทรดเพิ่มเติมหรือแจ้งย้ายสายงานกับโบรกเกอร์ได้ทันที: XM ใส่รหัสพันธมิตร ${BROKER_PARTNER_CODES.XM} และ Exness ใส่รหัสพาร์ทเนอร์ ${BROKER_PARTNER_CODES.EXNESS} เมื่อบัญชีอยู่ภายใต้สายงานและฝากเงินครบขั้นต่ำแล้ว นำเลขบัญชีมายื่นรับสิทธิ์ได้ตามปกติ`,
   },
   {
     q: "ต้องให้รหัสผ่านบัญชีเทรดไหม",

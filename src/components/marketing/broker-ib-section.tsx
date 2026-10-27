@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { BROKER_IB_CONTENT } from "@/config/broker-ib";
 import type { BrokerOffer } from "@/lib/broker-ib/availability";
-import { BrokerIbRiskNotes, BrokerIbSteps, BrokerLinks } from "@/components/broker-ib/broker-ib-guide";
+import { BrokerIbRiskNotes, BrokerIbSteps, BrokerLinks, BrokerTransferGuide } from "@/components/broker-ib/broker-ib-guide";
 import { SectionHeading } from "./section-heading";
 
 export const BROKER_IB_SECTION_ID = "broker-ib";
@@ -23,6 +23,7 @@ export function BrokerIbSection({ brokers }: { brokers: BrokerOffer[] }) {
           </div>
           <div data-reveal="up" className="flex flex-col gap-6">
             <BrokerLinks brokers={brokers} />
+            <BrokerTransferGuide />
             <Link
               href="/account/broker-ib"
               className="inline-flex items-center justify-center gap-2 bg-gold px-6 py-3.5 text-sm font-semibold text-fg transition-colors hover:bg-gold-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-ink rounded-xl"
