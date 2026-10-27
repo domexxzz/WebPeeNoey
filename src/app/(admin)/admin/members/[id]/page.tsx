@@ -10,14 +10,14 @@ import { ActionForm } from "@/components/admin/action-form";
 import { AdminCard, AdminOrderBadge, DefinitionList, inputClass, labelClass, SubscriptionBadge } from "@/components/admin/admin-ui";
 import { ProvisioningPanel } from "@/components/admin/provisioning-panel";
 import { BrokerAccountPanel } from "@/components/admin/broker-account-panel";
-import { revokeMemberAction } from "../../actions";
+import { revokeMemberAction, setMemberRoleAction } from "../../actions";
 
 export const metadata: Metadata = { title: "รายละเอียดสมาชิก", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 export default async function AdminMemberDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  await requireAdminPage();
+  const viewer = await requireAdminPage();
   const now = new Date();
   const member = await getMemberDetail(prisma, { userId: id, now });
   if (!member) notFound();
@@ -94,6 +94,47 @@ export default async function AdminMemberDetailPage({ params }: { params: Promis
               </li>
             ))}
           </ul>
+        )}
+      </AdminCard>
+
+      <AdminCard title="สิทธิ์การใช้งานระบบ">
+        <p className="text-xs text-fg-subtle">
+          สิทธิ์ปัจจุบัน: <span className="font-medium text-fg">{member.role === "ADMIN" ? "แอดมิน" : "สมาชิกทั่วไป"}</span>
+          {" · "}แอดมินเห็นข้อมูลลูกค้า ออเดอร์ และสั่งงานหลังบ้านได้ทั้งหมด
+        </p>
+        {viewer.id === member.id ? (
+          <p className="text-xs text-fg-muted">นี่คือบัญชีที่คุณกำลังใช้อยู่ — เปลี่ยนสิทธิ์ตัวเองไม่ได้ ให้แอดมินอีกคนเป็นผู้เปลี่ยนให้</p>
+        ) : (
+          <ActionForm
+            action={setMemberRoleAction}
+            submitLabel={member.role === "ADMIN" ? "ลดเป็นสมาชิกทั่วไป" : "เลื่อนเป็นแอดมิน"}
+            pendingLabel="กำลังเปลี่ยนสิทธิ์..."
+            tone={member.role === "ADMIN" ? "danger" : undefined}
+          >
+            <input type="hidden" name="userId" value={member.id} />
+            <input type="hidden" name="role" value={member.role === "ADMIN" ? "USER" : "ADMIN"} />
+            <div>
+              <label className={labelClass} htmlFor="roleReason">เหตุผล (บันทึกใน Audit Log)</label>
+              <input id="roleReason" name="reason" required minLength={2} maxLength={300} className={inputClass} />
+            </div>
+            <label className="flex items-start gap-2 text-sm text-fg-muted">
+              <input type="checkbox" name="confirmRoleChange" required className="mt-1 accent-brand" />
+              {member.role === "ADMIN"
+                ? `ยืนยันลดสิทธิ์แอดมินของ ${member.email}`
+                : `ยืนยันให้ ${member.email} เป็นแอดมิน เข้าถึงข้อมูลลูกค้าและเงินได้ทั้งหมด`}
+            </label>
+            {member.role !== "ADMIN" && (
+              <>
+                {!member.emailVerified && (
+                  // ใครก็สมัครด้วยอีเมลของคนอื่นไว้ล่วงหน้าได้ — ถ้ายังไม่ยืนยัน อย่าเพิ่งเชื่อว่าเจ้าของอีเมลคือคนที่คุมบัญชีนี้
+                  <p className="text-xs font-medium text-red-800">
+                    ⚠️ อีเมลของบัญชีนี้ยังไม่ผ่านการยืนยัน — ตรวจให้แน่ใจว่าเป็นคนที่คุณตั้งใจให้สิทธิ์จริง ก่อนเลื่อนขั้น
+                  </p>
+                )}
+                <p className="text-xs text-fg-subtle">หลังเลื่อนขั้น สมาชิกต้องออกจากระบบแล้วเข้าใหม่หนึ่งครั้ง เมนูหลังบ้านถึงจะขึ้น</p>
+              </>
+            )}
+          </ActionForm>
         )}
       </AdminCard>
 

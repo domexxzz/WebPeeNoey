@@ -22,10 +22,10 @@ export type AdminActionState =
 
 export const field = (formData: FormData, name: string) => String(formData.get(name) ?? "").trim();
 export const checked = (formData: FormData, name: string) => formData.get(name) === "on";
-export const fail = (code: AdminErrorCode, target?: AuditTarget): AdminActionState => ({
+export const fail = (code: AdminErrorCode, target?: AuditTarget, note?: string): AdminActionState => ({
   status: "error",
   message: adminErrorMessage(code),
-  refusal: { code, target },
+  refusal: { code, target, note },
 });
 export const done = (message: string): AdminActionState => ({ status: "success", message });
 
@@ -33,6 +33,23 @@ export const done = (message: string): AdminActionState => ({ status: "success",
 function withoutRefusal(state: AdminActionState): AdminActionState {
   if (state.status !== "error" || !state.refusal) return state;
   return { status: "error", message: state.message };
+}
+
+/**
+ * คำสั่งที่ "มีคนพยายามสั่งทั้งที่ไม่ใช่แอดมิน" คือเหตุการณ์ที่ต้องรู้ทันที ไม่ใช่แค่ log ทิ้งไว้
+ * (เช่น บัญชีที่เพิ่งถูกลดสิทธิ์แต่ยังถือ token เก่า พยายามเลื่อนขั้นบัญชีพวกพ้อง)
+ */
+const SENSITIVE_ACTIONS = new Set(["setMemberRole"]);
+/** หน่วงการแจ้งเตือนต่อผู้ใช้หนึ่งคน กันคนยิงรัวจนกลุ่มแอดมินจมข้อความ */
+const FORBIDDEN_ALERT_WINDOW_MS = 10 * 60 * 1000;
+const lastForbiddenAlert = new Map<string, number>();
+
+function shouldAlertForbidden(name: string, userId: string, now: number): boolean {
+  const key = `${name}:${userId}`;
+  const previous = lastForbiddenAlert.get(key);
+  if (previous && now - previous < FORBIDDEN_ALERT_WINDOW_MS) return false;
+  lastForbiddenAlert.set(key, now);
+  return true;
 }
 
 /** ตรวจสิทธิ์แอดมินจาก DB ทุกครั้งที่เรียก action (server action ถูกเรียกตรงได้โดยไม่ผ่านหน้าเว็บ) */
@@ -68,7 +85,16 @@ export async function runAdminAction(name: string, run: (actor: ActorContext) =>
   const actor = await requireAdmin();
   // ไม่เขียนลงฐานข้อมูลตอนยังไม่รู้ว่าเป็นใคร — ใครก็ยิง server action ตรงได้ จะกลายเป็นช่องถมตาราง AuditLog
   if (!actor) {
-    console.error(`[admin] ${name} ถูกปฏิเสธ: ไม่ใช่แอดมิน`);
+    const session = await getServerSession(authOptions);
+    const userId = session?.user?.id ?? "ไม่ได้เข้าสู่ระบบ";
+    const ip = (await getClientIp()) ?? "ไม่ทราบ";
+    console.error(`[admin] ${name} ถูกปฏิเสธ: ไม่ใช่แอดมิน`, { userId, ip });
+    // คำสั่งอ่อนไหวต้องดังทันที ส่วนคำสั่งทั่วไปปล่อยไว้ที่ log — ไม่เขียนลงฐานข้อมูลเพราะใครก็ยิงเข้ามาได้ จะกลายเป็นช่องถมตาราง
+    if (SENSITIVE_ACTIONS.has(name) && shouldAlertForbidden(name, userId, Date.now())) {
+      await sendAdminTelegram(`🚨 มีการพยายามสั่ง ${name} จากบัญชีที่ไม่ใช่แอดมิน
+บัญชี: ${userId}
+IP: ${ip}`);
+    }
     return withoutRefusal(fail("FORBIDDEN"));
   }
   try {

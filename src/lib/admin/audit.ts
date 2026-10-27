@@ -9,6 +9,7 @@ export const AUDIT_ACTIONS = {
   ORDER_REJECT: "ปฏิเสธสลิป",
   ORDER_REFUND: "คืนเงิน",
   MEMBER_REVOKE: "ปิดสิทธิ์สมาชิก",
+  MEMBER_ROLE_CHANGE: "เปลี่ยนสิทธิ์การใช้งานระบบ",
   PROVISIONING_UPDATE: "อัปเดตการเปิดสิทธิ์",
   SETTINGS_UPDATE: "แก้ไขการตั้งค่าระบบ",
   SUBSCRIPTION_EXPIRE: "สิทธิ์หมดอายุ (อัตโนมัติ)",

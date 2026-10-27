@@ -7,7 +7,7 @@ import { sendReceiptEmail, sendSlipRejectedEmail } from "@/lib/email";
 import { sendAdminTelegram } from "@/lib/notify/telegram";
 import { formatDate } from "@/lib/format";
 import { approveOrder, refundOrder, rejectOrder } from "@/lib/admin/order-review";
-import { revokeMemberAccess, setProvisioning, PROVISIONING_CHANNELS, type ProvisioningChannel } from "@/lib/admin/members";
+import { revokeMemberAccess, setMemberRole, setProvisioning, PROVISIONING_CHANNELS, type ProvisioningChannel } from "@/lib/admin/members";
 import { updatePaymentSettings } from "@/lib/admin/settings";
 import { BROKER_IB_OFFER_TAG } from "@/lib/broker-ib/public-offer";
 import { checked, done, fail, field, runAdminAction, type AdminActionState } from "@/lib/admin/run-admin-action";
@@ -139,5 +139,49 @@ export async function setProvisioningAction(_previous: AdminActionState, formDat
     revalidatePath(`/admin/broker-claims/${result.orderId}`);
     revalidatePath(`/admin/members/${result.userId}`);
     return done("อัปเดตสถานะการเปิดสิทธิ์แล้ว");
+  });
+}
+
+/**
+ * เปลี่ยนสิทธิ์การใช้งานระบบของสมาชิก (USER ↔ ADMIN)
+ * การเลื่อนเป็นแอดมินคือการให้สิทธิ์เข้าถึงข้อมูลลูกค้าและเงินทั้งหมด จึงแจ้งกลุ่มแอดมินทุกครั้งที่เปลี่ยน
+ */
+export async function setMemberRoleAction(_previous: AdminActionState, formData: FormData): Promise<AdminActionState> {
+  return runAdminAction("setMemberRole", async (actor) => {
+    const userId = field(formData, "userId");
+    const target = { targetType: "User", targetId: userId } as const;
+    const role = field(formData, "role");
+    if (role !== "USER" && role !== "ADMIN") return fail("INVALID_ROLE", target, `ขอเปลี่ยนเป็น "${role}"`);
+    const reason = field(formData, "reason");
+    // บันทึกไว้ด้วยว่าขอเปลี่ยนเป็นอะไร ไม่งั้นแถวที่ถูกปฏิเสธจะบอกแค่ว่า "ไม่ผ่าน" แต่ไม่รู้ว่าพยายามทำอะไร
+    const attempt = `ขอเปลี่ยนเป็น ${role} — เหตุผล: ${reason}`;
+    if (!checked(formData, "confirmRoleChange")) return fail("CONFIRM_REQUIRED", target, attempt);
+
+    const result = await setMemberRole(prisma, { userId, actor, role, reason });
+    if (!result.ok) return fail(result.code, target, attempt);
+
+    revalidatePath(`/admin/members/${userId}`);
+    revalidatePath("/admin/members");
+
+    // แจ้งหลังเปลี่ยนเสร็จแล้ว — การแจ้งเตือนล้มต้องไม่ทำให้แอดมินเข้าใจว่าการเปลี่ยนสิทธิ์ไม่สำเร็จ
+    const notified = await sendAdminTelegram(
+      `${result.after === "ADMIN" ? "🔑 เลื่อนเป็นแอดมิน" : "🔒 ลดจากแอดมินเป็นสมาชิก"}
+สมาชิก: ${result.email} (${result.before} → ${result.after})
+อีเมลยืนยันแล้ว: ${result.emailVerified ? "ใช่" : "ยังไม่ยืนยัน"}
+เปลี่ยนโดย: ${result.actorEmail}
+IP: ${actor.ipAddress ?? "ไม่ทราบ"}
+เหตุผล: ${reason}`,
+    ).catch((error) => {
+      console.error("[admin] แจ้งเตือนการเปลี่ยนสิทธิ์ไม่สำเร็จ", { userId, error });
+      return { ok: false } as const;
+    });
+    // การแจ้งเตือนคือหลักฐานว่าแอดมินคนอื่นจะรู้ทัน ถ้าส่งไม่ออกต้องบอกตรง ๆ ไม่ใช่เงียบ
+    const alertNote = notified.ok ? "" : " ⚠️ แจ้งเตือนกลุ่มแอดมินไม่สำเร็จ — แจ้งทีมด้วยตัวเอง";
+    const verifyNote = result.after === "ADMIN" && !result.emailVerified ? " ⚠️ อีเมลของบัญชีนี้ยังไม่ผ่านการยืนยัน" : "";
+    return done(
+      (result.after === "ADMIN"
+        ? `${result.email} เป็นแอดมินแล้ว — ต้องออกจากระบบแล้วเข้าใหม่หนึ่งครั้ง เมนูหลังบ้านถึงจะขึ้น`
+        : `${result.email} กลับเป็นสมาชิกทั่วไปแล้ว — สั่งงานหลังบ้านไม่ได้ทันที`) + verifyNote + alertNote,
+    );
   });
 }

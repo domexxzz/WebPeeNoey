@@ -21,10 +21,20 @@ export type AdminErrorCode =
   | "FORBIDDEN"
   | "CONFIRM_REQUIRED"
   | "INVALID_REPORT_FILE"
+  | "SELF_ROLE_CHANGE"
+  | "ALREADY_THAT_ROLE"
+  | "LAST_ADMIN"
+  | "INVALID_ROLE"
+  | "ACTOR_NOT_ADMIN"
   | "UNEXPECTED";
 
 export const ADMIN_ERROR_MESSAGES: Record<AdminErrorCode, string> = {
   INVALID_REPORT_FILE: "ไฟล์รายงานที่อัปโหลดใช้ไม่ได้",
+  SELF_ROLE_CHANGE: "เปลี่ยนสิทธิ์ของตัวเองไม่ได้ — ให้แอดมินอีกคนเป็นผู้เปลี่ยนให้",
+  ALREADY_THAT_ROLE: "สมาชิกคนนี้มีสิทธิ์ระดับนี้อยู่แล้ว",
+  LAST_ADMIN: "ลดสิทธิ์แอดมินคนสุดท้ายไม่ได้ — ต้องเหลือแอดมินอย่างน้อยหนึ่งคน",
+  INVALID_ROLE: "ระดับสิทธิ์ไม่ถูกต้อง",
+  ACTOR_NOT_ADMIN: "สิทธิ์แอดมินของคุณถูกเพิกถอนระหว่างสั่งงาน — คำสั่งนี้ไม่ถูกบันทึก",
   ORDER_NOT_FOUND: "ไม่พบคำสั่งซื้อนี้",
   NOT_PENDING_REVIEW: "รายการนี้ไม่ได้อยู่ในสถานะรอตรวจแล้ว (อาจมีแอดมินคนอื่นดำเนินการไปแล้ว) — รีเฟรชหน้าเพื่อดูสถานะล่าสุด",
   REFERENCE_REQUIRED: "กรุณากรอกเลขอ้างอิงธุรกรรมจากสลิป",
