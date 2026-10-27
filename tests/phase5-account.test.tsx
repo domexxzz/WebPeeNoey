@@ -68,8 +68,16 @@ describe("Phase 5: Telegram connect card", () => {
   it("shows the connect button, the linked state or a disabled notice", () => {
     expect(renderToStaticMarkup(<TelegramConnect enabled linked={false} linkedAtLabel={null} />)).toContain("เชื่อมต่อ Telegram");
     const linked = renderToStaticMarkup(<TelegramConnect enabled linked linkedAtLabel="12 ต.ค. 2569" />);
-    expect(linked).toContain("เชื่อมต่อแล้ว (ตั้งแต่ 12 ต.ค. 2569)");
+    expect(linked).toContain("ผูกบัญชีกับบอทแล้ว (ตั้งแต่ 12 ต.ค. 2569)");
     expect(linked).toContain("ยกเลิกการเชื่อมต่อ");
     expect(renderToStaticMarkup(<TelegramConnect enabled={false} linked={false} linkedAtLabel={null} />)).toContain("ยังไม่เปิดใช้งาน");
+  });
+
+  /** เคยมีคนเข้าใจผิดว่ากดปุ่มนี้แล้วจะได้เข้าห้องชุมชน — คำบนการ์ดต้องปฏิเสธเรื่องนี้ตรง ๆ */
+  it("says plainly that this is a private chat with the bot, not a community room", () => {
+    const markup = renderToStaticMarkup(<TelegramConnect enabled linked={false} linkedAtLabel={null} />);
+    expect(markup).toContain("แชตส่วนตัว");
+    expect(markup).toContain("ไม่ใช่การเข้ากลุ่ม");
+    expect(markup).toContain("Discord VIP");
   });
 });

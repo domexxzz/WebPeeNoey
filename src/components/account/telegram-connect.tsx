@@ -14,7 +14,10 @@ interface TelegramConnectProps {
 
 const initialState: TelegramLinkState = { status: "idle" };
 
-/** เชื่อมบัญชีกับบอท Telegram เพื่อรับแจ้งเตือนก่อนสิทธิ์หมดอายุ */
+/**
+ * เชื่อมบัญชีกับบอท Telegram เพื่อรับแจ้งเตือนก่อนสิทธิ์หมดอายุ
+ * คำบนการ์ดต้องบอกให้ชัดว่าเป็นแชตส่วนตัวกับบอท ไม่ใช่ห้องชุมชน — เคยมีคนเข้าใจผิดว่ากดแล้วจะได้เข้ากลุ่ม
+ */
 export function TelegramConnect({ enabled, linked, linkedAtLabel }: TelegramConnectProps) {
   const [state, formAction] = useActionState(createTelegramLinkAction, initialState);
 
@@ -22,16 +25,16 @@ export function TelegramConnect({ enabled, linked, linkedAtLabel }: TelegramConn
     <div className="border border-line bg-surface p-6 border border-line space-y-3 rounded-2xl">
       <h2 className="text-base font-semibold text-fg flex items-center gap-2">
         <BellRing className="w-4 h-4 text-gold-ink" aria-hidden="true" />
-        แจ้งเตือนทาง Telegram
+        เตือนก่อนหมดอายุทาง Telegram
       </h2>
 
       {!enabled ? (
-        <p className="text-xs text-fg-subtle">การแจ้งเตือนทาง Telegram ยังไม่เปิดใช้งาน — ระบบจะแจ้งเตือนทางอีเมลแทน</p>
+        <p className="text-xs text-fg-subtle">การเตือนทาง Telegram ยังไม่เปิดใช้งาน — ระบบจะเตือนทางอีเมลแทน</p>
       ) : linked ? (
         <div className="space-y-3">
           <p className="text-xs text-gold-ink flex items-center gap-1.5">
             <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
-            เชื่อมต่อแล้ว{linkedAtLabel ? ` (ตั้งแต่ ${linkedAtLabel})` : ""} — จะได้รับแจ้งเตือนก่อนสิทธิ์หมดอายุ
+            ผูกบัญชีกับบอทแล้ว{linkedAtLabel ? ` (ตั้งแต่ ${linkedAtLabel})` : ""} — บอทจะทักในแชตส่วนตัวก่อนสิทธิ์หมดอายุ
           </p>
           <form action={unlinkTelegramAction}>
             <button type="submit" className="text-xs text-fg-subtle underline underline-offset-2 hover:text-fg">
@@ -41,7 +44,13 @@ export function TelegramConnect({ enabled, linked, linkedAtLabel }: TelegramConn
         </div>
       ) : (
         <div className="space-y-3">
-          <p className="text-xs text-fg-subtle">รับแจ้งเตือนก่อนสิทธิ์หมดอายุ {PAYMENT_RULES.expiryReminderDays} วันผ่านแชตส่วนตัวกับบอท (นอกเหนือจากอีเมล)</p>
+          <div className="space-y-1.5">
+            <p className="text-xs text-fg-subtle">
+              ผูกบัญชีกับบอทของเรา แล้วบอทจะทักคุณใน <span className="font-medium text-fg">แชตส่วนตัว</span> ก่อนสิทธิ์หมดอายุ{" "}
+              {PAYMENT_RULES.expiryReminderDays} วัน (นอกเหนือจากอีเมล) มีแค่คุณกับบอทในแชตนั้น ไม่มีสมาชิกคนอื่นเห็น
+            </p>
+            <p className="text-[11px] text-fg-subtle">นี่ไม่ใช่การเข้ากลุ่ม — ห้อง Discord VIP และกลุ่ม Telegram VIP อยู่ในรายการช่องทางของแพ็กเกจ</p>
+          </div>
           {state.status === "ready" ? (
             <div className="space-y-2">
               <a
