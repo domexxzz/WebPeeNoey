@@ -69,7 +69,7 @@ describe("Phase 5: /api/cron/watchdog", () => {
     const response = await watchdog(authorized("/api/cron/watchdog"));
     expect(response.status).toBe(503);
     // adminNotified=false บอก GitHub Actions ว่าแอปแจ้งเตือนเองไม่ได้ ต้องแจ้งแทน
-    expect(await response.json()).toMatchObject({ ok: false, problems: ["check-expiry-stale"], adminNotified: false });
+    expect(await response.json()).toMatchObject({ ok: false, problems: ["check-expiry-stale"], problemMessages: ["x"], adminNotified: false });
   });
 
   it("checks the bot webhook only when the member bot is fully enabled", async () => {

@@ -61,4 +61,5 @@ jobs:
           fi
           curl -sS --max-time 20 -o /dev/null -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
             --data-urlencode "chat_id=${TELEGRAM_ADMIN_CHAT_ID}" \
+            --data-urlencode "disable_web_page_preview=true" \
             --data-urlencode "text=🚨 งานประจำวัน check-expiry ไม่สำเร็จ — ${RUN_URL}"

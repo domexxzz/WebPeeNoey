@@ -34,7 +34,15 @@ export async function GET(request: Request) {
   }
   const { summary } = outcome;
   return NextResponse.json(
-    { ok: summary.healthy, runId: outcome.runId, problems: summary.problemKeys, adminNotified: summary.adminNotified, slipsRenotified: summary.slipsRenotified },
+    {
+      ok: summary.healthy,
+      runId: outcome.runId,
+      problems: summary.problemKeys,
+      // ข้อความภาษาไทยของปัญหา (ตัวเลขสรุป ไม่มีข้อมูลสมาชิก) — GitHub Actions ใช้ส่งเข้า Telegram แทนเมื่อแอปแจ้งเองไม่ได้
+      problemMessages: summary.problems,
+      adminNotified: summary.adminNotified,
+      slipsRenotified: summary.slipsRenotified,
+    },
     { status: summary.healthy ? 200 : 503, headers: NO_STORE },
   );
 }

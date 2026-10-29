@@ -1,9 +1,10 @@
 # Watchdog ภายนอก (CLAUDE.md ข้อ 5) — เรียก /api/cron/watchdog ทุกชั่วโมง
 # - 200 = ปกติ
 # - 503 + adminNotified=true  = แอปพบปัญหาและแจ้งกลุ่มแอดมินเองแล้ว (มีระบบกันแจ้งซ้ำ)
-# - 503 + adminNotified=false = แอปแจ้งเตือนเองไม่ได้ (เช่น Telegram ล่ม/token ถูกเพิกถอน) → ถือว่าล้มเหลว
-# - สถานะอื่น/เข้าเว็บไม่ได้ = แอปล่ม
+# - 503 + adminNotified=false = แอปทำงานแต่แจ้ง Telegram เองไม่ได้ (เช่น ต่อ Telegram ไม่ติดชั่วคราว) → ส่งรายการปัญหาแทนจากที่นี่
+# - สถานะอื่น/เข้าเว็บไม่ได้ = แอปล่มจริง
 # ล้มเหลว → แจ้ง Telegram จากที่นี่ (ไม่พึ่งแอป) + GitHub ส่งอีเมลว่า workflow ล้มเหลว (ช่องทางสำรองเมื่อ Telegram ใช้ไม่ได้)
+# ข้อความสำรองต้องบอกให้ตรงกับเหตุการณ์ — เดิมเขียนว่า "เว็บตอบผิดปกติหรือเข้าไม่ได้" ทุกกรณี ทั้งที่ส่วนใหญ่เว็บปกติ (25–29 ต.ค. 2569)
 # ต้องตั้ง: vars.APP_URL, secrets.CRON_SECRET (+ secrets.TELEGRAM_BOT_TOKEN, secrets.TELEGRAM_ADMIN_CHAT_ID)
 name: Watchdog
 
@@ -29,27 +30,32 @@ jobs:
           APP_URL: ${{ vars.APP_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
+          # FAILURE_KIND ส่งต่อให้ขั้นแจ้งเตือนเลือกข้อความ: CONFIG / APP_DOWN / NOTIFY_FAILED
           if [ -z "$APP_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "FAILURE_KIND=CONFIG" >> "$GITHUB_ENV"
             echo "::error::ยังไม่ได้ตั้ง vars.APP_URL หรือ secrets.CRON_SECRET"
             exit 1
           fi
           case "$APP_URL" in
             https://*) ;;
-            *) echo "::error::APP_URL ต้องเป็น https:// (ห้ามส่ง CRON_SECRET แบบไม่เข้ารหัส)"; exit 1 ;;
+            *) echo "FAILURE_KIND=CONFIG" >> "$GITHUB_ENV"; echo "::error::APP_URL ต้องเป็น https:// (ห้ามส่ง CRON_SECRET แบบไม่เข้ารหัส)"; exit 1 ;;
           esac
           status=$(curl -sS --proto '=https' -o response.json -w '%{http_code}' --max-time 60 \
             -H "Authorization: Bearer ${CRON_SECRET}" "${APP_URL}/api/cron/watchdog" || echo "000")
           echo "HTTP ${status}"
+          echo "HTTP_STATUS=${status}" >> "$GITHUB_ENV"
           cat response.json 2>/dev/null || true
           echo
           if [ "$status" = "503" ]; then
             if [ "$(jq -r '.adminNotified // false' response.json 2>/dev/null)" = "true" ]; then
               echo "::warning::Watchdog พบปัญหา — แอปแจ้งกลุ่มแอดมินแล้ว"
             else
+              echo "FAILURE_KIND=NOTIFY_FAILED" >> "$GITHUB_ENV"
               echo "::error::Watchdog พบปัญหาแต่แอปแจ้งกลุ่มแอดมินไม่สำเร็จ"
               exit 1
             fi
           elif [ "$status" != "200" ]; then
+            echo "FAILURE_KIND=APP_DOWN" >> "$GITHUB_ENV"
             echo "::error::Watchdog ตอบ HTTP ${status} — แอปอาจล่มหรือเข้าไม่ได้"
             exit 1
           fi
@@ -59,12 +65,27 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_CHAT_ID }}
+          APP_URL: ${{ vars.APP_URL }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_ADMIN_CHAT_ID" ]; then
             echo "::warning::ไม่ได้ตั้ง Telegram secrets — ใช้อีเมลแจ้งเตือนของ GitHub แทน"
             exit 0
           fi
+          case "${FAILURE_KIND:-APP_DOWN}" in
+            NOTIFY_FAILED)
+              problems=$(jq -r '(.problemMessages // .problems // [])[] | "• " + .' response.json 2>/dev/null)
+              text=$(printf '⚠️ Watchdog (ส่งจาก GitHub แทน): เว็บทำงานปกติ แต่ส่งแจ้งเตือนเข้า Telegram เองไม่ได้รอบนี้\nปัญหาที่พบ:\n%s\n\nรายละเอียด: %s' "${problems:-• (ไม่มีรายละเอียด)}" "$RUN_URL")
+              ;;
+            CONFIG)
+              text=$(printf '⚠️ Watchdog ตั้งค่าไม่ครบ (vars.APP_URL / secrets.CRON_SECRET) — ยังไม่ได้ตรวจเว็บ\nรายละเอียด: %s' "$RUN_URL")
+              ;;
+            *)
+              text=$(printf '🚨 Watchdog ภายนอก: เว็บไม่ตอบหรือตอบผิดปกติ (HTTP %s) — เปิด %s ดูว่าเข้าได้ไหม\nรายละเอียด: %s' "${HTTP_STATUS:-000}" "${APP_URL:-เว็บ}" "$RUN_URL")
+              ;;
+          esac
+          # disable_web_page_preview: ไม่ให้ Telegram แสดงการ์ดตัวอย่างลิงก์ GitHub ขนาดใหญ่
           curl -sS --max-time 20 -o /dev/null -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
             --data-urlencode "chat_id=${TELEGRAM_ADMIN_CHAT_ID}" \
-            --data-urlencode "text=🚨 Watchdog ภายนอก: เว็บตอบผิดปกติหรือเข้าไม่ได้ — ${RUN_URL}"
+            --data-urlencode "disable_web_page_preview=true" \
+            --data-urlencode "text=${text}"

@@ -14,21 +14,21 @@ interface TelegramOptions {
   env?: Partial<Record<"TELEGRAM_BOT_TOKEN" | "TELEGRAM_ADMIN_CHAT_ID", string>>;
   fetchImpl?: typeof fetch;
   timeoutMs?: number;
+  /** รอก่อนลองครั้งที่สอง (เทสต์ใส่ 0) */
+  retryDelayMs?: number;
 }
 
 const DEFAULT_TIMEOUT_MS = 5000;
+const DEFAULT_RETRY_DELAY_MS = 1000;
 /** Telegram รับข้อความยาวสุด 4096 ตัวอักษร */
 const MAX_MESSAGE_LENGTH = 4000;
 
 type CallResult = { ok: true; result: unknown } | { ok: false; reason: TelegramFailure };
+type Attempt = CallResult | { ok: false; reason: TelegramFailure; retryable: boolean };
 
-async function callTelegram(method: string, payload: Record<string, unknown>, options: TelegramOptions): Promise<CallResult> {
-  const env = options.env ?? process.env;
-  const token = env.TELEGRAM_BOT_TOKEN;
-  if (!token) return { ok: false, reason: "NOT_CONFIGURED" };
-
+async function attemptTelegram(url: string, method: string, payload: Record<string, unknown>, options: TelegramOptions): Promise<Attempt> {
   try {
-    const response = await (options.fetchImpl ?? fetch)(`https://api.telegram.org/bot${token}/${method}`, {
+    const response = await (options.fetchImpl ?? fetch)(url, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(payload),
@@ -36,14 +36,34 @@ async function callTelegram(method: string, payload: Record<string, unknown>, op
     });
     if (!response.ok) {
       console.error(`[notify:telegram] ${method}: Telegram ตอบกลับ HTTP ${response.status}`);
-      return { ok: false, reason: "HTTP_ERROR" };
+      // 429/5xx = Telegram ไม่ว่างชั่วคราว ลองใหม่ได้ / 4xx อื่น (chat id ผิด, token ถูกเพิกถอน) ลองซ้ำก็ได้ผลเดิม
+      return { ok: false, reason: "HTTP_ERROR", retryable: response.status === 429 || response.status >= 500 };
     }
     const body = (await response.json().catch(() => null)) as { result?: unknown } | null;
     return { ok: true, result: body?.result ?? null };
   } catch (error) {
     console.error(`[notify:telegram] ${method}: เรียก Telegram ไม่สำเร็จ:`, redactSensitive(error instanceof Error ? error.message : String(error)));
-    return { ok: false, reason: "NETWORK_ERROR" };
+    return { ok: false, reason: "NETWORK_ERROR", retryable: true };
   }
+}
+
+/**
+ * ลองใหม่ 1 ครั้งเมื่อพลาดแบบชั่วคราว — 25–29 ต.ค. 2569 เซิร์ฟเวอร์บน Render ต่อ Telegram ไม่ติดเป็นพัก ๆ (NETWORK_ERROR)
+ * Watchdog แจ้งเองไม่ได้ GitHub เลยส่งข้อความสำรองว่าเว็บล่มทั้งที่เว็บปกติ
+ * แลกกับโอกาสเล็กน้อยที่ข้อความซ้ำ (ครั้งแรกถึงแล้วแต่คำตอบหมดเวลา) — ดีกว่าแจ้งเตือนหาย
+ */
+async function callTelegram(method: string, payload: Record<string, unknown>, options: TelegramOptions): Promise<CallResult> {
+  const env = options.env ?? process.env;
+  const token = env.TELEGRAM_BOT_TOKEN;
+  if (!token) return { ok: false, reason: "NOT_CONFIGURED" };
+
+  const url = `https://api.telegram.org/bot${token}/${method}`;
+  const first = await attemptTelegram(url, method, payload, options);
+  if (first.ok || !("retryable" in first) || !first.retryable) return first.ok ? first : { ok: false, reason: first.reason };
+
+  await new Promise((resolve) => setTimeout(resolve, options.retryDelayMs ?? DEFAULT_RETRY_DELAY_MS));
+  const second = await attemptTelegram(url, method, payload, options);
+  return second.ok ? second : { ok: false, reason: second.reason };
 }
 
 function truncate(text: string): string {

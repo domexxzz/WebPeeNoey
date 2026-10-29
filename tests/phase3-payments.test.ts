@@ -183,8 +183,9 @@ describe("Phase 3: Admin Telegram notifications", () => {
     const httpFail = vi.fn().mockResolvedValue(new Response("bad", { status: 400 }));
     expect(await sendAdminTelegram("x", { env, fetchImpl: httpFail })).toEqual({ ok: false, reason: "HTTP_ERROR" });
     const networkFail = vi.fn().mockRejectedValue(new Error("offline"));
-    expect(await sendAdminTelegram("x", { env, fetchImpl: networkFail })).toEqual({ ok: false, reason: "NETWORK_ERROR" });
-    expect(errorLog).toHaveBeenCalledTimes(2);
+    expect(await sendAdminTelegram("x", { env, fetchImpl: networkFail, retryDelayMs: 0 })).toEqual({ ok: false, reason: "NETWORK_ERROR" });
+    // HTTP 400 ไม่ลองใหม่ (1 log), เน็ตล่มลองใหม่ 1 ครั้งแล้วยังล่ม (2 log)
+    expect(errorLog).toHaveBeenCalledTimes(3);
     errorLog.mockRestore();
   });
 });
