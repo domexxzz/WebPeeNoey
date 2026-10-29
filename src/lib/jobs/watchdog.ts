@@ -5,6 +5,7 @@ import { buildNewSlipMessage } from "@/lib/orders/slip-notification";
 import { sendAdminTelegram, type TelegramFailure, type TelegramWebhookInfo } from "@/lib/notify/telegram";
 import { JOB_NAMES, runJob, type AdminAlert, type JobOutcome } from "./job-run";
 import { checkBrokerClaimQueue, renotifyBrokerClaims } from "@/lib/broker-ib/watchdog-checks";
+import { describePlanDrift, findPlanDrift } from "@/lib/admin/plan-drift";
 
 const MINUTE_MS = 60 * 1000;
 const HOUR_MS = 60 * MINUTE_MS;
@@ -123,6 +124,14 @@ async function renotifySlips(db: PrismaClient, { now, siteUrl, alert }: { now: D
   return { sent, failed: pending.length - sent };
 }
 
+/** จำนวนวันของแพ็กเกจในฐานข้อมูลไม่ตรงกับโค้ด → ลูกค้าได้สิทธิ์ไม่ตรงกับที่เว็บบอก (เช่น migration ยังไม่ได้รันบน production) */
+async function checkPlanDrift(db: PrismaClient): Promise<WatchdogProblem[]> {
+  const drift = await findPlanDrift(db);
+  return drift.length > 0
+    ? [{ key: "plan-duration-drift", message: `จำนวนวันของแพ็กเกจในฐานข้อมูลไม่ตรงกับโค้ด — การอนุมัติจะให้สิทธิ์ตามฐานข้อมูล: ${drift.map(describePlanDrift).join("; ")} (มี migration ที่ยังไม่ได้รันบน production หรือไม่)` }]
+    : [];
+}
+
 async function checkReviewQueue(db: PrismaClient, now: Date): Promise<WatchdogProblem[]> {
   const overdue = await db.order.count({
     where: { status: "SLIP_SUBMITTED", slipUploadedAt: { lt: new Date(now.getTime() - WATCHDOG_RULES.reviewOverdueHours * HOUR_MS) } },
@@ -159,6 +168,7 @@ export async function inspectSystem(
     ...(await checkReviewQueue(db, now)),
     ...(await checkBrokerClaimQueue(db, now)),
     ...(await checkDeprovisionQueue(db, now)),
+    ...(await checkPlanDrift(db)),
   ];
   const slips = await renotifySlips(db, { now, siteUrl, alert });
   if (slips.failed > 0) {

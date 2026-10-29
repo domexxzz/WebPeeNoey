@@ -2,6 +2,7 @@ import type { JobRunStatus, PrismaClient } from "@prisma/client";
 import { JOB_NAMES, type JobName } from "@/lib/jobs/job-run";
 import { getPaymentAvailability, type PaymentAvailability } from "@/lib/orders/availability";
 import { countPendingDeprovision, getMemberCounts } from "./dashboard";
+import { findPlanDrift, type PlanDrift } from "./plan-drift";
 
 /** ตัวแปรที่ระบบใช้ — หน้าสถานะแสดงแค่ว่าตั้งค่าแล้วหรือยัง ห้ามแสดงค่าจริง (CLAUDE.md ข้อ 4) */
 export const MONITORED_ENV = [
@@ -34,6 +35,8 @@ export interface SystemHealth {
   payments: PaymentAvailability;
   queues: { pendingReview: number; unnotifiedSlips: number; awaitingPayment: number; expiringSoon: number; pendingDeprovision: number };
   jobs: JobHealth[];
+  /** แพ็กเกจที่จำนวนวันในฐานข้อมูลไม่ตรงกับโค้ด (ว่าง = ตรงกันหมด) */
+  planDrift: PlanDrift[];
 }
 
 export const JOB_LABELS: Record<JobName, string> = {
@@ -85,10 +88,11 @@ export async function getSystemHealth(
       payments: { open: false, reason: "DISABLED" },
       queues: { pendingReview: 0, unnotifiedSlips: 0, awaitingPayment: 0, expiringSoon: 0, pendingDeprovision: 0 },
       jobs: [],
+      planDrift: [],
     };
   }
 
-  const [payments, pendingReview, unnotifiedSlips, awaitingPayment, members, pendingDeprovision, jobs] = await Promise.all([
+  const [payments, pendingReview, unnotifiedSlips, awaitingPayment, members, pendingDeprovision, jobs, planDrift] = await Promise.all([
     getPaymentAvailability(db),
     db.order.count({ where: { status: "SLIP_SUBMITTED" } }),
     db.order.count({ where: { status: "SLIP_SUBMITTED", adminNotifiedAt: null } }),
@@ -97,6 +101,7 @@ export async function getSystemHealth(
     getMemberCounts(db, { now }),
     countPendingDeprovision(db),
     getJobHealth(db),
+    findPlanDrift(db),
   ]);
 
   return {
@@ -106,5 +111,6 @@ export async function getSystemHealth(
     payments,
     queues: { pendingReview, unnotifiedSlips, awaitingPayment, expiringSoon: members.expiringSoon, pendingDeprovision },
     jobs,
+    planDrift,
   };
 }

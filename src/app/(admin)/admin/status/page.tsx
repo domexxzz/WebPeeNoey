@@ -5,6 +5,7 @@ import { CheckCircle2, CircleAlert, XCircle } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { formatDateTime } from "@/lib/format";
 import { getSystemHealth } from "@/lib/admin/health";
+import { describePlanDrift } from "@/lib/admin/plan-drift";
 import { AdminCard, AdminPageHeader } from "@/components/admin/admin-ui";
 import { PAYMENT_RULES } from "@/config/payment";
 
@@ -42,6 +43,19 @@ export default async function AdminStatusPage() {
             <li className="flex items-center gap-2 text-fg">
               <StatusIcon ok={health.payments.open} warn /> การรับชำระเงิน: {health.payments.open ? "เปิด" : "ปิด"}
               <Link href="/admin/settings" className="text-xs text-gold-ink hover:underline">ตั้งค่า</Link>
+            </li>
+            <li className="flex items-start gap-2 text-fg">
+              <StatusIcon ok={health.planDrift.length === 0} />
+              <span>
+                จำนวนวันของแพ็กเกจ (ฐานข้อมูลเทียบกับโค้ด): {health.planDrift.length === 0 ? "ตรงกัน" : "ไม่ตรงกัน — การอนุมัติจะให้สิทธิ์ตามฐานข้อมูล"}
+                {health.planDrift.length > 0 && (
+                  <ul className="mt-1 space-y-0.5 text-xs text-red-700">
+                    {health.planDrift.map((drift) => (
+                      <li key={drift.slug}>{describePlanDrift(drift)}</li>
+                    ))}
+                  </ul>
+                )}
+              </span>
             </li>
           </ul>
         </AdminCard>
