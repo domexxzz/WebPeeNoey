@@ -1,5 +1,16 @@
 # เอกสารส่งต่องาน (Project Handoff & Session Log)
 
+## เซสชัน: แก้สิทธิ์ทดลอง IB ที่ได้ 30 วันแทน 7 วัน (production)
+**วันที่:** 29 ตุลาคม 2026  
+**สถานะ:** แก้บนฐานข้อมูลจริงแล้วและอ่านกลับยืนยันแล้ว — ไม่มีการแก้โค้ด
+
+- อาการ: เจ้าของแจ้งว่าลูกค้า YeepY_YeepY (`ja***@gmail.com`, คำขอ `IB-20261028-7F3A3D`, XM MT5) ควรได้ทดลอง 1 สัปดาห์ แต่หน้าสมาชิกขึ้นใช้ได้ถึง 27 พ.ย.
+- สาเหตุ: migration `20261026110000_ib_plan_seven_days` **ไม่เคยรันกับฐานข้อมูลจริง** (`prisma migrate status` บอกว่าค้างตัวเดียว) — SQL ที่เจ้าของรันเองเมื่อ 26 ต.ค. น่าจะไปลงโปรเจกต์ Neon อื่น → แถว Plan `broker-ib` ยัง 30 วัน และการอนุมัติ IB อ่านวันจากแถวนี้
+- **ฐานข้อมูลจริงอยู่ที่ไหน:** `webpeenoey-db` บน Neon ที่สร้างผ่าน **Vercel Marketplace** (host `ep-frosty-butterfly-…c-4.ap-southeast-1.aws.neon.tech`) — อยู่ใน Neon org ที่ Vercel ดูแล **ไม่ใช่**บัญชี Neon `dometeenlek@gmail.com` (ที่นั่นมีแค่ PheeNgern / Webpeenot ซึ่งไม่ใช่ของเว็บนี้) — Render ใช้ตัวนี้ (ยืนยันจากข้อมูลที่เขียนเมื่อ 25/28 ต.ค. หลัง Vercel ถูกพัก); เข้าถึงจากเครื่อง dev ได้ด้วย `vercel env pull <ไฟล์ใน scratchpad> --environment production` แล้วใช้ `DATABASE_URL_UNPOOLED` (ลบไฟล์ทิ้งหลังใช้)
+- แก้แล้ว: (1) `prisma migrate deploy` → แพ็กเกจ `broker-ib` = 7 วัน (2) ลด Subscription ของออเดอร์นี้ `currentPeriodEnd` 2026-11-27T11:05:44Z → **2026-11-04T11:05:44Z** (18:05 น. ไทย) ใน transaction เดียวกับ AuditLog `SUBSCRIPTION_ADJUST` (actorId = null, details มีก่อน/หลัง เหตุผล และผู้สั่ง) — ตอนแก้มีสมาชิกที่มีสิทธิ์คนเดียว จึงไม่มีคนอื่นได้รับผล
+- งาน check-expiry รันทุกวันสำเร็จ (secrets ครบแล้ว: `CRON_SECRET`, `RENDER_DEPLOY_HOOK`, Telegram) — สิทธิ์นี้จะถูกปิดในรอบหลัง 4 พ.ย. 18:05 (รอบ ~15:20 น. ของ 5 พ.ย.)
+- ยังไม่ทำ: label ภาษาไทยของ `SUBSCRIPTION_ADJUST` ใน `AUDIT_ACTIONS` (ตอนนี้หน้า Audit Log โชว์ชื่ออังกฤษ); ยอดฝากขั้นต่ำ IB ในการตั้งค่ายังเป็น 30 USD (ตกลงกับพาร์ทเนอร์ 50 USD); ควรย้ายฐานข้อมูลออกจาก Vercel Marketplace มาไว้บัญชี Neon ของเจ้าของ
+
 ## เซสชัน: เพิ่มคู่มือย้ายสายงานโบรกเกอร์ (XM: YKMDC / Exness: 00awo0516g) และรูปภาพคู่มือ
 **วันที่:** 27 ตุลาคม 2026  
 **สถานะ:** unit 462 ผ่าน (เพิ่ม 4 ข้อใน `tests/broker-ib-components.test.tsx`), `tsc --noEmit` ผ่าน, `npm run build` ผ่าน

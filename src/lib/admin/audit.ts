@@ -13,6 +13,8 @@ export const AUDIT_ACTIONS = {
   PROVISIONING_UPDATE: "อัปเดตการเปิดสิทธิ์",
   SETTINGS_UPDATE: "แก้ไขการตั้งค่าระบบ",
   SUBSCRIPTION_EXPIRE: "สิทธิ์หมดอายุ (อัตโนมัติ)",
+  // แก้วันสิ้นสุดของช่วงสิทธิ์โดยตรงในฐานข้อมูล (ไม่มีปุ่มในหลังบ้าน) — เช่น 29 ต.ค. 2569 ลดสิทธิ์ทดลอง IB ให้ตรงกับแพ็กเกจ (ดู docs/HANDOFF.md)
+  SUBSCRIPTION_ADJUST: "ปรับวันหมดอายุของสิทธิ์",
   PROVISIONING_CARRY_OVER: "ย้ายสถานะเปิดสิทธิ์ไปช่วงถัดไป (อัตโนมัติ)",
   IB_SETTINGS_UPDATE: "แก้ไขการตั้งค่าสิทธิ์ผ่าน IB",
   BROKER_CLAIM_APPROVE: "อนุมัติสิทธิ์ผ่าน IB",
