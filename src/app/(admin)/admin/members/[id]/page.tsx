@@ -68,7 +68,7 @@ export default async function AdminMemberDetailPage({ params }: { params: Promis
                 </div>
                 {subscription.revocationReason && <p className="text-xs text-red-700">ปิดสิทธิ์: {subscription.revocationReason}</p>}
                 {(subscription.status === "ACTIVE" || subscription.status === "EXPIRING_SOON" || subscription.tradingViewGranted || subscription.discordRoleGranted || subscription.telegramGranted) && (
-                  <ProvisioningPanel subscription={subscription} />
+                  <ProvisioningPanel subscription={subscription} tradingViewUsername={member.tradingViewUsername} />
                 )}
               </li>
             ))}

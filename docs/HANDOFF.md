@@ -1,5 +1,16 @@
 # เอกสารส่งต่องาน (Project Handoff & Session Log)
 
+## เซสชัน: ตัวช่วยเปิดสิทธิ์ TradingView ในหน้าแอดมิน
+**วันที่:** 30 ตุลาคม 2026  
+**สถานะ:** unit 479 ผ่าน (เพิ่ม `tests/tradingview-grant-helper.test.tsx` 8 ข้อ), `tsc` ผ่าน, `next build` ผ่าน — ยังไม่ push
+
+- **ที่มา:** เจ้าของเปิดหน้า "จัดการการเข้าถึงแบบเฉพาะผู้ได้รับเชิญ" ของสคริปต์ `Gold HybridShot Signals [PyroBolt]` แล้วพบว่ามีผู้ใช้คนเดียวคือ `auranovabullion` (ซึ่ง **ไม่มีในฐานข้อมูลเรา**) ส่วนสมาชิกจริงที่ถูกติ๊กว่าเปิดสิทธิ์แล้วทั้งสองคน (`YeepY_YeepY`, `Anekevchul`) **ไม่อยู่ในรายการ** — ปุ่มติ๊กในหลังบ้านเป็นแค่การบันทึก ไม่ได้เพิ่มสิทธิ์ใน TradingView ให้ (ไม่มี API ทางการ)
+- `src/lib/admin/tradingview-access.ts`: `tradingViewProfileUrl()` (รับเฉพาะ `[A-Za-z0-9_]{2,30}` — ชื่อผิดรูปแบบคืน null ห้ามเอาค่าดิบไปต่อใน href), `resolveScriptAccessUrl()` (รับเฉพาะ https ของ tradingview.com และเส้นทาง `/script/`)
+- `src/components/admin/tradingview-grant-helper.tsx` (client): ปุ่มคัดลอกชื่อผู้ใช้, ลิงก์เปิดโปรไฟล์เช็กว่าชื่อมีจริง, ลิงก์หน้าสคริปต์ (ถ้าตั้ง `NEXT_PUBLIC_TRADINGVIEW_SCRIPT_URL`), บอกวันหมดอายุที่ควรใส่ใน TradingView (= `currentPeriodEnd` → TradingView ตัดสิทธิ์เองเมื่อครบ ไม่ต้องกลับมาลบมือ) และเตือนว่าติ๊กหลังเพิ่มชื่อจริงแล้วเท่านั้น; ไม่มีชื่อผู้ใช้ = เตือนสีส้มแทน
+- แสดงใน `ProvisioningPanel` (ใช้ทั้งหน้า `/admin/members/[id]`, `/admin/orders/[id]`, `/admin/broker-claims/[id]` — props เพิ่ม `tradingViewUsername` และใช้ `subscription.currentPeriodEnd`)
+- env ใหม่ `NEXT_PUBLIC_TRADINGVIEW_SCRIPT_URL` (render.yaml, .env.example, หน้าสถานะ) — ยังไม่ได้ตั้งค่าบน Render
+- **ค้าง (งานของเจ้าของ):** เพิ่ม `YeepY_YeepY` และ `Anekevchul` ในรายการ Invite-only ของสคริปต์ พร้อมใส่วันหมดอายุ 4 พ.ย. 18:05 และ 6 พ.ย. 10:48 — และยืนยันว่า `auranovabullion` เป็นบัญชีของเจ้าของเอง
+
 ## เซสชัน: ตรวจระบบเปิดสิทธิ์อินดิเคเตอร์ + ปิดคำขอทดสอบที่ค้างคิว
 **วันที่:** 30 ตุลาคม 2026  
 **สถานะ:** ตรวจจากฐานข้อมูลจริงแล้ว ระบบปกติ — ไม่มีการแก้โค้ด

@@ -23,6 +23,7 @@ export const MONITORED_ENV = [
   { key: "NEXT_PUBLIC_CONTACT_EMAIL", required: false, purpose: "อีเมลติดต่อลูกค้าบนเว็บ" },
   { key: "NEXT_PUBLIC_CONTACT_LINE", required: false, purpose: "LINE ติดต่อลูกค้าบนเว็บ" },
   { key: "NEXT_PUBLIC_CONTACT_TELEGRAM", required: false, purpose: "Telegram ติดต่อลูกค้าบนเว็บ" },
+  { key: "NEXT_PUBLIC_TRADINGVIEW_SCRIPT_URL", required: false, purpose: "ลิงก์หน้าสคริปต์ TradingView ในหน้าเปิดสิทธิ์" },
   { key: "NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION", required: false, purpose: "ยืนยันเว็บกับ Google Search Console" },
   { key: "NEXT_PUBLIC_BING_SITE_VERIFICATION", required: false, purpose: "ยืนยันเว็บกับ Bing Webmaster Tools" },
   { key: "NEXT_PUBLIC_CF_ANALYTICS_TOKEN", required: false, purpose: "สถิติผู้เข้าชม (Cloudflare Web Analytics)" },

@@ -169,7 +169,7 @@ export default async function AdminBrokerClaimPage({ params }: { params: Promise
                 <SubscriptionBadge status={claim.subscription.status} />
                 {formatDateTime(claim.subscription.currentPeriodStart)} → {formatDateTime(claim.subscription.currentPeriodEnd)}
               </div>
-              <ProvisioningPanel subscription={claim.subscription} />
+              <ProvisioningPanel subscription={claim.subscription} tradingViewUsername={claim.user.tradingViewUsername} />
             </AdminCard>
           )}
 

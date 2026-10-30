@@ -1,14 +1,18 @@
 import { CheckCircle2, Circle } from "lucide-react";
 import { PROVISIONING_CHANNELS, type ProvisioningChannel } from "@/lib/admin/members";
 import { setProvisioningAction } from "@/app/(admin)/admin/actions";
+import { TRADINGVIEW_SCRIPT_ACCESS_URL } from "@/lib/admin/tradingview-access";
 import { ActionForm } from "./action-form";
+import { TradingViewGrantHelper } from "./tradingview-grant-helper";
 
 interface ProvisioningPanelProps {
-  subscription: { id: string; tradingViewGranted: boolean; discordRoleGranted: boolean; telegramGranted: boolean };
+  subscription: { id: string; tradingViewGranted: boolean; discordRoleGranted: boolean; telegramGranted: boolean; currentPeriodEnd: Date };
+  /** ชื่อผู้ใช้ TradingView ของสมาชิก — ใช้คัดลอกไปเพิ่มสิทธิ์ในหน้าสคริปต์ */
+  tradingViewUsername: string | null;
 }
 
 /** เช็กลิสต์เปิดสิทธิ์ทีละช่องทาง (ทำด้วยมือ) — ทุกการเปลี่ยนแปลงบันทึก AuditLog */
-export function ProvisioningPanel({ subscription }: ProvisioningPanelProps) {
+export function ProvisioningPanel({ subscription, tradingViewUsername }: ProvisioningPanelProps) {
   return (
     <ul className="grid gap-2 sm:grid-cols-3">
       {(Object.keys(PROVISIONING_CHANNELS) as ProvisioningChannel[]).map((channel) => {
@@ -25,6 +29,9 @@ export function ProvisioningPanel({ subscription }: ProvisioningPanelProps) {
               <input type="hidden" name="channel" value={channel} />
               <input type="hidden" name="granted" value={granted ? "false" : "true"} />
             </ActionForm>
+            {channel === "tradingView" && (
+              <TradingViewGrantHelper username={tradingViewUsername} periodEnd={subscription.currentPeriodEnd} scriptAccessUrl={TRADINGVIEW_SCRIPT_ACCESS_URL} />
+            )}
           </li>
         );
       })}

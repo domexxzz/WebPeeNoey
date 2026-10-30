@@ -74,6 +74,9 @@ services:
         sync: false
       - key: NEXT_PUBLIC_DISCORD_INVITE
         sync: false
+      # ลิงก์หน้าสคริปต์ TradingView (ไว้กดไป "จัดการการเข้าถึง" จากหน้าแอดมิน) — ไม่ตั้ง = ไม่แสดงลิงก์
+      - key: NEXT_PUBLIC_TRADINGVIEW_SCRIPT_URL
+        sync: false
       # ช่องทางติดต่อลูกค้า — ไม่ตั้ง = ซ่อนช่องทางนั้นบนเว็บ
       - key: NEXT_PUBLIC_CONTACT_EMAIL
         sync: false

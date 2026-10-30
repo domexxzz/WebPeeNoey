@@ -224,7 +224,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
                 {formatDateTime(order.subscription.currentPeriodStart)} → {formatDateTime(order.subscription.currentPeriodEnd)}
                 {order.subscription.isPriceLocked && <span className="text-xs text-gold-ink">ล็อกราคา</span>}
               </div>
-              <ProvisioningPanel subscription={order.subscription} />
+              <ProvisioningPanel subscription={order.subscription} tradingViewUsername={order.user.tradingViewUsername} />
             </AdminCard>
           )}
 
