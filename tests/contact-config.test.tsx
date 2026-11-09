@@ -102,7 +102,12 @@ describe("deploy config for contact channels", () => {
     const root = path.resolve(__dirname, "..");
     const renderYaml = readFileSync(path.join(root, "render.yaml"), "utf8");
     const envExample = readFileSync(path.join(root, ".env.example"), "utf8");
-    for (const key of ["NEXT_PUBLIC_CONTACT_EMAIL", "NEXT_PUBLIC_CONTACT_LINE", "NEXT_PUBLIC_CONTACT_TELEGRAM"]) {
+    for (const key of [
+      "NEXT_PUBLIC_CONTACT_EMAIL",
+      "NEXT_PUBLIC_CONTACT_LINE",
+      "NEXT_PUBLIC_CONTACT_TELEGRAM",
+      "NEXT_PUBLIC_CONTACT_FACEBOOK",
+    ]) {
       expect(renderYaml).toContain(`key: ${key}`);
       expect(envExample).toContain(`${key}=`);
     }

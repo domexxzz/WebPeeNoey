@@ -47,12 +47,41 @@ const LINE_ID_PATTERN = /^@?([a-z0-9._-]{3,20})$/;
 // username ของ Telegram 5–32 ตัว (a-z 0-9 _) — ลิงก์เชิญกลุ่ม (t.me/+…, joinchat) ไม่ใช่ช่องทางติดต่อ
 const TELEGRAM_PATTERN = /^(?:https:\/\/t\.me\/|@)?([A-Za-z][A-Za-z0-9_]{4,31})\/?$/;
 
-/** เฉพาะโดเมน facebook.com จริง (และ www/web/m) ผ่าน https เท่านั้น — กันลิงก์ปลอมอย่าง facebook.com.evil.com */
-const FACEBOOK_PATTERN = /^https:\/\/(?:www\.|web\.|m\.)?facebook\.com\/[A-Za-z0-9._%-]+(?:\/[A-Za-z0-9._%-]+)*\/?$/;
+/** เฉพาะโดเมน facebook.com จริง (และ www/web/m) — กันลิงก์ปลอมอย่าง facebook.com.evil.com */
+const FACEBOOK_HOSTS = new Set(["facebook.com", "www.facebook.com", "web.facebook.com", "m.facebook.com"]);
+const FACEBOOK_PATH_PATTERN = /^\/[A-Za-z0-9._%-]+(?:\/[A-Za-z0-9._%-]+)*\/?$/;
+const FACEBOOK_PROFILE_PATH = "/profile.php";
+const FACEBOOK_PROFILE_ID_PATTERN = /^[0-9]{1,32}$/;
 
+/**
+ * ลิงก์เพจ Facebook — รับเฉพาะ https ของโดเมนจริง แล้วประกอบ URL ใหม่จาก host + path ที่ตรวจแล้ว
+ * (ไม่คืนค่าดิบ เพื่อให้ลิงก์แปลก ๆ อย่าง https://user@facebook.com/x ออกมาสะอาด)
+ *
+ * ลิงก์ที่ก๊อปมาจากแอปจริงมักพ่วง query ติดตามมาด้วย เช่น ?mibextid=… จึงตัด query ทิ้ง
+ * ยกเว้น id ของ /profile.php ซึ่งเป็นตัวระบุเพจ ถ้าตัดไปลิงก์จะพาไปหน้าโปรไฟล์ของคนที่กดเอง
+ */
 export function normalizeFacebookUrl(raw: string | undefined | null): string | null {
   const value = raw?.trim() ?? "";
-  return FACEBOOK_PATTERN.test(value) ? value.replace(/\/$/, "") : null;
+  if (!value) return null;
+
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    return null;
+  }
+
+  if (url.protocol !== "https:") return null;
+  const host = url.hostname.toLowerCase();
+  if (!FACEBOOK_HOSTS.has(host)) return null;
+  if (!FACEBOOK_PATH_PATTERN.test(url.pathname)) return null;
+
+  const path = url.pathname.replace(/\/$/, "");
+  if (path.toLowerCase() === FACEBOOK_PROFILE_PATH) {
+    const id = url.searchParams.get("id") ?? "";
+    return FACEBOOK_PROFILE_ID_PATTERN.test(id) ? `https://${host}${path}?id=${id}` : null;
+  }
+  return `https://${host}${path}`;
 }
 
 export function normalizeContactEmail(raw: string | undefined | null): string | null {

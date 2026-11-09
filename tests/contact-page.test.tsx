@@ -25,6 +25,39 @@ describe("normalizeFacebookUrl", () => {
     }
   });
 
+  /**
+   * ลิงก์ที่เจ้าของเว็บก๊อปมาจากแอป Facebook จริงมักพ่วง query ติดตามมาด้วย
+   * ถ้าปฏิเสธทิ้งปุ่มจะหายไปเงียบ ๆ ทั้งที่ลิงก์ใช้ได้ จึงตัด query แล้วเก็บเฉพาะ path
+   */
+  it("drops the tracking query that a copied link carries", () => {
+    expect(normalizeFacebookUrl("https://www.facebook.com/goldhybridshot?mibextid=LQQJ4d&rdid=xyz")).toBe(
+      "https://www.facebook.com/goldhybridshot",
+    );
+    expect(normalizeFacebookUrl("https://www.facebook.com/share/p/abc123/?mibextid=wwXIfr#post")).toBe(
+      "https://www.facebook.com/share/p/abc123",
+    );
+  });
+
+  /** id ของ /profile.php คือตัวระบุเพจ ตัดทิ้งแล้วลิงก์จะพาไปหน้าโปรไฟล์ของคนที่กดเอง */
+  it("keeps the id of a profile.php link and rejects one without a usable id", () => {
+    expect(normalizeFacebookUrl("https://web.facebook.com/profile.php?id=61560000000000&sk=about")).toBe(
+      "https://web.facebook.com/profile.php?id=61560000000000",
+    );
+    for (const bad of [
+      "https://facebook.com/profile.php",
+      "https://facebook.com/profile.php?id=",
+      "https://facebook.com/profile.php?id=not-a-number",
+    ]) {
+      expect(normalizeFacebookUrl(bad)).toBeNull();
+    }
+  });
+
+  /** ประกอบ URL ใหม่จาก host + path ที่ตรวจแล้ว ไม่คืนค่าดิบที่อาจมีส่วนอื่นแฝงมา */
+  it("strips credentials and a port instead of handing them to the browser", () => {
+    expect(normalizeFacebookUrl("https://evil@facebook.com/goldhybridshot")).toBe("https://facebook.com/goldhybridshot");
+    expect(normalizeFacebookUrl("https://facebook.com:443/goldhybridshot")).toBe("https://facebook.com/goldhybridshot");
+  });
+
   it("is wired into resolveContact", () => {
     expect(resolveContact({ NEXT_PUBLIC_CONTACT_FACEBOOK: "https://www.facebook.com/goldhybridshot" }).facebook).toBe(
       "https://www.facebook.com/goldhybridshot",
