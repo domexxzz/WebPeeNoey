@@ -84,6 +84,9 @@ services:
         sync: false
       - key: NEXT_PUBLIC_CONTACT_TELEGRAM
         sync: false
+      # เพจ Facebook (ไม่บังคับ) — ขึ้นเป็นปุ่มในหน้า /contact เมื่อตั้งค่าแล้ว
+      - key: NEXT_PUBLIC_CONTACT_FACEBOOK
+        sync: false
       # SEO / สถิติ — ไม่ตั้ง = ไม่ใส่แท็กยืนยัน / ไม่โหลดสคริปต์สถิติ
       - key: NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
         sync: false
