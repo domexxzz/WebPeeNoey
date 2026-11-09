@@ -64,7 +64,7 @@ export const FOOTER_NAV: { title: string; links: NavLink[] }[] = [
       { label: "ฟีเจอร์ทั้งหมด", href: "/features" },
       { label: "แพ็กเกจราคา", href: `/#${HOME_SECTION_IDS.pricing}` },
       { label: "คู่มือการใช้งาน", href: "/guide" },
-      { label: "ติดต่อเรา", href: `/#${HOME_SECTION_IDS.contact}` },
+      { label: "ติดต่อเรา", href: "/contact" },
     ],
   },
   {

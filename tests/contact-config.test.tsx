@@ -46,12 +46,12 @@ describe("resolveContact", () => {
         NEXT_PUBLIC_CONTACT_LINE: "@goldhybridshot",
         NEXT_PUBLIC_CONTACT_TELEGRAM: "@gold_support",
       }),
-    ).toEqual({ email: "support@goldhybridshot.com", line: "@goldhybridshot", telegram: "@gold_support" });
+    ).toEqual({ email: "support@goldhybridshot.com", line: "@goldhybridshot", telegram: "@gold_support", facebook: null });
   });
 
   it("leaves unset or invalid channels empty instead of falling back to the old peenoey accounts", () => {
     const contact = resolveContact({ NEXT_PUBLIC_CONTACT_EMAIL: "not-an-email" });
-    expect(contact).toEqual({ email: null, line: null, telegram: null });
+    expect(contact).toEqual({ email: null, line: null, telegram: null, facebook: null });
     expect(JSON.stringify(contact)).not.toMatch(/peenoey/);
   });
 });

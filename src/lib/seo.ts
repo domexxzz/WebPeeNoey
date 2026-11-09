@@ -15,6 +15,7 @@ export const PUBLIC_ROUTES: PublicRoute[] = [
   { path: "/features", changeFrequency: "monthly", priority: 0.8 },
   { path: "/guide", changeFrequency: "monthly", priority: 0.7 },
   { path: "/broker-ib", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/contact", changeFrequency: "monthly", priority: 0.6 },
   { path: "/terms", changeFrequency: "yearly", priority: 0.3 },
   { path: "/privacy", changeFrequency: "yearly", priority: 0.3 },
   { path: "/refund", changeFrequency: "yearly", priority: 0.3 },

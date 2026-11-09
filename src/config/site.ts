@@ -31,18 +31,29 @@ export interface ContactInfo {
   line: string | null;
   /** Telegram username รูปแบบ @handle */
   telegram: string | null;
+  /** เพจ Facebook — ไม่ใช่ช่องทางรับเรื่องร้องเรียน จึงไม่เข้าไปในข้อความติดต่อของเอกสารกฎหมาย */
+  facebook?: string | null;
 }
 
 interface ContactEnv {
   NEXT_PUBLIC_CONTACT_EMAIL?: string;
   NEXT_PUBLIC_CONTACT_LINE?: string;
   NEXT_PUBLIC_CONTACT_TELEGRAM?: string;
+  NEXT_PUBLIC_CONTACT_FACEBOOK?: string;
 }
 
 const EMAIL_PATTERN = /^[a-z0-9._%+-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}$/;
 const LINE_ID_PATTERN = /^@?([a-z0-9._-]{3,20})$/;
 // username ของ Telegram 5–32 ตัว (a-z 0-9 _) — ลิงก์เชิญกลุ่ม (t.me/+…, joinchat) ไม่ใช่ช่องทางติดต่อ
 const TELEGRAM_PATTERN = /^(?:https:\/\/t\.me\/|@)?([A-Za-z][A-Za-z0-9_]{4,31})\/?$/;
+
+/** เฉพาะโดเมน facebook.com จริง (และ www/web/m) ผ่าน https เท่านั้น — กันลิงก์ปลอมอย่าง facebook.com.evil.com */
+const FACEBOOK_PATTERN = /^https:\/\/(?:www\.|web\.|m\.)?facebook\.com\/[A-Za-z0-9._%-]+(?:\/[A-Za-z0-9._%-]+)*\/?$/;
+
+export function normalizeFacebookUrl(raw: string | undefined | null): string | null {
+  const value = raw?.trim() ?? "";
+  return FACEBOOK_PATTERN.test(value) ? value.replace(/\/$/, "") : null;
+}
 
 export function normalizeContactEmail(raw: string | undefined | null): string | null {
   const value = raw?.trim().toLowerCase() ?? "";
@@ -68,6 +79,7 @@ export function resolveContact(env: ContactEnv): ContactInfo {
     email: normalizeContactEmail(env.NEXT_PUBLIC_CONTACT_EMAIL),
     line: normalizeLineId(env.NEXT_PUBLIC_CONTACT_LINE),
     telegram: normalizeTelegramHandle(env.NEXT_PUBLIC_CONTACT_TELEGRAM),
+    facebook: normalizeFacebookUrl(env.NEXT_PUBLIC_CONTACT_FACEBOOK),
   };
 }
 
