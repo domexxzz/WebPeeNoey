@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Handshake, Mail, MessageCircle, Music2, Send, Users, type LucideIcon } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Handshake, Mail, MessageCircle, Music2, Send, ThumbsUp, Users, type LucideIcon } from "lucide-react";
 import { siteConfig, type ContactInfo } from "@/config/site";
 import { HOME_SECTION_IDS, RISK_DISCLAIMER } from "@/config/marketing";
 import { COMMUNITY } from "@/config/community";
@@ -40,7 +40,7 @@ export function getProfileLinks({ contact, facebook, discordInvite }: Required<C
     links.push({ label: COMMUNITY.discord.joinLabel, hint: COMMUNITY.discord.name, href: discordInvite, icon: Users, external: true });
   }
   if (facebook) {
-    links.push({ label: "Facebook", hint: "เพจอย่างเป็นทางการ", href: facebook, icon: ArrowUpRight, external: true });
+    links.push({ label: "Facebook", hint: "เพจอย่างเป็นทางการ", href: facebook, icon: ThumbsUp, external: true });
   }
   if (contact.tiktok) {
     links.push({ label: "TikTok", hint: contact.tiktok, href: toTikTokUrl(contact.tiktok), icon: Music2, external: true });
