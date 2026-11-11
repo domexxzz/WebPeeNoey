@@ -97,6 +97,24 @@ describe("organization JSON-LD", () => {
   });
 });
 
+/**
+ * resolveContact รับ env ที่ฉีดเข้ามา เทสต์อื่นจึงผ่านได้แม้ siteConfig จะไม่ได้ส่งคีย์นั้นมาจริง
+ * (เกิดขึ้นมาแล้วกับ _FACEBOOK และ _TIKTOK — ตั้งค่าใน Render เท่าไรปุ่มก็ไม่ขึ้น)
+ * Next.js ฝังค่า NEXT_PUBLIC_* ตอน build เฉพาะที่อ้าง process.env.<ชื่อเต็ม> ตรง ๆ
+ * จึงต้องเช็กที่ตัวไฟล์ว่าทุกคีย์ใน ContactEnv ถูกอ้างแบบนั้นครบ
+ */
+describe("every contact env key reaches siteConfig", () => {
+  it("passes each ContactEnv key to resolveContact as process.env.<KEY>", () => {
+    const source = readFileSync(path.resolve(__dirname, "..", "src/config/site.ts"), "utf8");
+    const declared = [...source.matchAll(/^\s*(NEXT_PUBLIC_CONTACT_[A-Z_]+)\?:/gm)].map((match) => match[1]);
+
+    expect(declared.length).toBeGreaterThanOrEqual(5);
+    for (const key of declared) {
+      expect(source).toContain(`${key}: process.env.${key},`);
+    }
+  });
+});
+
 describe("deploy config for contact channels", () => {
   it("declares the contact env vars in render.yaml and .env.example", () => {
     const root = path.resolve(__dirname, "..");
