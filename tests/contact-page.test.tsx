@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { normalizeFacebookUrl, resolveContact } from "@/config/site";
+import { normalizeFacebookUrl, normalizeTikTokHandle, resolveContact } from "@/config/site";
 import { ContactProfile } from "@/components/marketing/contact-profile";
 import { RISK_DISCLAIMER } from "@/config/marketing";
 import { PUBLIC_ROUTES } from "@/lib/seo";
@@ -10,7 +10,7 @@ import { PUBLIC_ROUTES } from "@/lib/seo";
  * จึงต้องแสดงเฉพาะช่องทางที่ตั้งค่าไว้จริง และต้องไม่ยิงออกไปหาโบรกเกอร์ตรง ๆ
  */
 const FULL = {
-  contact: { email: "support@goldhybridshot.com", line: "@goldhybridshot", telegram: "@peenoey" },
+  contact: { email: "support@goldhybridshot.com", line: "@goldhybridshot", telegram: "@peenoey", tiktok: "@lagraph_" },
   facebook: "https://www.facebook.com/goldhybridshot",
   discordInvite: "https://discord.gg/erJFe57YY",
 };
@@ -66,12 +66,45 @@ describe("normalizeFacebookUrl", () => {
   });
 });
 
+describe("normalizeTikTokHandle", () => {
+  /** ลิงก์ที่กดแชร์จากแอป TikTok พ่วง query ติดตามมาเสมอ (?_r=1&_t=…) ต้องไม่ทำให้ปุ่มหาย */
+  it("takes the handle from a link copied out of the app", () => {
+    expect(normalizeTikTokHandle("https://www.tiktok.com/@lagraph_?_r=1&_t=ZS-9BJlhe0yEpY")).toBe("@lagraph_");
+    expect(normalizeTikTokHandle("https://tiktok.com/@lagraph_/")).toBe("@lagraph_");
+    expect(normalizeTikTokHandle(" @lagraph_ ")).toBe("@lagraph_");
+    expect(normalizeTikTokHandle("lagraph_")).toBe("@lagraph_");
+  });
+
+  it("rejects anything that is not a plain channel handle", () => {
+    for (const bad of [
+      "",
+      undefined,
+      "a",
+      "ends.with.a.dot.",
+      "has space",
+      "http://www.tiktok.com/@lagraph_",
+      "https://vt.tiktok.com/ZS9BJlhe0", // ลิงก์ย่อ มองไม่เห็นว่าปลายทางเป็นช่องไหน
+      "https://tiktok.com.evil.com/@lagraph_",
+      "https://www.tiktok.com/@lagraph_/video/7300000000000000000",
+      "https://www.tiktok.com/",
+    ]) {
+      expect(normalizeTikTokHandle(bad)).toBeNull();
+    }
+  });
+
+  it("is wired into resolveContact", () => {
+    expect(resolveContact({ NEXT_PUBLIC_CONTACT_TIKTOK: "https://www.tiktok.com/@lagraph_?_t=abc" }).tiktok).toBe("@lagraph_");
+    expect(resolveContact({ NEXT_PUBLIC_CONTACT_TIKTOK: "ไม่ใช่ชื่อช่อง" }).tiktok).toBeNull();
+  });
+});
+
 describe("ContactProfile", () => {
   it("shows every channel that is configured", () => {
     const markup = renderToStaticMarkup(<ContactProfile {...FULL} />);
 
     expect(markup).toContain("@goldhybridshot");
     expect(markup).toContain("@peenoey");
+    expect(markup).toContain('href="https://www.tiktok.com/@lagraph_"');
     expect(markup).toContain("support@goldhybridshot.com");
     expect(markup).toContain(FULL.discordInvite);
     expect(markup).toContain(FULL.facebook);
@@ -87,6 +120,7 @@ describe("ContactProfile", () => {
     expect(markup).not.toContain("t.me");
     expect(markup).not.toContain("discord.gg");
     expect(markup).not.toContain("facebook.com");
+    expect(markup).not.toContain("tiktok.com");
   });
 
   /**

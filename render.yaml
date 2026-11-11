@@ -87,6 +87,9 @@ services:
       # เพจ Facebook (ไม่บังคับ) — ขึ้นเป็นปุ่มในหน้า /contact เมื่อตั้งค่าแล้ว
       - key: NEXT_PUBLIC_CONTACT_FACEBOOK
         sync: false
+      # ช่อง TikTok (ไม่บังคับ) — ใส่ @handle หรือลิงก์ช่องก็ได้ ขึ้นเป็นปุ่มในหน้า /contact
+      - key: NEXT_PUBLIC_CONTACT_TIKTOK
+        sync: false
       # SEO / สถิติ — ไม่ตั้ง = ไม่ใส่แท็กยืนยัน / ไม่โหลดสคริปต์สถิติ
       - key: NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
         sync: false

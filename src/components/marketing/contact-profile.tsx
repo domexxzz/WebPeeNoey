@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Handshake, Mail, MessageCircle, Send, Users, type LucideIcon } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Handshake, Mail, MessageCircle, Music2, Send, Users, type LucideIcon } from "lucide-react";
 import { siteConfig, type ContactInfo } from "@/config/site";
 import { HOME_SECTION_IDS, RISK_DISCLAIMER } from "@/config/marketing";
 import { COMMUNITY } from "@/config/community";
@@ -21,6 +21,7 @@ interface ContactProfileProps {
 
 const toLineUrl = (lineId: string) => `https://line.me/R/ti/p/${encodeURIComponent(lineId)}`;
 const toTelegramUrl = (handle: string) => `https://t.me/${handle.replace(/^@/, "")}`;
+const toTikTokUrl = (handle: string) => `https://www.tiktok.com/@${handle.replace(/^@/, "")}`;
 
 /**
  * ลิงก์ที่แสดงบนหน้าโปรไฟล์ — เฉพาะช่องทางที่ตั้งค่าไว้จริง
@@ -39,6 +40,9 @@ export function getProfileLinks({ contact, facebook, discordInvite }: Required<C
   }
   if (facebook) {
     links.push({ label: "Facebook", hint: "เพจอย่างเป็นทางการ", href: facebook, icon: ArrowUpRight, external: true });
+  }
+  if (contact.tiktok) {
+    links.push({ label: "TikTok", hint: contact.tiktok, href: toTikTokUrl(contact.tiktok), icon: Music2, external: true });
   }
   if (contact.email) {
     links.push({ label: "อีเมล", hint: contact.email, href: `mailto:${contact.email}`, icon: Mail, external: false });

@@ -33,6 +33,8 @@ export interface ContactInfo {
   telegram: string | null;
   /** เพจ Facebook — ไม่ใช่ช่องทางรับเรื่องร้องเรียน จึงไม่เข้าไปในข้อความติดต่อของเอกสารกฎหมาย */
   facebook?: string | null;
+  /** ช่อง TikTok รูปแบบ @handle — ช่องทางติดตาม ไม่ใช่ช่องทางรับเรื่องร้องเรียนเช่นกัน */
+  tiktok?: string | null;
 }
 
 interface ContactEnv {
@@ -40,6 +42,7 @@ interface ContactEnv {
   NEXT_PUBLIC_CONTACT_LINE?: string;
   NEXT_PUBLIC_CONTACT_TELEGRAM?: string;
   NEXT_PUBLIC_CONTACT_FACEBOOK?: string;
+  NEXT_PUBLIC_CONTACT_TIKTOK?: string;
 }
 
 const EMAIL_PATTERN = /^[a-z0-9._%+-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}$/;
@@ -99,6 +102,35 @@ export function normalizeTelegramHandle(raw: string | undefined | null): string 
   return match ? `@${match[1]}` : null;
 }
 
+/** username ของ TikTok 2–24 ตัว (a-z 0-9 _ .) ห้ามลงท้ายด้วยจุดตามกติกาของ TikTok */
+const TIKTOK_HANDLE_PATTERN = /^@?([A-Za-z0-9_.]{1,23}[A-Za-z0-9_])$/;
+const TIKTOK_HOSTS = new Set(["tiktok.com", "www.tiktok.com", "m.tiktok.com"]);
+
+/**
+ * ช่อง TikTok — รับได้ทั้ง @handle และลิงก์เต็มที่ก๊อปจากแอป ซึ่งพ่วง query ติดตามมาเสมอ (?_r=1&_t=…)
+ * เก็บเป็น @handle แล้วค่อยประกอบลิงก์ตอนแสดงผล เหมือน LINE กับ Telegram
+ * ลิงก์ย่อ (vt.tiktok.com/xxx) ไม่รับ เพราะมองไม่เห็นว่าปลายทางเป็นช่องไหน
+ */
+export function normalizeTikTokHandle(raw: string | undefined | null): string | null {
+  const value = raw?.trim() ?? "";
+  if (!value) return null;
+
+  if (/^https?:\/\//i.test(value)) {
+    let url: URL;
+    try {
+      url = new URL(value);
+    } catch {
+      return null;
+    }
+    if (url.protocol !== "https:" || !TIKTOK_HOSTS.has(url.hostname.toLowerCase())) return null;
+    const match = TIKTOK_HANDLE_PATTERN.exec(url.pathname.replace(/\/$/, "").slice(1));
+    return match ? `@${match[1]}` : null;
+  }
+
+  const match = TIKTOK_HANDLE_PATTERN.exec(value);
+  return match ? `@${match[1]}` : null;
+}
+
 /**
  * ช่องทางติดต่อลูกค้าจาก env — ไม่ตั้ง/รูปแบบผิด = null แล้วซ่อนช่องทางนั้น
  * (ไม่มีค่าเริ่มต้น: บัญชี peenoey เดิมไม่มีอยู่จริง แสดงไว้ลูกค้าจะติดต่อไม่ได้)
@@ -109,6 +141,7 @@ export function resolveContact(env: ContactEnv): ContactInfo {
     line: normalizeLineId(env.NEXT_PUBLIC_CONTACT_LINE),
     telegram: normalizeTelegramHandle(env.NEXT_PUBLIC_CONTACT_TELEGRAM),
     facebook: normalizeFacebookUrl(env.NEXT_PUBLIC_CONTACT_FACEBOOK),
+    tiktok: normalizeTikTokHandle(env.NEXT_PUBLIC_CONTACT_TIKTOK),
   };
 }
 
