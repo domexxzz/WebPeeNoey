@@ -168,6 +168,17 @@ describe("SignalProof", () => {
     }
   });
 
+  /**
+   * ภาพอินดิเคเตอร์มีตาราง Win Rate ติดมาในภาพ ซึ่งเป็นสถิติย้อนหลังที่อินดิเคเตอร์คำนวณเอง
+   * ปล่อยตัวเลขลอย ๆ โดยไม่บอกที่มา = โฆษณาผลตอบแทนเกินจริง (CLAUDE.md ข้อ 3)
+   */
+  it("explains where a win rate on the image came from", () => {
+    for (const shot of SIGNAL_PROOF_SHOTS.filter((shot) => /Win Rate/i.test(shot.caption + shot.alt))) {
+      expect(shot.caption).toContain("สถิติย้อนหลัง");
+      expect(shot.caption).toContain("ไม่ใช่ผลการเทรดจริง");
+    }
+  });
+
   it("renders the screenshot with its caption, and nothing at all when there is none", () => {
     const markup = renderToStaticMarkup(<SignalProof />);
     expect(markup).toContain(SIGNAL_PROOF_SECTION.title);

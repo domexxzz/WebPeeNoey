@@ -22,7 +22,7 @@ export function SignalProof({ shots = SIGNAL_PROOF_SHOTS }: { shots?: ProofShot[
             key={shot.src}
             data-reveal="up"
             style={staggerStyle(index, 90)}
-            className="w-[min(78vw,320px)] shrink-0 snap-start"
+            className="w-[min(78vw,360px)] shrink-0 snap-start"
           >
             <figure className="flex h-full flex-col overflow-hidden border border-line bg-surface rounded-2xl">
               <Image
