@@ -3,6 +3,7 @@ import { ArrowRight, ArrowUpRight, Handshake, Mail, MessageCircle, Music2, Send,
 import { siteConfig, type ContactInfo } from "@/config/site";
 import { HOME_SECTION_IDS, RISK_DISCLAIMER } from "@/config/marketing";
 import { COMMUNITY } from "@/config/community";
+import { SignalProof } from "@/components/marketing/signal-proof";
 import { staggerStyle } from "@/lib/motion";
 
 interface ProfileLink {
@@ -120,6 +121,8 @@ export function ContactProfile({
           ใช้ฟรีผ่านโบรกเกอร์
         </Link>
       </div>
+
+      <SignalProof />
 
       <p className="mt-9 border-t border-line pt-6 text-xs text-fg-subtle leading-relaxed">{RISK_DISCLAIMER}</p>
     </div>

@@ -2,8 +2,11 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { normalizeFacebookUrl, normalizeTikTokHandle, resolveContact } from "@/config/site";
 import { ContactProfile } from "@/components/marketing/contact-profile";
-import { RISK_DISCLAIMER } from "@/config/marketing";
+import { RISK_DISCLAIMER, SIGNAL_PROOF_SECTION, SIGNAL_PROOF_SHOTS } from "@/config/marketing";
+import { SignalProof } from "@/components/marketing/signal-proof";
 import { PUBLIC_ROUTES } from "@/lib/seo";
+import { existsSync } from "node:fs";
+import path from "node:path";
 
 /**
  * หน้า /contact คือลิงก์เดียวที่เอาไปแปะในไบโอโซเชียลได้ (แทนบริการรวมลิงก์ของเจ้าอื่น)
@@ -140,6 +143,43 @@ describe("ContactProfile", () => {
 
   it("sends people to the packages as well, not only to chat", () => {
     expect(renderToStaticMarkup(<ContactProfile {...FULL} />)).toContain('href="/#pricing"');
+  });
+});
+
+/**
+ * ภาพหน้าจอผลสัญญาณคือจุดที่เว็บแบบนี้ชอบใส่ของปลอม — กติกาโปรเจกต์ห้ามเด็ดขาด (CLAUDE.md ข้อ 3)
+ * เทสต์นี้จึงบังคับสองอย่าง: ไฟล์ภาพต้องมีอยู่จริงในรีโป และคำบรรยายต้องบอกว่าไม่การันตีผล
+ */
+describe("SignalProof", () => {
+  it("ships every screenshot it claims to show", () => {
+    expect(SIGNAL_PROOF_SHOTS.length).toBeGreaterThan(0);
+    for (const shot of SIGNAL_PROOF_SHOTS) {
+      expect(existsSync(path.resolve(__dirname, "..", "public", shot.src.replace(/^\//, "")))).toBe(true);
+      expect(shot.width).toBeGreaterThan(0);
+      expect(shot.height).toBeGreaterThan(0);
+      expect(shot.sizes).toMatch(/\d/);
+      expect(shot.alt.length).toBeGreaterThan(20);
+    }
+  });
+
+  it("never lets a caption read as a promise of profit", () => {
+    for (const shot of SIGNAL_PROOF_SHOTS) {
+      expect(shot.caption).toMatch(/ไม่ใช่ผลลัพธ์ที่การันตี|ไม่รับประกัน|ไม่การันตี/);
+    }
+  });
+
+  it("renders the screenshot with its caption, and nothing at all when there is none", () => {
+    const markup = renderToStaticMarkup(<SignalProof />);
+    expect(markup).toContain(SIGNAL_PROOF_SECTION.title);
+    expect(markup).toContain(SIGNAL_PROOF_SHOTS[0].caption);
+    expect(markup).toContain("<figcaption");
+    expect(renderToStaticMarkup(<SignalProof shots={[]} />)).toBe("");
+  });
+
+  it("sits on the contact page above the risk warning", () => {
+    const markup = renderToStaticMarkup(<ContactProfile {...FULL} />);
+    expect(markup.indexOf(SIGNAL_PROOF_SECTION.title)).toBeGreaterThan(-1);
+    expect(markup.indexOf(SIGNAL_PROOF_SECTION.title)).toBeLessThan(markup.indexOf(RISK_DISCLAIMER));
   });
 });
 
