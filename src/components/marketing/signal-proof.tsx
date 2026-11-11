@@ -3,9 +3,9 @@ import { SIGNAL_PROOF_SECTION, SIGNAL_PROOF_SHOTS, type ProofShot } from "@/conf
 import { staggerStyle } from "@/lib/motion";
 
 /**
- * ภาพหน้าจอจริงจากห้องสัญญาณ — เรียงลงมาเป็นแถวเดียว เลื่อนหน้าลงอ่านได้ตามปกติ
- * (เคยทำเป็นแถวเลื่อนแนวนอน แต่บนมือถือการลากข้างในหน้าที่เลื่อนลงอยู่แล้วใช้ยาก)
- * การ์ดกว้างไม่เกินขนาดจริงของภาพ จะได้ไม่ถูกยืดจนตัวเลขบนกราฟเบลอ
+ * ภาพหน้าจอจริงจากห้องสัญญาณ — วางเป็นตารางเรียงข้างกัน ไม่ใช่แถวเลื่อนแนวนอน
+ * (แถวเลื่อนใช้ยากบนมือถือ เพราะต้องลากข้างอยู่ในหน้าที่กำลังเลื่อนลง)
+ * มือถือเรียงลงมาทีละใบ จอกว้างขึ้นเรียงสองใบต่อแถว ภาพไม่ถูกครอป เห็นเต็มใบเสมอ
  * ไม่มีภาพ = ไม่แสดงหัวข้อทั้งก้อน ดีกว่าโชว์หัวข้อว่าง ๆ ค้างไว้
  */
 export function SignalProof({ shots = SIGNAL_PROOF_SHOTS }: { shots?: ProofShot[] }) {
@@ -18,7 +18,7 @@ export function SignalProof({ shots = SIGNAL_PROOF_SHOTS }: { shots?: ProofShot[
       </h2>
       <p className="mt-1.5 text-xs text-fg-subtle leading-relaxed">{SIGNAL_PROOF_SECTION.description}</p>
 
-      <ul className="mt-4 flex flex-col gap-4">
+      <ul className="mt-4 grid gap-4 sm:grid-cols-2">
         {shots.map((shot, index) => (
           <li key={shot.src} data-reveal="up" style={staggerStyle(index, 90)}>
             <figure

@@ -64,7 +64,9 @@ export function ContactProfile({
   const links = getProfileLinks({ contact, facebook, discordInvite });
 
   return (
-    <div className="mx-auto w-full max-w-xl px-4 sm:px-6 py-14 sm:py-20">
+    <div className="mx-auto w-full max-w-3xl px-4 sm:px-6 py-14 sm:py-20">
+      {/* ส่วนโปรไฟล์และปุ่มช่องทางคงความกว้างเดิมไว้ — แถวภาพด้านล่างกว้างกว่า จะได้เรียงเป็นแถวได้ */}
+      <div className="mx-auto w-full max-w-xl">
       <div data-reveal="up" className="flex flex-col items-center text-center">
         <span aria-hidden="true" className="flex w-16 h-16 items-center justify-center border border-gold bg-gold/10 font-display text-2xl font-bold text-gold-ink rounded-2xl">
           GH
@@ -121,10 +123,13 @@ export function ContactProfile({
           ใช้ฟรีผ่านโบรกเกอร์
         </Link>
       </div>
+      </div>
 
       <SignalProof />
 
-      <p className="mt-9 border-t border-line pt-6 text-xs text-fg-subtle leading-relaxed">{RISK_DISCLAIMER}</p>
+      <p className="mx-auto mt-9 w-full max-w-xl border-t border-line pt-6 text-xs text-fg-subtle leading-relaxed">
+        {RISK_DISCLAIMER}
+      </p>
     </div>
   );
 }
