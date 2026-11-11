@@ -39,6 +39,10 @@ describe("normalizeFacebookUrl", () => {
     expect(normalizeFacebookUrl("https://www.facebook.com/share/p/abc123/?mibextid=wwXIfr#post")).toBe(
       "https://www.facebook.com/share/p/abc123",
     );
+    // ลิงก์เพจจริงของเจ้าของเว็บ — Facebook เติม ?locale=… ให้เองเวลาก๊อปจากเบราว์เซอร์
+    expect(normalizeFacebookUrl("https://www.facebook.com/Graphhunting?locale=th_TH")).toBe(
+      "https://www.facebook.com/Graphhunting",
+    );
   });
 
   /** id ของ /profile.php คือตัวระบุเพจ ตัดทิ้งแล้วลิงก์จะพาไปหน้าโปรไฟล์ของคนที่กดเอง */
