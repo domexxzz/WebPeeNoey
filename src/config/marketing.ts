@@ -338,7 +338,7 @@ export const SIGNAL_PROOF_SHOTS: ProofShot[] = [
     src: "/images/community/discord-signal-alert.webp",
     width: 412,
     height: 624,
-    sizes: "(min-width: 640px) 360px, 78vw",
+    sizes: "(min-width: 444px) 412px, calc(100vw - 2rem)",
     alt: "ภาพหน้าจอห้องสัญญาณใน Discord: ข้อความของบอท Gold HybridShot Signals แจ้งสัญญาณ SELL XAUUSD กรอบ 15 นาที พร้อมราคาเข้า จุดตัดขาดทุน เป้าหมาย TP1 TP2 และข้อความแจ้งเมื่อราคาถึงเป้าหมายทั้งสองจุด",
     caption:
       "ข้อความแจ้งเตือนจริงในห้องสัญญาณ 11 พ.ย. 2569 — สัญญาณ SELL XAUUSD กรอบ 15 นาที และข้อความที่บอทส่งตามเมื่อราคาถึงเป้าหมาย เป็นตัวอย่างหนึ่งครั้ง ไม่ใช่ผลลัพธ์ที่การันตีได้",
@@ -347,7 +347,7 @@ export const SIGNAL_PROOF_SHOTS: ProofShot[] = [
     src: "/images/community/indicator-xauusd-m5.webp",
     width: 504,
     height: 480,
-    sizes: "(min-width: 640px) 360px, 78vw",
+    sizes: "(min-width: 536px) 504px, calc(100vw - 2rem)",
     alt: "ภาพหน้าจออินดิเคเตอร์ Gold HybridShot บนกราฟทองคำ XAUUSD กรอบ 5 นาที: ป้าย BUY ราคาเข้า เส้นเป้าหมาย TP1 TP2 เส้นตัดขาดทุน SL และตารางสรุปที่แสดงแนวโน้ม UP สัญญาณ LONG",
     caption:
       "กราฟทองคำ กรอบ 5 นาที — ป้ายสัญญาณ ราคาเข้า เป้าหมาย TP1 TP2 และจุดตัดขาดทุนที่อินดิเคเตอร์วาดบนกราฟ · ตัวเลข Win Rate 62.4% และจำนวนสัญญาณ 165 ในตารางเป็นสถิติย้อนหลังที่อินดิเคเตอร์คำนวณบนกราฟนี้เอง ไม่ใช่ผลการเทรดจริงของสมาชิก ไม่รวมสเปรดและค่าธรรมเนียม และไม่รับประกันผลในอนาคต",
@@ -356,7 +356,7 @@ export const SIGNAL_PROOF_SHOTS: ProofShot[] = [
     src: "/images/community/indicator-xauusd-m15.webp",
     width: 507,
     height: 479,
-    sizes: "(min-width: 640px) 360px, 78vw",
+    sizes: "(min-width: 539px) 507px, calc(100vw - 2rem)",
     alt: "ภาพหน้าจออินดิเคเตอร์ Gold HybridShot บนกราฟทองคำ XAUUSD กรอบ 15 นาที: ป้าย BUY เส้นเป้าหมาย TP1 TP2 เส้นตัดขาดทุน SL และตารางสรุปที่แสดงสถานะสัญญาณ WAIT",
     caption:
       "กราฟทองคำ กรอบ 15 นาที — ตารางมุมขวาบนแสดงสถานะ WAIT คือจังหวะที่อินดิเคเตอร์ยังไม่ให้สัญญาณใหม่ · ตัวเลข Win Rate 59.7% และจำนวนสัญญาณ 124 เป็นสถิติย้อนหลังที่อินดิเคเตอร์คำนวณบนกราฟนี้เอง ไม่ใช่ผลการเทรดจริงของสมาชิก ไม่รวมสเปรดและค่าธรรมเนียม และไม่รับประกันผลในอนาคต",
@@ -365,7 +365,7 @@ export const SIGNAL_PROOF_SHOTS: ProofShot[] = [
     src: "/images/community/indicator-xauusd-m30.webp",
     width: 512,
     height: 464,
-    sizes: "(min-width: 640px) 360px, 78vw",
+    sizes: "(min-width: 544px) 512px, calc(100vw - 2rem)",
     alt: "ภาพหน้าจออินดิเคเตอร์ Gold HybridShot บนกราฟทองคำ XAUUSD กรอบ 30 นาที: ป้าย BUY ราคาเข้า เส้นเป้าหมาย TP1 TP2 เส้นตัดขาดทุน SL และตารางสรุปที่แสดงแนวโน้ม UP สัญญาณ LONG",
     caption:
       "กราฟทองคำ กรอบ 30 นาที — กรอบเวลาใหญ่ขึ้น ระยะระหว่างเป้าหมายกับจุดตัดขาดทุนก็กว้างขึ้นตาม · ตัวเลข Win Rate 69.8% และจำนวนสัญญาณ 149 เป็นสถิติย้อนหลังที่อินดิเคเตอร์คำนวณบนกราฟนี้เอง ไม่ใช่ผลการเทรดจริงของสมาชิก ไม่รวมสเปรดและค่าธรรมเนียม และไม่รับประกันผลในอนาคต",
