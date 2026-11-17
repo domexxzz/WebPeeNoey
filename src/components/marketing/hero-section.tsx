@@ -1,7 +1,8 @@
 import { Fragment } from "react";
 import Link from "next/link";
-import { ArrowRight, BellRing, Check, Send } from "lucide-react";
+import { ArrowRight, BellRing, Check, Send, Users } from "lucide-react";
 import { HERO_CONTENT, HOME_SECTION_IDS } from "@/config/marketing";
+import { COMMUNITY } from "@/config/community";
 import { loadDelayStyle as loadDelay } from "@/lib/motion";
 import { LiveChart } from "./live-chart";
 import { Phrases } from "./phrases";
@@ -114,6 +115,17 @@ export function HeroSection() {
             ดูแพ็กเกจและราคา
             <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" />
           </Link>
+          {COMMUNITY.discord.inviteUrl ? (
+            <a
+              href={COMMUNITY.discord.inviteUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group inline-flex items-center justify-center gap-2 rounded-xl border border-gold bg-gold/10 px-7 py-4 text-sm font-semibold text-fg transition-colors hover:bg-gold/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-ink"
+            >
+              <Users className="w-4 h-4 text-gold-ink" aria-hidden="true" />
+              {HERO_CONTENT.communityCta}
+            </a>
+          ) : null}
           <Link
             href={`/#${HOME_SECTION_IDS.howItWorks}`}
             className="inline-flex items-center justify-center rounded-xl border border-line px-7 py-4 text-sm font-medium text-fg transition-colors hover:border-gold hover:text-gold-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-ink"
