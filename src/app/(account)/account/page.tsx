@@ -11,6 +11,7 @@ import { PAYMENT_RULES } from "@/config/payment";
 import { telegramDeepLink } from "@/lib/telegram/link";
 import { TelegramConnect } from "@/components/account/telegram-connect";
 import { DiscordJoinLink } from "@/components/account/discord-join-link";
+import { MemberResources } from "@/components/account/member-resources";
 import { COMMUNITY } from "@/config/community";
 import { getBrokerIbAvailability } from "@/lib/broker-ib/availability";
 import { BROKER_IB_PLAN, BROKER_IB_RULES } from "@/config/broker-ib";
@@ -206,6 +207,9 @@ export default async function AccountDashboardPage() {
           </Link>
         </section>
       )}
+
+      {/* ไฟล์แจกสำหรับสมาชิก — เฉพาะคนที่มีสิทธิ์ใช้งานอยู่เท่านั้น */}
+      {isActive && <MemberResources />}
 
       <TelegramConnect
         enabled={telegramEnabled}
