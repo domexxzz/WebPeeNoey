@@ -83,7 +83,7 @@ export const HERO_CONTENT = {
   titleLead: "เครื่องมือวิเคราะห์กราฟ บน TradingView",
   titleHighlight: "พร้อมแจ้งเตือน และคอมมูนิตี้ ในที่เดียว",
   subtitle:
-    "สมัครสมาชิก รับสิทธิ์ใช้อินดิเคเตอร์แบบ Invite-only บนบัญชี TradingView ของคุณ พร้อมกลุ่ม Telegram VIP สำหรับแจ้งเตือน และคอมมูนิตี้ Discord สำหรับแลกเปลี่ยนความรู้",
+    "สมัครสมาชิก รับสิทธิ์ใช้อินดิเคเตอร์แบบ Invite-only บนบัญชี TradingView ของคุณ พร้อมห้องสัญญาณและคอมมูนิตี้ Discord สำหรับแจ้งเตือนและแลกเปลี่ยนความรู้",
   highlights: [
     "ชำระผ่าน PromptPay QR สแกนได้ทุกธนาคาร",
     "ต่ออายุแบบทบวัน วันที่เหลืออยู่ไม่หาย",
@@ -111,11 +111,13 @@ export const FEATURES: FeatureItem[] = [
       "ระบบเปิดสิทธิ์ให้ตาม TradingView Username ที่คุณลงทะเบียนไว้ ใช้งานบนกราฟของคุณเองได้ทันทีหลังได้รับสิทธิ์",
   },
   {
+    // id เดิมตั้งไว้ตอนที่สัญญาณยังส่งทาง Telegram — ตอนนี้สัญญาณอยู่ใน Discord แล้ว
+    // คง id ไว้เพราะผูกกับคีย์ใน content/features.ts และรูปประกอบ เปลี่ยนแล้วต้องตามแก้ทั้งชุด
     id: "telegram",
     icon: "send",
-    title: "สัญญาณเข้ากลุ่ม Telegram VIP และ Discord",
+    title: "ห้องสัญญาณสำหรับสมาชิกบน Discord",
     description:
-      "รับลิงก์เชิญเข้ากลุ่มส่วนตัวหลังคำสั่งซื้อได้รับอนุมัติ — สัญญาณแต่ละครั้งบอกราคาเข้า จุดตัดขาดทุน และเป้าหมาย TP1 / TP2 พร้อมประกาศสำคัญจากทีมงาน",
+      "รับลิงก์เชิญเข้าเซิร์ฟเวอร์หลังคำสั่งซื้อได้รับอนุมัติ — สัญญาณแต่ละครั้งบอกราคาเข้า จุดตัดขาดทุน และเป้าหมาย TP1 / TP2 พร้อมประกาศสำคัญจากทีมงาน",
   },
   {
     id: "discord",
@@ -312,7 +314,7 @@ export const MEMBER_CARD = {
   label: "บัตรสมาชิก",
   kicker: "MEMBER PASS",
   tagline: "TradingView Invite-only Indicator",
-  channels: ["Indicator", "Telegram VIP", "Discord"],
+  channels: ["Indicator", "Signal Room", "Discord"],
   perksTitle: "สิทธิ์ของสมาชิกทุกแพ็กเกจ",
   perks: SITE_PLANS[0].features.slice(0, 4),
   footnote: "ชำระผ่าน PromptPay · ไม่ตัดเงินอัตโนมัติ",

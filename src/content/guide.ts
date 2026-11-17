@@ -93,10 +93,10 @@ export const GUIDE_SECTIONS: GuideSection[] = [
   },
   {
     id: "community",
-    title: "เข้ากลุ่ม Telegram และ Discord",
+    title: "เข้าคอมมูนิตี้ Discord",
     intro: "หลังคำสั่งซื้อได้รับอนุมัติ ทีมงานจะส่งช่องทางเข้ากลุ่มให้ทางอีเมลและแดชบอร์ดสมาชิก",
     steps: [
-      "เข้ากลุ่ม Telegram VIP ผ่านลิงก์เชิญที่ได้รับ (ลิงก์ใช้ได้ครั้งเดียว ห้ามส่งต่อ)",
+      "เข้าเซิร์ฟเวอร์ Discord ผ่านลิงก์เชิญที่ได้รับ",
       "สำหรับ Discord ให้แจ้ง Discord User ID กับทีมงาน เพื่อรับยศ VIP",
       "วิธีหา Discord User ID: เปิด User Settings → Advanced → เปิด Developer Mode แล้วคลิกขวาที่โปรไฟล์ของคุณ เลือก Copy User ID",
     ],
@@ -109,7 +109,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
     steps: [
       `ระบบส่งอีเมลเตือนล่วงหน้า ${PAYMENT_RULES.expiryReminderDays} วันก่อนสิทธิ์หมดอายุ`,
       "หากต่ออายุก่อนหมดอายุ จำนวนวันของแพ็กเกจใหม่จะต่อจากวันหมดอายุเดิม (ทบวัน)",
-      "เมื่อหมดอายุโดยไม่ได้ต่ออายุ สิทธิ์อินดิเคเตอร์ กลุ่ม Telegram และยศ Discord จะถูกปิดอัตโนมัติ",
+      "เมื่อหมดอายุโดยไม่ได้ต่ออายุ สิทธิ์อินดิเคเตอร์และยศ VIP ใน Discord จะถูกปิดอัตโนมัติ",
     ],
   },
 ];
@@ -121,7 +121,7 @@ export const TROUBLESHOOTING: TroubleshootItem[] = [
       "ตรวจสอบ TradingView Username ในแดชบอร์ดว่าถูกต้อง จากนั้นรีเฟรชหน้า TradingView หากยังไม่พบ ติดต่อทีมงานพร้อมอีเมลที่ใช้สมัคร",
   },
   {
-    problem: "ลิงก์เชิญ Telegram ใช้ไม่ได้",
+    problem: "ลิงก์เชิญ Discord ใช้ไม่ได้",
     solution: "ลิงก์เชิญใช้ได้ครั้งเดียวและมีวันหมดอายุ ติดต่อทีมงานเพื่อขอลิงก์ใหม่",
   },
   {

@@ -51,7 +51,7 @@ export default function OpengraphImage() {
           <div style={{ fontSize: "64px", fontWeight: 700, color: "#8A5F00", lineHeight: 1.1 }}>
             TradingView Invite-only Indicator
           </div>
-          <div style={{ fontSize: "32px", color: "#5C5344" }}>Telegram VIP alerts · Discord community · PromptPay checkout</div>
+          <div style={{ fontSize: "32px", color: "#5C5344" }}>Discord signal room · Discord community · PromptPay checkout</div>
         </div>
         <div style={{ fontSize: "24px", color: "#6B604E" }}>{siteConfig.domain}</div>
       </div>

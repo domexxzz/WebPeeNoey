@@ -49,7 +49,7 @@ export function TelegramConnect({ enabled, linked, linkedAtLabel }: TelegramConn
               ผูกบัญชีกับบอทของเรา แล้วบอทจะทักคุณใน <span className="font-medium text-fg">แชตส่วนตัว</span> ก่อนสิทธิ์หมดอายุ{" "}
               {PAYMENT_RULES.expiryReminderDays} วัน (นอกเหนือจากอีเมล) มีแค่คุณกับบอทในแชตนั้น ไม่มีสมาชิกคนอื่นเห็น
             </p>
-            <p className="text-[11px] text-fg-subtle">นี่ไม่ใช่การเข้ากลุ่ม — ห้อง Discord VIP และกลุ่ม Telegram VIP อยู่ในรายการช่องทางของแพ็กเกจ</p>
+            <p className="text-[11px] text-fg-subtle">นี่ไม่ใช่การเข้าคอมมูนิตี้ — ห้องสัญญาณและยศ VIP ใน Discord อยู่ในรายการสิทธิ์ของแพ็กเกจ</p>
           </div>
           {state.status === "ready" ? (
             <div className="space-y-2">

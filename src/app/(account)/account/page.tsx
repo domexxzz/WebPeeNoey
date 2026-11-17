@@ -155,16 +155,6 @@ export default async function AccountDashboardPage() {
                     )}
                   </li>
                 ))}
-                <li className="flex items-center justify-between gap-3 bg-surface px-5 py-4 text-sm">
-                  <span className="text-fg">กลุ่ม Telegram VIP</span>
-                  {supportTelegram ? (
-                    <a href={supportTelegram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs font-semibold text-gold-ink hover:text-gold-ink">
-                      <Send className="w-3.5 h-3.5" aria-hidden="true" /> ลิงก์เข้าร่วม
-                    </a>
-                  ) : (
-                    <span className="text-xs text-fg-subtle">ทีมงานจะส่งลิงก์ให้</span>
-                  )}
-                </li>
               </ul>
             </div>
           ) : (

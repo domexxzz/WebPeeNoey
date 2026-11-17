@@ -12,7 +12,7 @@ import { PageHeader } from "@/components/marketing/page-header";
 export const metadata: Metadata = buildPageMetadata({
   title: "ฟีเจอร์และสิ่งที่ได้รับ",
   description:
-    "รายละเอียดสิทธิ์สมาชิก: อินดิเคเตอร์ Invite-only บน TradingView กลุ่ม Telegram VIP คอมมูนิตี้ Discord คู่มือ และทีมช่วยเหลือ",
+    "รายละเอียดสิทธิ์สมาชิก: อินดิเคเตอร์ Invite-only บน TradingView ห้องสัญญาณและคอมมูนิตี้ Discord คู่มือ และทีมช่วยเหลือ",
   path: "/features",
 });
 

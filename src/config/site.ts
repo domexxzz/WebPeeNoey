@@ -160,7 +160,7 @@ export const siteConfig = {
   name: "Gold Hybridshot",
   shortName: "Gold Hybridshot",
   description:
-    "อินดิเคเตอร์ TradingView แบบ Invite-only พร้อมกลุ่ม Telegram VIP สำหรับแจ้งเตือน และคอมมูนิตี้ Discord ชำระง่ายผ่าน PromptPay",
+    "อินดิเคเตอร์ TradingView แบบ Invite-only พร้อมห้องสัญญาณและคอมมูนิตี้ Discord ชำระง่ายผ่าน PromptPay",
   domain: process.env.NEXT_PUBLIC_SITE_DOMAIN || "peenoey.com",
   url: resolveSiteUrl({
     VERCEL_ENV: process.env.VERCEL_ENV,

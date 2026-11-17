@@ -10,7 +10,7 @@ import { ContactProfile } from "@/components/marketing/contact-profile";
 export const metadata: Metadata = buildPageMetadata({
   title: "ติดต่อเรา",
   description:
-    "ช่องทางติดต่อทีมงาน Gold Hybridshot ทั้งหมดในหน้าเดียว — LINE Official, Telegram, Discord และอีเมล พร้อมทางเข้าดูแพ็กเกจและสิทธิ์ใช้งานฟรีผ่านโบรกเกอร์พาร์ทเนอร์",
+    "ช่องทางติดต่อทีมงาน Gold Hybridshot ทั้งหมดในหน้าเดียว — LINE Official, Discord, Facebook, TikTok และอีเมล พร้อมทางเข้าดูแพ็กเกจและสิทธิ์ใช้งานฟรีผ่านโบรกเกอร์พาร์ทเนอร์",
   path: "/contact",
 });
 

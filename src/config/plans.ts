@@ -31,7 +31,7 @@ export const SITE_PLANS: PlanConfig[] = [
     description: "เหมาะสำหรับนักเทรดที่ต้องการทดลองใช้งานสัญญาณอินดิเคเตอร์อย่างเต็มรูปแบบ",
     features: [
       "สิทธิ์ใช้ Indicator TradingView แบบ Invite-only (Full Features)",
-      "สิทธิ์เข้ากลุ่ม Telegram VIP สัญญาณเรียลไทม์",
+      "สัญญาณเรียลไทม์ในห้องสัญญาณของสมาชิกบน Discord",
       "ยศ VIP ใน Discord คอมมูนิตี้",
       "วิดีโอคู่มือสอนการตั้งค่าและกลยุทธ์ทีละขั้นตอน",
       "ระบบช่วยเหลือและ Support ทางเทคนิค",

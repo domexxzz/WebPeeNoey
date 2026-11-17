@@ -77,7 +77,9 @@ describe("Phase 5: Telegram connect card", () => {
   it("says plainly that this is a private chat with the bot, not a community room", () => {
     const markup = renderToStaticMarkup(<TelegramConnect enabled linked={false} linkedAtLabel={null} />);
     expect(markup).toContain("แชตส่วนตัว");
-    expect(markup).toContain("ไม่ใช่การเข้ากลุ่ม");
-    expect(markup).toContain("Discord VIP");
+    expect(markup).toContain("ไม่ใช่การเข้าคอมมูนิตี้");
+    // คอมมูนิตี้ของจริงอยู่ที่ Discord เท่านั้น — ไม่มีกลุ่ม Telegram VIP แล้ว
+    expect(markup).toContain("Discord");
+    expect(markup).not.toMatch(/กลุ่ม Telegram/);
   });
 });
