@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth";
 import { AlertTriangle, CheckCircle2, Info, ShieldCheck } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { formatTHB } from "@/config/plans";
+import { formatTHB, getPlanBySlug } from "@/config/plans";
 import { PAYMENT_RULES } from "@/config/payment";
 import { getPaymentAvailability, quoteForUser } from "@/lib/orders/checkout";
 import { checkoutErrorMessage, PRICE_REASON_LABELS } from "@/lib/orders/messages";
@@ -29,6 +29,11 @@ export default async function CheckoutPlanPage({ params, searchParams }: PagePro
   const availability = await getPaymentAvailability(prisma);
   const error = checkoutErrorMessage(query.error);
   const { plan, quote } = checkout;
+  /**
+   * ราคาและจำนวนวันยึดจากแถวในฐานข้อมูล (เป็นตัวตัดสินเรื่องเงิน) ส่วนรายการสิทธิ์เป็นข้อความการตลาด
+   * อ่านจาก src/config/plans.ts เพื่อให้แก้ที่เดียวแล้วตรงกับหน้าราคา โดยไม่ต้องแก้ข้อมูลในฐานข้อมูลตาม
+   */
+  const planFeatures = getPlanBySlug(plan.slug)?.features ?? plan.features;
   const showStrikePrice = quote.reason !== "REGULAR" && plan.originalPrice !== null && plan.originalPrice > quote.basePrice;
 
   return (
@@ -51,7 +56,7 @@ export default async function CheckoutPlanPage({ params, searchParams }: PagePro
           <h2 id="plan-heading" className="font-display text-xl font-bold text-fg">{plan.name}</h2>
           <p className="mt-1 text-sm text-fg-subtle">อายุการใช้งาน {plan.durationDays} วัน — ต่ออายุแบบทบวันจากวันหมดอายุเดิม</p>
           <ul className="mt-5 space-y-2.5">
-            {plan.features.map((feature) => (
+            {planFeatures.map((feature) => (
               <li key={feature} className="flex items-start gap-2 text-sm text-fg-muted">
                 <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-gold-ink" aria-hidden="true" />
                 {feature}

@@ -3,6 +3,8 @@ import path from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { MemberResources } from "@/components/account/member-resources";
+import { PricingSection } from "@/components/marketing/pricing-section";
+import { SITE_PLANS } from "@/config/plans";
 import { TRADING_JOURNAL, TRADING_JOURNAL_COPY, buildTradingJournal, normalizeSheetId } from "@/config/member-resources";
 
 const REAL_LINK =
@@ -59,5 +61,24 @@ describe("MemberResources card", () => {
   it("is rendered on the account page only for an active membership", () => {
     const page = readFileSync(path.resolve(__dirname, "..", "src/app/(account)/account/page.tsx"), "utf8");
     expect(page).toContain("{isActive && <MemberResources />}");
+  });
+});
+
+describe("the journal is listed as a package perk", () => {
+  const PERK = "ตารางบันทึกสถิติการเทรด";
+
+  it("appears in the entry plan, which the longer plans inherit", () => {
+    expect(SITE_PLANS[0].features.some((feature) => feature.includes(PERK))).toBe(true);
+    expect(renderToStaticMarkup(<PricingSection />)).toContain(PERK);
+  });
+
+  /**
+   * แถวแพ็กเกจในฐานข้อมูลมี features ของตัวเองซึ่งจะเก่าค้างจนกว่าจะรัน seed ใหม่
+   * หน้าชำระเงินจึงต้องอ่านรายการสิทธิ์จาก config ไม่งั้นหน้าราคากับหน้าชำระเงินจะไม่ตรงกัน
+   */
+  it("makes the checkout page read the perk list from config, not the database row", () => {
+    const page = readFileSync(path.resolve(__dirname, "..", "src/app/(account)/checkout/[plan]/page.tsx"), "utf8");
+    expect(page).toContain("getPlanBySlug(plan.slug)?.features ?? plan.features");
+    expect(page).toContain("{planFeatures.map(");
   });
 });
