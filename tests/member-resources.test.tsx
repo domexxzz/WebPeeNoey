@@ -53,6 +53,12 @@ describe("MemberResources card", () => {
     expect(markup).toContain(TRADING_JOURNAL_COPY.title);
   });
 
+  /** บัญชีเจ้าของไม่ได้ซื้อแพ็กเกจ ถ้าไม่เปิดให้แอดมินเห็น จะตรวจของที่แจกสมาชิกไม่ได้เลย */
+  it("tells an admin that members only see this with an active membership", () => {
+    expect(renderToStaticMarkup(<MemberResources adminPreview />)).toContain("คุณเห็นการ์ดนี้เพราะเป็นแอดมิน");
+    expect(renderToStaticMarkup(<MemberResources />)).not.toContain("คุณเห็นการ์ดนี้เพราะเป็นแอดมิน");
+  });
+
   it("renders nothing when no file is configured, instead of a dead button", () => {
     expect(renderToStaticMarkup(<MemberResources journal={null} />)).toBe("");
   });
@@ -60,7 +66,8 @@ describe("MemberResources card", () => {
   /** การ์ดนี้ต้องอยู่หลังการตรวจสิทธิ์เท่านั้น — คนที่สิทธิ์หมดอายุแล้วไม่ควรเห็น */
   it("is rendered on the account page only for an active membership", () => {
     const page = readFileSync(path.resolve(__dirname, "..", "src/app/(account)/account/page.tsx"), "utf8");
-    expect(page).toContain("{isActive && <MemberResources />}");
+    expect(page).toContain("{(isActive || isAdmin) && <MemberResources adminPreview={!isActive && isAdmin} />}");
+    expect(page).toContain('const isAdmin = user?.role === "ADMIN"');
   });
 });
 

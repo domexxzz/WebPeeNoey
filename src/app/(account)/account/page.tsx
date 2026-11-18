@@ -43,6 +43,7 @@ export default async function AccountDashboardPage() {
     ? await prisma.subscription.findUnique({ where: { id: membership.currentSubscriptionId }, include: { plan: true } })
     : null;
   const isActive = Boolean(membership?.active && currentSub);
+  const isAdmin = user?.role === "ADMIN";
   const endsAt = membership?.endsAt ?? null;
   const daysLeft = endsAt ? daysUntil(endsAt, now) : null;
   const expiringSoon = isActive && daysLeft !== null && daysLeft <= PAYMENT_RULES.expiryReminderDays;
@@ -209,7 +210,8 @@ export default async function AccountDashboardPage() {
       )}
 
       {/* ไฟล์แจกสำหรับสมาชิก — เฉพาะคนที่มีสิทธิ์ใช้งานอยู่เท่านั้น */}
-      {isActive && <MemberResources />}
+      {/* แอดมินเห็นด้วยเสมอ เพราะบัญชีเจ้าของไม่ได้ซื้อแพ็กเกจ จึงเปิดดูของที่แจกสมาชิกไม่ได้เลย */}
+      {(isActive || isAdmin) && <MemberResources adminPreview={!isActive && isAdmin} />}
 
       <TelegramConnect
         enabled={telegramEnabled}

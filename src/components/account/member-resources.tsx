@@ -11,11 +11,22 @@ import {
  * ไฟล์แจกสำหรับสมาชิก — แสดงเฉพาะคนที่มีสิทธิ์ใช้งานอยู่ (หน้า /account ตัดสินใจก่อนเรียกคอมโพเนนต์นี้)
  * ไม่ได้ตั้งไฟล์ไว้ = ไม่แสดงอะไรเลย ดีกว่าโชว์ปุ่มที่กดแล้วไปหน้าว่าง
  */
-export function MemberResources({ journal = TRADING_JOURNAL }: { journal?: TradingJournalResource | null }) {
+interface MemberResourcesProps {
+  journal?: TradingJournalResource | null;
+  /** true = แอดมินเปิดดูทั้งที่ไม่มีแพ็กเกจ — บอกให้ชัดว่าสมาชิกเห็นก็ต่อเมื่อมีสิทธิ์ใช้งานอยู่ */
+  adminPreview?: boolean;
+}
+
+export function MemberResources({ journal = TRADING_JOURNAL, adminPreview = false }: MemberResourcesProps) {
   if (!journal) return null;
 
   return (
     <section aria-labelledby="member-resources-heading" className="border border-line bg-surface rounded-2xl overflow-hidden">
+      {adminPreview && (
+        <p className="border-b border-line bg-gold-muted px-5 sm:px-6 py-3 text-xs text-fg">
+          คุณเห็นการ์ดนี้เพราะเป็นแอดมิน — สมาชิกจะเห็นก็ต่อเมื่อมีสิทธิ์ใช้งานอยู่เท่านั้น
+        </p>
+      )}
       <div className="flex items-start gap-3 border-b border-line px-5 sm:px-6 py-5">
         <span className="flex w-10 h-10 shrink-0 items-center justify-center border border-line text-gold-ink rounded-xl">
           <Table2 className="w-5 h-5" aria-hidden="true" />
